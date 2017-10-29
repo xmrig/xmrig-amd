@@ -1,0 +1,27 @@
+{
+    "algo": "cryptonight",
+    "background": false,
+    "colors": true,
+    "donate-level": 5,
+    "log-file": null,
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "syslog": false,
+    "opencl-platform": 0,
+    "threads": null,
+    "pools": [
+        {
+            "url": "pool.monero.hashvault.pro:5555",
+            "user": "",
+            "pass": "x",
+            "keepalive": true,
+            "nicehash": false
+        }
+    ],
+    "api": {
+        "port": 0,
+        "access-token": null,
+        "worker-id": null
+    }
+}
