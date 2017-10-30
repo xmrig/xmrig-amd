@@ -10,7 +10,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
-* [Build](https://github.com/xmrig/xmrig-nvidia/wiki/Build)
+* [Build](https://github.com/xmrig/xmrig-amd/wiki/Build)
 * [Donations](#donations)
 * [Contacts](#contacts)
 
