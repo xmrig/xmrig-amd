@@ -229,6 +229,8 @@ bool Options::save()
     doc.AddMember("syslog", m_syslog, allocator);
 #   endif
 
+    doc.AddMember("opencl-platform", m_platformIndex, allocator);
+
     rapidjson::Value threads(rapidjson::kArrayType);
     for (const OclThread *thread : m_threads) {
         rapidjson::Value obj(rapidjson::kObjectType);
