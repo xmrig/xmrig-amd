@@ -653,7 +653,7 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
         return ERR_OCL_API;
     }
 
-    if((ret = clSetKernelArg(ctx->Kernels[0], 0, sizeof(cl_ulong), &ctx->InputBuffer)) != CL_SUCCESS)
+    if((ret = clSetKernelArg(ctx->Kernels[0], 0, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 0.", err_to_str(ret));
         return ERR_OCL_API;
