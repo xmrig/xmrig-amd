@@ -41,14 +41,34 @@ struct GpuContext
     inline GpuContext() :
         deviceIdx(0),
         rawIntensity(0),
-        workSize(0)
+        workSize(0),
+        DeviceID(nullptr),
+        CommandQueues(nullptr),
+        InputBuffer(nullptr),
+        OutputBuffer(nullptr),
+        ExtraBuffers{ nullptr },
+        Program(nullptr),
+        Kernels{ nullptr },
+        freeMem(0),
+        computeUnits(0),
+        Nonce(0)
     {}
 
 
     inline GpuContext(size_t index, size_t intensity, size_t worksize) :
         deviceIdx(index),
         rawIntensity(intensity),
-        workSize(worksize)
+        workSize(worksize),
+        DeviceID(nullptr),
+        CommandQueues(nullptr),
+        InputBuffer(nullptr),
+        OutputBuffer(nullptr),
+        ExtraBuffers{ nullptr },
+        Program(nullptr),
+        Kernels{ nullptr },
+        freeMem(0),
+        computeUnits(0),
+        Nonce(0)
     {}
 
     /*Input vars*/

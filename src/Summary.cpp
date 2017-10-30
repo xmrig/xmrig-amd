@@ -58,15 +58,15 @@ static void print_versions()
 
 
 #   if CL_VERSION_2_0
-    char *ocl = "2.0";
+    const char *ocl = "2.0";
 #   elif CL_VERSION_1_2
-    char *ocl = "1.2";
+    const char *ocl = "1.2";
 #   elif CL_VERSION_1_1
-    char *ocl = "1.1";
+    const char *ocl = "1.1";
 #   elif CL_VERSION_1_0
-    char *ocl = "1.0";
+    const char *ocl = "1.0";
 #   else
-    char *ocl = "0.0";
+    const char *ocl = "0.0";
 #   endif
 
     Log::i()->text(Options::i()->colors() ? "\x1B[01;32m * \x1B[01;37mVERSIONS:     \x1B[01;36mXMRig/%s\x1B[01;37m libuv/%s OpenCL/%s%s" : " * VERSIONS:     XMRig/%s libuv/%s OpenCL/%s%s",

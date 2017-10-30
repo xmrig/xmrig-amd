@@ -28,9 +28,9 @@
 
 Handle::Handle(int threadId, OclThread *thread, GpuContext *ctx, int threads, bool lite) :
     m_lite(lite),
-    m_gpuThread(thread),
     m_threadId(threadId),
     m_threads(threads),
+    m_gpuThread(thread),
     m_ctx(ctx),
     m_worker(nullptr)
 {
