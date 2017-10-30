@@ -31,8 +31,6 @@ static inline void port_sleep(size_t sec)
 }
 #endif // _WIN32
 
-#include <CL/cl_ext.h>
-
 
 #include <algorithm>
 #include <cassert>
@@ -196,7 +194,7 @@ inline static int getDeviceMaxComputeUnits(cl_device_id id)
 
 inline static void getDeviceName(cl_device_id id, char *buf, size_t size)
 {
-    if (clGetDeviceInfo(id, CL_DEVICE_BOARD_NAME_AMD, size, buf, nullptr) == CL_SUCCESS) {
+    if (clGetDeviceInfo(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf, nullptr) == CL_SUCCESS) {
         return;
     }
 
