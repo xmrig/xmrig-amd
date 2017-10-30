@@ -33,6 +33,7 @@
 
 
 #include <stdint.h>
+#include <string>
 
 
 struct GpuContext
