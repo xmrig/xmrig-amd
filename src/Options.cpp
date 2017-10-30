@@ -235,9 +235,9 @@ bool Options::save()
     for (const OclThread *thread : m_threads) {
         rapidjson::Value obj(rapidjson::kObjectType);
 
-        obj.AddMember("index",     thread->index(), allocator);
-        obj.AddMember("intensity", thread->intensity(), allocator);
-        obj.AddMember("worksize",  thread->worksize(), allocator);
+        obj.AddMember("index",     (uint64_t) thread->index(), allocator);
+        obj.AddMember("intensity", (uint64_t) thread->intensity(), allocator);
+        obj.AddMember("worksize",  (uint64_t) thread->worksize(), allocator);
 
         if (thread->affinity() >= 0) {
             obj.AddMember("affine_to_cpu", thread->affinity(), allocator);

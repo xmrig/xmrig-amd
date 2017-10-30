@@ -358,24 +358,6 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     return 0;
 }
 
-const cl_platform_info attributeTypes[5] = {
-    CL_PLATFORM_NAME,
-    CL_PLATFORM_VENDOR,
-    CL_PLATFORM_VERSION,
-    CL_PLATFORM_PROFILE,
-    CL_PLATFORM_EXTENSIONS
-};
-
-const char* const attributeNames[] = {
-    "CL_PLATFORM_NAME",
-    "CL_PLATFORM_VENDOR",
-    "CL_PLATFORM_VERSION",
-    "CL_PLATFORM_PROFILE",
-    "CL_PLATFORM_EXTENSIONS"
-};
-
-#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
-
 
 uint32_t getNumPlatforms()
 {
