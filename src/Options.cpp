@@ -33,6 +33,7 @@
 #endif
 
 
+#include "amd/OclGPU.h"
 #include "Cpu.h"
 #include "donate.h"
 #include "log/Log.h"
@@ -72,6 +73,7 @@ Options:\n\
       --opencl-launch=IxW   list of launch config, intensity and worksize\n\
       --opencl-affinity=N   affine GPU threads to a CPU\n\
       --opencl-platform=N   OpenCL platform index\n\
+      --print-platforms     print available OpenCL platforms and exit\n\
       --no-color            disable colored output\n\
       --donate-level=N      donate level, default 5%% (5 minutes in 100 minutes)\n\
       --user-agent          set custom user-agent string for pool\n\
@@ -114,6 +116,7 @@ static struct option const options[] = {
     { "opencl-launch",    1, nullptr, 1403 },
     { "opencl-platform",  1, nullptr, 1400 },
     { "pass",             1, nullptr, 'p'  },
+    { "print-platforms",  0, nullptr, 1404 },
     { "print-time",       1, nullptr, 1007 },
     { "retries",          1, nullptr, 'r'  },
     { "retry-pause",      1, nullptr, 'R'  },
@@ -488,6 +491,10 @@ bool Options::parseArg(int key, const char *arg)
 
     case 'h': /* --help */
         showUsage(0);
+        return false;
+
+    case 1404: /* --print-platforms */
+        printPlatforms();
         return false;
 
     case 'c': /* --config */
