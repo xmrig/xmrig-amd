@@ -49,6 +49,9 @@ static inline void port_sleep(size_t sec)
 #include "Options.h"
 
 
+constexpr const char *kSetKernelArgErr = "Error %s when calling clSetKernelArg for kernel %d, argument %d.";
+
+
 const char* err_to_str(cl_int ret)
 {
     switch(ret)
@@ -199,6 +202,19 @@ inline static void getDeviceName(cl_device_id id, char *buf, size_t size)
     }
 
     clGetDeviceInfo(id, CL_DEVICE_NAME, size, buf, nullptr);
+}
+
+
+inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, cl_uint argument, size_t offset)
+{
+    cl_int ret;
+    if ((ret = clSetKernelArg(ctx->Kernels[kernel], argument, sizeof(cl_mem), ctx->ExtraBuffers + offset)) != CL_SUCCESS)
+    {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), kernel, argument);
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -615,129 +631,68 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
         return OCL_ERR_API;
     }
 
-    if((ret = clSetKernelArg(ctx->Kernels[0], 0, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 0.", err_to_str(ret));
+    if ((ret = clSetKernelArg(ctx->Kernels[0], 0, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 0, 0);
         return OCL_ERR_API;
     }
 
-    // Scratchpads
-    if((ret = clSetKernelArg(ctx->Kernels[0], 1, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 1.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
-    // States
-    if((ret = clSetKernelArg(ctx->Kernels[0], 2, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 2.", err_to_str(ret));
+    // Scratchpads, States
+    if (!setKernelArgFromExtraBuffers(ctx, 0, 1, 0) || !setKernelArgFromExtraBuffers(ctx, 0, 2, 1)) {
         return OCL_ERR_API;
     }
 
     // Threads
     if((ret = clSetKernelArg(ctx->Kernels[0], 3, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 3.", err_to_str(ret));
-        return(OCL_ERR_API);
-    }
-
-    // CN2 Kernel
-
-    // Scratchpads
-    if ((ret = clSetKernelArg(ctx->Kernels[1], 0, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 1, argument 0.", err_to_str(ret));
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 0, 3);
         return OCL_ERR_API;
     }
 
-    // States
-    if ((ret = clSetKernelArg(ctx->Kernels[1], 1, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 1, argument 1.", err_to_str(ret));
+    // CN2 Kernel
+    // Scratchpads, States
+    if (!setKernelArgFromExtraBuffers(ctx, 1, 0, 0) || !setKernelArgFromExtraBuffers(ctx, 1, 1, 1)) {
         return OCL_ERR_API;
     }
 
     // Threads
     if ((ret = clSetKernelArg(ctx->Kernels[1], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 1, argument 2.", err_to_str(ret));
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
         return(OCL_ERR_API);
     }
 
     // CN3 Kernel
-    // Scratchpads
-    if((ret = clSetKernelArg(ctx->Kernels[2], 0, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 0.", err_to_str(ret));
+    // Scratchpads, States
+    if (!setKernelArgFromExtraBuffers(ctx, 2, 0, 0) || !setKernelArgFromExtraBuffers(ctx, 2, 1, 1)) {
         return OCL_ERR_API;
     }
 
-    // States
-    if((ret = clSetKernelArg(ctx->Kernels[2], 1, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 1.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
-    // Branch 0
-    if((ret = clSetKernelArg(ctx->Kernels[2], 2, sizeof(cl_mem), ctx->ExtraBuffers + 2)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 2.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
-    // Branch 1
-    if((ret = clSetKernelArg(ctx->Kernels[2], 3, sizeof(cl_mem), ctx->ExtraBuffers + 3)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 3.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
-    // Branch 2
-    if((ret = clSetKernelArg(ctx->Kernels[2], 4, sizeof(cl_mem), ctx->ExtraBuffers + 4)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 4.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
-    // Branch 3
-    if((ret = clSetKernelArg(ctx->Kernels[2], 5, sizeof(cl_mem), ctx->ExtraBuffers + 5)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 5.", err_to_str(ret));
-        return OCL_ERR_API;
+    // Branch 0-3
+    for (size_t i = 0; i < 4; ++i) {
+        if (!setKernelArgFromExtraBuffers(ctx, 2, i + 2, i + 2)) {
+            return OCL_ERR_API;
+        }
     }
 
     // Threads
-    if((ret = clSetKernelArg(ctx->Kernels[2], 6, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 6.", err_to_str(ret));
-        return(OCL_ERR_API);
+    if((ret = clSetKernelArg(ctx->Kernels[2], 6, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 6);
+        return OCL_ERR_API;
     }
 
-    for(int i = 0; i < 4; ++i)
-    {
-        // States
-        if((ret = clSetKernelArg(ctx->Kernels[i + 3], 0, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
-        {
-            LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 0);
-            return OCL_ERR_API;
-        }
-
-        // Nonce buffer
-        if((ret = clSetKernelArg(ctx->Kernels[i + 3], 1, sizeof(cl_mem), ctx->ExtraBuffers + (i + 2))) != CL_SUCCESS)
-        {
-            LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 1);
+    for (int i = 0; i < 4; ++i) {
+        // Nonce buffer, Output
+        if (!setKernelArgFromExtraBuffers(ctx, i + 3, 0, 1) || !setKernelArgFromExtraBuffers(ctx, i + 3, 1, i + 2)) {
             return OCL_ERR_API;
         }
 
         // Output
-        if((ret = clSetKernelArg(ctx->Kernels[i + 3], 2, sizeof(cl_mem), &ctx->OutputBuffer)) != CL_SUCCESS)
-        {
-            LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 2);
+        if ((ret = clSetKernelArg(ctx->Kernels[i + 3], 2, sizeof(cl_mem), &ctx->OutputBuffer)) != CL_SUCCESS) {
+            LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 2);
             return OCL_ERR_API;
         }
 
         // Target
-        if((ret = clSetKernelArg(ctx->Kernels[i + 3], 3, sizeof(cl_ulong), &target)) != CL_SUCCESS)
-        {
-            LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 3);
+        if ((ret = clSetKernelArg(ctx->Kernels[i + 3], 3, sizeof(cl_ulong), &target)) != CL_SUCCESS) {
+            LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 3);
             return OCL_ERR_API;
         }
     }
@@ -834,8 +789,8 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
     for (int i = 0; i < 4; ++i) {
         if (BranchNonces[i]) {
             // Threads
-            if((clSetKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_ulong), BranchNonces + i)) != CL_SUCCESS) {
-                LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 4);
+            if ((clSetKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_ulong), BranchNonces + i)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 4);
                 return OCL_ERR_API;
             }
 
