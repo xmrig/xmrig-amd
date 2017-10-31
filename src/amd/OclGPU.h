@@ -8,9 +8,9 @@
 #include "amd/GpuContext.h"
 
 
-#define ERR_SUCCESS (0)
-#define ERR_OCL_API (2)
-#define ERR_STUPID_PARAMS (1)
+#define OCL_ERR_SUCCESS    (0)
+#define OCL_ERR_API        (2)
+#define OCL_ERR_BAD_PARAMS (1)
 
 
 uint32_t getNumPlatforms();

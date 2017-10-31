@@ -209,7 +209,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 
     if ((ret = clGetDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &MaximumWorkSize, NULL)) != CL_SUCCESS) {
         LOG_ERR("Error %s when querying a device's max worksize using clGetDeviceInfo.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     char buf[128] = { 0 };
@@ -229,13 +229,13 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateCommandQueueWithProperties.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     ctx->InputBuffer = clCreateBuffer(opencl_ctx, CL_MEM_READ_ONLY, 88, NULL, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create input buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     size_t hashMemSize;
@@ -256,54 +256,54 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     ctx->ExtraBuffers[0] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, hashMemSize * g_thd, NULL, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create hash scratchpads buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     ctx->ExtraBuffers[1] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, 200 * g_thd, NULL, &ret);
     if(ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create hash states buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Blake-256 branches
     ctx->ExtraBuffers[2] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), NULL, &ret);
     if (ret != CL_SUCCESS){
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 0 buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Groestl-256 branches
     ctx->ExtraBuffers[3] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), NULL, &ret);
     if(ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 1 buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // JH-256 branches
     ctx->ExtraBuffers[4] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), NULL, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 2 buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Skein-512 branches
     ctx->ExtraBuffers[5] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), NULL, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 3 buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Assume we may find up to 0xFF nonces in one run - it's reasonable
     ctx->OutputBuffer = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, NULL, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create output buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     ctx->Program = clCreateProgramWithSource(opencl_ctx, 1, (const char**)&source_code, NULL, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateProgramWithSource on the contents of cryptonight.cl", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     char options[256];
@@ -315,7 +315,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 
         if ((ret = clGetProgramBuildInfo(ctx->Program, ctx->DeviceID, CL_PROGRAM_BUILD_LOG, 0, NULL, &len)) != CL_SUCCESS) {
             LOG_ERR("Error %s when calling clGetProgramBuildInfo for length of build log output.", err_to_str(ret));
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
 
         char* BuildLog = (char*)malloc(len + 1);
@@ -324,14 +324,14 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         if ((ret = clGetProgramBuildInfo(ctx->Program, ctx->DeviceID, CL_PROGRAM_BUILD_LOG, len, BuildLog, NULL)) != CL_SUCCESS) {
             free(BuildLog);
             LOG_ERR("Error %s when calling clGetProgramBuildInfo for build log.", err_to_str(ret));
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
         
         Log::i()->text("Build log:");
-        std::cerr<<BuildLog<<std::endl;
+        std::cerr << BuildLog << std::endl;
 
         free(BuildLog);
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     cl_build_status status;
@@ -339,7 +339,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     {
         if ((ret = clGetProgramBuildInfo(ctx->Program, ctx->DeviceID, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, NULL)) != CL_SUCCESS) {
             LOG_ERR("Error %s when calling clGetProgramBuildInfo for status of build.", err_to_str(ret));
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
         port_sleep(1);
     }
@@ -350,7 +350,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         ctx->Kernels[i] = clCreateKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             LOG_ERR("Error %s when calling clCreateKernel for kernel %s.", err_to_str(ret), KernelNames[i]);
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
     }
 
@@ -486,13 +486,13 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
 {
     cl_uint entries = getNumPlatforms();
     if (entries == 0) {
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // The number of platforms naturally is the index of the last platform plus one.
     if (entries <= platform_idx) {
         LOG_ERR("Selected OpenCL platform index %d doesn't exist.", platform_idx);
-        return ERR_STUPID_PARAMS;
+        return OCL_ERR_BAD_PARAMS;
     }
 
     cl_platform_id *platforms = new cl_platform_id[entries];
@@ -517,19 +517,19 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
     cl_int ret;
     if ((ret = clGetPlatformIDs(entries, PlatformIDList, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetPlatformIDs for platform ID information.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if ((ret = clGetDeviceIDs(PlatformIDList[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceIDs for number of devices.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Same as the platform index sanity check, except we must check all requested device indexes
     for (int i = 0; i < num_gpus; ++i) {
         if (entries <= ctx[i].deviceIdx) {
             LOG_ERR("Selected OpenCL device index %lu doesn't exist.\n", ctx[i].deviceIdx);
-            return ERR_STUPID_PARAMS;
+            return OCL_ERR_BAD_PARAMS;
         }
     }
 
@@ -541,7 +541,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
 
     if((ret = clGetDeviceIDs(PlatformIDList[platform_idx], CL_DEVICE_TYPE_GPU, entries, DeviceIDList, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceIDs for device ID information.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Indexes sanity checked above
@@ -559,7 +559,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
     cl_context opencl_ctx = clCreateContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
     if(ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateContext.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     const char *cryptonightCL =
@@ -589,20 +589,21 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_GROESTL256"), groestl256CL);
 
     for (int i = 0; i < num_gpus; ++i) {
-        if ((ret = InitOpenCLGpu(i, opencl_ctx, &ctx[i], source_code.c_str())) != ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, opencl_ctx, &ctx[i], source_code.c_str())) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }
 
-    return ERR_SUCCESS;
+    return OCL_ERR_SUCCESS;
 }
 
 size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target)
 {
     cl_int ret;
 
-    if(input_len > 84)
-        return ERR_STUPID_PARAMS;
+    if (input_len > 84) {
+        return OCL_ERR_BAD_PARAMS;
+    }
 
     input[input_len] = 0x01;
     memset(input + input_len + 1, 0, 88 - input_len - 1);
@@ -611,33 +612,33 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
 
     if ((ret = clEnqueueWriteBuffer(ctx->CommandQueues, ctx->InputBuffer, CL_TRUE, 0, 88, input, 0, NULL, NULL)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill input buffer.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if((ret = clSetKernelArg(ctx->Kernels[0], 0, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 0.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Scratchpads
     if((ret = clSetKernelArg(ctx->Kernels[0], 1, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 1.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // States
     if((ret = clSetKernelArg(ctx->Kernels[0], 2, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 2.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Threads
     if((ret = clSetKernelArg(ctx->Kernels[0], 3, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 0, argument 3.", err_to_str(ret));
-        return(ERR_OCL_API);
+        return(OCL_ERR_API);
     }
 
     // CN2 Kernel
@@ -645,19 +646,19 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     // Scratchpads
     if ((ret = clSetKernelArg(ctx->Kernels[1], 0, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 1, argument 0.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // States
     if ((ret = clSetKernelArg(ctx->Kernels[1], 1, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 1, argument 1.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Threads
     if ((ret = clSetKernelArg(ctx->Kernels[1], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 1, argument 2.", err_to_str(ret));
-        return(ERR_OCL_API);
+        return(OCL_ERR_API);
     }
 
     // CN3 Kernel
@@ -665,49 +666,49 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     if((ret = clSetKernelArg(ctx->Kernels[2], 0, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 0.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // States
     if((ret = clSetKernelArg(ctx->Kernels[2], 1, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 1.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Branch 0
     if((ret = clSetKernelArg(ctx->Kernels[2], 2, sizeof(cl_mem), ctx->ExtraBuffers + 2)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 2.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Branch 1
     if((ret = clSetKernelArg(ctx->Kernels[2], 3, sizeof(cl_mem), ctx->ExtraBuffers + 3)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 3.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Branch 2
     if((ret = clSetKernelArg(ctx->Kernels[2], 4, sizeof(cl_mem), ctx->ExtraBuffers + 4)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 4.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Branch 3
     if((ret = clSetKernelArg(ctx->Kernels[2], 5, sizeof(cl_mem), ctx->ExtraBuffers + 5)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 5.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     // Threads
     if((ret = clSetKernelArg(ctx->Kernels[2], 6, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clSetKernelArg for kernel 2, argument 6.", err_to_str(ret));
-        return(ERR_OCL_API);
+        return(OCL_ERR_API);
     }
 
     for(int i = 0; i < 4; ++i)
@@ -716,32 +717,32 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
         if((ret = clSetKernelArg(ctx->Kernels[i + 3], 0, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
         {
             LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 0);
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
 
         // Nonce buffer
         if((ret = clSetKernelArg(ctx->Kernels[i + 3], 1, sizeof(cl_mem), ctx->ExtraBuffers + (i + 2))) != CL_SUCCESS)
         {
             LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 1);
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
 
         // Output
         if((ret = clSetKernelArg(ctx->Kernels[i + 3], 2, sizeof(cl_mem), &ctx->OutputBuffer)) != CL_SUCCESS)
         {
             LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 2);
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
 
         // Target
         if((ret = clSetKernelArg(ctx->Kernels[i + 3], 3, sizeof(cl_ulong), &target)) != CL_SUCCESS)
         {
             LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 3);
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
     }
 
-    return ERR_SUCCESS;
+    return OCL_ERR_SUCCESS;
 }
 
 size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
@@ -763,14 +764,14 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
         if((ret = clEnqueueWriteBuffer(ctx->CommandQueues, ctx->ExtraBuffers[i], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), &zero, 0, NULL, NULL)) != CL_SUCCESS)
         {
             LOG_ERR("Error %s when calling clEnqueueWriteBuffer to zero branch buffer counter %d.", err_to_str(ret), i - 2);
-            return ERR_OCL_API;
+            return OCL_ERR_API;
         }
     }
 
     if((ret = clEnqueueWriteBuffer(ctx->CommandQueues, ctx->OutputBuffer, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     clFinish(ctx->CommandQueues);
@@ -779,7 +780,7 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[0], 2, Nonce, gthreads, lthreads, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 0);
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     /*for(int i = 1; i < 3; ++i)
@@ -795,37 +796,37 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1], 1, &tmpNonce, &g_thd, &w_size, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1);
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[2], 2, Nonce, gthreads, lthreads, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 2);
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if((ret = clEnqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[2], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if((ret = clEnqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[3], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces + 1, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if((ret = clEnqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[4], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces + 2, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     if((ret = clEnqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[5], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces + 3, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     clFinish(ctx->CommandQueues);
@@ -835,7 +836,7 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
             // Threads
             if((clSetKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_ulong), BranchNonces + i)) != CL_SUCCESS) {
                 LOG_ERR("Error %s when calling clSetKernelArg for kernel %d, argument %d.", err_to_str(ret), i + 3, 4);
-                return(ERR_OCL_API);
+                return OCL_ERR_API;
             }
 
             // round up to next multiple of w_size
@@ -845,14 +846,14 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
             size_t tmpNonce = ctx->Nonce;
             if ((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[i + 3], 1, &tmpNonce, BranchNonces + i, &w_size, 0, NULL, NULL)) != CL_SUCCESS) {
                 LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), i + 3);
-                return ERR_OCL_API;
+                return OCL_ERR_API;
             }
         }
     }
 
     if ((ret = clEnqueueReadBuffer(ctx->CommandQueues, ctx->OutputBuffer, CL_TRUE, 0, sizeof(cl_uint) * 0x100, HashOutput, 0, NULL, NULL)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
-        return ERR_OCL_API;
+        return OCL_ERR_API;
     }
 
     clFinish(ctx->CommandQueues);
@@ -864,5 +865,5 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput)
 
     ctx->Nonce += (uint32_t) g_intensity;
 
-    return ERR_SUCCESS;
+    return OCL_ERR_SUCCESS;
 }

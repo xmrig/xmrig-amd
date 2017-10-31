@@ -101,7 +101,7 @@ bool Workers::start(const std::vector<OclThread*> &threads)
         contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize());
     }
 
-    if (InitOpenCL(contexts.data(), count, Options::i()->platformIndex()) != ERR_SUCCESS) {
+    if (InitOpenCL(contexts.data(), count, Options::i()->platformIndex()) != OCL_ERR_SUCCESS) {
         return false;
     }
 
