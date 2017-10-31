@@ -474,6 +474,7 @@ int getAMDPlatformIdx()
         return -1;
     }
 
+#   if !defined(__APPLE__)
     cl_platform_id *platforms = new cl_platform_id[numPlatforms];
     clGetPlatformIDs(numPlatforms, platforms, nullptr);
 
@@ -492,6 +493,9 @@ int getAMDPlatformIdx()
 
     delete [] platforms;
     return platformIndex;
+#   else
+    return 0;
+#   endif
 }
 
 
