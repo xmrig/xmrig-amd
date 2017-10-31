@@ -359,10 +359,14 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 }
 
 
-uint32_t getNumPlatforms()
+cl_uint getNumPlatforms()
 {
     cl_uint count = 0;
-    clGetPlatformIDs(0, nullptr, &count);
+    cl_int ret;
+
+    if ((ret = clGetPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
+        LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", err_to_str(ret));
+    }
 
     if (count == 0) {
         LOG_ERR("No OpenCL platform found.");
@@ -480,11 +484,8 @@ int getAMDPlatformIdx()
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
 size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
 {
-    cl_int ret;
-    cl_uint entries;
-
-    if ((ret = clGetPlatformIDs(0, nullptr, &entries)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", err_to_str(ret));
+    cl_uint entries = getNumPlatforms();
+    if (entries == 0) {
         return ERR_OCL_API;
     }
 
@@ -513,6 +514,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
     cl_platform_id* PlatformIDList = (cl_platform_id*)_alloca(entries * sizeof(cl_platform_id));
 #   endif
 
+    cl_int ret;
     if ((ret = clGetPlatformIDs(entries, PlatformIDList, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetPlatformIDs for platform ID information.", err_to_str(ret));
         return ERR_OCL_API;
