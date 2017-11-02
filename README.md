@@ -1,10 +1,12 @@
-# XMRig
+# XMRig AMD
 XMRig is high performance Monero (XMR) OpenCL miner, with the official full Windows support.
 
 GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
 
 * This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+
+<img src="https://i.imgur.com/TFncsi7.png" width="696" >
 
 #### Table of contents
 * [Features](#features)
