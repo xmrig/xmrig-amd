@@ -6,6 +6,8 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
+:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
+
 <img src="https://i.imgur.com/TFncsi7.png" width="696" >
 
 #### Table of contents
