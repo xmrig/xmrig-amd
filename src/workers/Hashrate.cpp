@@ -25,6 +25,7 @@
 #include <chrono>
 #include <math.h>
 #include <memory.h>
+#include <stdio.h>
 
 #include "log/Log.h"
 #include "Options.h"
