@@ -5,6 +5,7 @@
 [![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/blob/master/LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/network)
+[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
 > XMRig-AMD - Monero AMD (OpenCL) miner 
 
 XMRig is high performance Monero (XMR) OpenCL miner, with the official full Windows support.
