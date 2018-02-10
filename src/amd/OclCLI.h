@@ -44,7 +44,7 @@ public:
     inline void parseDevices(const char *arg)  { parse(m_devices, arg); }
 
 private:
-    inline bool isEmpty() const           { return m_devices.empty() && m_intensity.empty(); };
+    inline bool isEmpty() const           { return m_devices.empty() && m_intensity.empty(); }
     inline int affinity(int index) const  { return get(m_affinity, index, -1); }
     inline int intensity(int index) const { return get(m_intensity, index, 0); }
     inline int worksize(int index) const  { return get(m_worksize, index, 8); }
