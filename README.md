@@ -41,6 +41,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
   * Clone with `git clone https://github.com/xmrig/xmrig-amd.git`  :hammer: [Build instructions](https://github.com/xmrig/xmrig-amd/wiki/Build).
 
 ## Usage
+Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share configurations.
 
 ### Command line options
 ```
@@ -70,46 +71,6 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
   -h, --help                display this help and exit
   -V, --version             output version information and exit
 ```
-
-### Config file.
-GPU configuration now possible only via config file. Sample config:
-```json
-{
-    "algo": "cryptonight",
-    "background": false,
-    "colors": true,
-    "donate-level": 5,
-    "log-file": null,
-    "print-time": 60,
-    "retries": 5,
-    "retry-pause": 5,
-    "syslog": false,
-    "opencl-platform": 0,
-    "threads": [
-        {
-            "index": 0,
-            "intensity": 896,
-            "worksize": 8,
-            "affine_to_cpu": false
-        }
-    ],
-    "pools": [
-        {
-            "url": "pool.monero.hashvault.pro:5555",
-            "user": "",
-            "pass": "x",
-            "keepalive": true,
-            "nicehash": false
-        }
-    ],
-    "api": {
-        "port": 0,
-        "access-token": null,
-        "worker-id": null
-    }
-}
-```
-If `threads` option not specified the miner will try automatically create optimal configuration for your AMD GPUs.
 
 ## Donations
 Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
