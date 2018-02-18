@@ -11,7 +11,6 @@ XMRig is high performance Monero (XMR) OpenCL miner, with the official full Wind
 GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
 
 * This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
-* You can use [config.xmrig.com](https://config.xmrig.com/) to generate/edit/share your configurations. :new:
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
 :warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
