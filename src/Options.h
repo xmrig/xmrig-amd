@@ -77,6 +77,7 @@ public:
     inline int printTime() const                          { return m_printTime; }
     inline int retries() const                            { return m_retries; }
     inline int retryPause() const                         { return m_retryPause; }
+    inline void setColors(bool colors)                    { m_colors = colors; }
 
     inline static void release()                          { delete m_self; }
 
