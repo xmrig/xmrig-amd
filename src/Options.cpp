@@ -228,7 +228,7 @@ bool Options::save()
     doc.AddMember("background",   m_background, allocator);
     doc.AddMember("colors",       m_colors, allocator);
     doc.AddMember("donate-level", m_donateLevel, allocator);
-    doc.AddMember("log-file",     m_logFile ? rapidjson::Value(rapidjson::StringRef(algoName())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
+    doc.AddMember("log-file",     m_logFile ? rapidjson::Value(rapidjson::StringRef(logFile())).Move() : rapidjson::Value(rapidjson::kNullType).Move(), allocator);
     doc.AddMember("print-time",   m_printTime, allocator);
     doc.AddMember("retries",      m_retries, allocator);
     doc.AddMember("retry-pause",  m_retryPause, allocator);
@@ -258,13 +258,10 @@ bool Options::save()
     }
 
     rapidjson::Value pools(rapidjson::kArrayType);
-    char tmp[256];
 
     for (const Url *url : m_pools) {
         rapidjson::Value obj(rapidjson::kObjectType);
-        snprintf(tmp, sizeof(tmp) - 1, "%s:%d", url->host(), url->port());
-
-        obj.AddMember("url",       rapidjson::StringRef(tmp), allocator);
+        obj.AddMember("url",       rapidjson::StringRef(url->url()), allocator);
         obj.AddMember("user",      rapidjson::StringRef(url->user()), allocator);
         obj.AddMember("pass",      rapidjson::StringRef(url->password()), allocator);
         obj.AddMember("keepalive", url->isKeepAlive(), allocator);
