@@ -257,15 +257,18 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     size_t hashMemSize;
     int threadMemMask;
     int hasIterations;
+    int isMonero;
 
     if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT) {
         hashMemSize   = MONERO_MEMORY;
         threadMemMask = MONERO_MASK;
         hasIterations = MONERO_ITER;
+        isMonero = 1;
     } else {
         hashMemSize   = AEON_MEMORY;
         threadMemMask = AEON_MASK;
         hasIterations = AEON_ITER;
+        isMonero = 0;
     }
 
     size_t g_thd = ctx->rawIntensity;
@@ -323,7 +326,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     }
 
     char options[256];
-    snprintf(options, sizeof(options), "-DITERATIONS=%d -DMASK=%d -DWORKSIZE=%zu", hasIterations, threadMemMask, ctx->workSize);
+    snprintf(options, sizeof(options), "-DITERATIONS=%d -DMASK=%d -DWORKSIZE=%zu -DMONERO=%d", hasIterations, threadMemMask, ctx->workSize, isMonero);
     ret = clBuildProgram(ctx->Program, 1, &ctx->DeviceID, options, NULL, NULL);
     if (ret != CL_SUCCESS) {
         size_t len;
@@ -661,6 +664,15 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     if ((ret = clSetKernelArg(ctx->Kernels[1], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
         return(OCL_ERR_API);
+    }
+
+    const unsigned version = input_len ? input[0] : 0;
+    if ((ret = clSetKernelArg(ctx->Kernels[1], 3, sizeof(cl_uint), &version)) != CL_SUCCESS) {
+        return OCL_ERR_API;
+    }
+
+    if ((ret = clSetKernelArg(ctx->Kernels[1], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        return OCL_ERR_API;
     }
 
     // CN3 Kernel
