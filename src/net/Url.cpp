@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2018 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 Url::Url() :
     m_keepAlive(false),
+    m_monero(true),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
@@ -60,6 +61,7 @@ Url::Url() :
  */
 Url::Url(const char *url) :
     m_keepAlive(false),
+    m_monero(true),
     m_nicehash(false),
     m_host(nullptr),
     m_password(nullptr),
@@ -71,8 +73,9 @@ Url::Url(const char *url) :
 }
 
 
-Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash) :
+Url::Url(const char *host, uint16_t port, const char *user, const char *password, bool keepAlive, bool nicehash, bool monero) :
     m_keepAlive(keepAlive),
+    m_monero(monero),
     m_nicehash(nicehash),
     m_password(password ? strdup(password) : nullptr),
     m_user(user ? strdup(user) : nullptr),
@@ -112,6 +115,10 @@ bool Url::parse(const char *url)
         return false;
     }
 
+    if (base[0] == '[') {
+        return parseIPv6(base);
+    }
+
     const char *port = strchr(base, ':');
     if (!port) {
         m_host = strdup(base);
@@ -119,9 +126,8 @@ bool Url::parse(const char *url)
     }
 
     const size_t size = port++ - base + 1;
-    m_host = static_cast<char*>(malloc(size));
+    m_host = new char[size]();
     memcpy(m_host, base, size - 1);
-    m_host[size - 1] = '\0';
 
     m_port = (uint16_t) strtol(port, nullptr, 10);
     return true;
@@ -215,6 +221,7 @@ bool Url::operator==(const Url &other) const
 Url &Url::operator=(const Url *other)
 {
     m_keepAlive = other->m_keepAlive;
+    m_monero    = other->m_monero;
     m_nicehash  = other->m_nicehash;
     m_port      = other->m_port;
 
@@ -224,5 +231,32 @@ Url &Url::operator=(const Url *other)
     setPassword(other->m_password);
     setUser(other->m_user);
 
+    if (m_url) {
+        delete [] m_url;
+        m_url = nullptr;
+    }
+
     return *this;
+}
+
+
+bool Url::parseIPv6(const char *addr)
+{
+    const char *end = strchr(addr, ']');
+    if (!end) {
+        return false;
+    }
+
+    const char *port = strchr(end, ':');
+    if (!port) {
+        return false;
+    }
+
+    const size_t size = end - addr;
+    m_host = new char[size]();
+    memcpy(m_host, addr + 1, size - 1);
+
+    m_port = (uint16_t) strtol(port + 1, nullptr, 10);
+
+    return true;
 }
