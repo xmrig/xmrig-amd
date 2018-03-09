@@ -58,7 +58,6 @@ public:
     inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
     inline uint64_t target() const         { return m_target; }
-    inline uint8_t *blobUnsafe()           { return m_blob; }
     inline uint8_t version() const         { return isMonero() ? m_blob[0] : 0; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }

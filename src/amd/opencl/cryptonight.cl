@@ -85,29 +85,26 @@ XMRIG_INCLUDE_BLAKE256
 XMRIG_INCLUDE_GROESTL256
 
 #define VARIANT1_1(p) \
-        do if (MONERO && version > 6) \
-        { \
-                uint table = 0x75310U; \
-                uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
-                (p).s2 ^= ((table >> index) & 0x30U) << 24; \
-        } while (0)
+    if (MONERO && version > 6) { \
+        uint table = 0x75310U; \
+        uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
+        (p).s2 ^= ((table >> index) & 0x30U) << 24; \
+    }
 
 #define VARIANT1_2(p) \
-        do if (MONERO && version > 6) \
-        { \
-                ((uint2 *)&(p))[0] ^= tweak1_2; \
-        } while (0)
+    if (MONERO && version > 6) { \
+        ((uint2 *)&(p))[0] ^= tweak1_2; \
+    }
 
 #define VARIANT1_INIT() \
-        uint2 tweak1_2; \
-        do if (MONERO && version > 6) \
-        { \
-                tweak1_2 = as_uint2(input[4]); \
-                tweak1_2.s0 >>= 24; \
-                tweak1_2.s0 |= tweak1_2.s1 << 8; \
-                tweak1_2.s1 = get_global_id(0); \
-                tweak1_2 ^= as_uint2(states[24]); \
-        } while(0)
+    uint2 tweak1_2; \
+    if (MONERO && version > 6) { \
+        tweak1_2 = as_uint2(input[4]); \
+        tweak1_2.s0 >>= 24; \
+        tweak1_2.s0 |= tweak1_2.s1 << 8; \
+        tweak1_2.s1 = get_global_id(0); \
+        tweak1_2 ^= as_uint2(states[24]); \
+    }
 
 static const __constant ulong keccakf_rndc[24] =
 {
