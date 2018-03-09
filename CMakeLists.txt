@@ -57,11 +57,13 @@ set(HEADERS_CRYPTO
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
-    src/crypto/CryptoNight_p.h
+    src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
+    src/crypto/CryptoNight_x86.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
+    src/crypto/soft_aes.h
    )
 
 set(SOURCES
@@ -96,13 +98,11 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_keccak.c
-    src/crypto/c_groestl.c
     src/crypto/c_blake256.c
+    src/crypto/c_groestl.c
     src/crypto/c_jh.c
+    src/crypto/c_keccak.c
     src/crypto/c_skein.c
-    src/crypto/soft_aes.c
-    src/crypto/soft_aes.c
     src/crypto/CryptoNight.cpp
    )
 
