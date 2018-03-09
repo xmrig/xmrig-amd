@@ -49,6 +49,32 @@ __m128i soft_aeskeygenassist(__m128i key, uint8_t rcon);
 }
 
 
+// VARIANT ALTERATIONS
+#define VARIANT1_INIT() \
+    if (MONERO && version > 6 && size < 43) \
+    { \
+        return false; \
+    } \
+    const uint64_t tweak1_2 = \
+        (MONERO && version > 6) ? \
+            (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^ \
+            *(reinterpret_cast<const uint64_t*>(ctx->state0) + 24)) : 0;
+
+#define VARIANT1_1(p) \
+    do if(version > 6) \
+    { \
+        const uint8_t tmp = reinterpret_cast<const uint8_t*>(p)[11]; \
+        static const uint32_t table = 0x75310; \
+        const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
+        ((uint8_t*)(p))[11] = tmp ^ ((table >> index) & 0x30); \
+  } while(0)
+
+#define VARIANT1_2(p) \
+    do if(MONERO && version > 6) { \
+        (p) ^= tweak1_2; \
+    } while(0)
+
+
 static inline void do_blake_hash(const void* input, size_t len, char* output) {
     blake256_hash(reinterpret_cast<uint8_t*>(output), static_cast<const uint8_t*>(input), len);
 }
@@ -308,10 +334,12 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
-inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx)
+template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, bool MONERO>
+inline bool cryptonight_hash(const void *__restrict__ input, size_t size, void *__restrict__ output, cryptonight_ctx *__restrict__ ctx, uint8_t version)
 {
     keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state0, 200);
+
+    VARIANT1_INIT();
 
     cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) ctx->state0, (__m128i*) ctx->memory);
 
@@ -336,6 +364,7 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
         }
 
         _mm_store_si128((__m128i *) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx));
+        VARIANT1_1(&l0[idx0 & MASK]);
         idx0 = EXTRACT64(cx);
         bx0 = cx;
 
@@ -347,8 +376,10 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
         al0 += hi;
         ah0 += lo;
 
+        VARIANT1_2(ah0);
         ((uint64_t*)&l0[idx0 & MASK])[0] = al0;
         ((uint64_t*)&l0[idx0 & MASK])[1] = ah0;
+        VARIANT1_2(ah0);
 
         ah0 ^= ch;
         al0 ^= cl;
@@ -359,6 +390,7 @@ inline void cryptonight_hash(const void *__restrict__ input, size_t size, void *
 
     keccakf(h0, 24);
     extra_hashes[ctx->state0[0] & 3](ctx->state0, 200, static_cast<char*>(output));
+    return true;
 }
 
 #endif /* __CRYPTONIGHT_P_H__ */
