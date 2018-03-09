@@ -270,6 +270,10 @@ bool Options::save()
         obj.AddMember("keepalive", url->isKeepAlive(), allocator);
         obj.AddMember("nicehash",  url->isNicehash(), allocator);
 
+        if (algo() == ALGO_CRYPTONIGHT) {
+            obj.AddMember("monero", url->isMonero(), allocator);
+        }
+
         pools.PushBack(obj, allocator);
     }
 
