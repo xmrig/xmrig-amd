@@ -48,6 +48,7 @@ set(HEADERS
     src/workers/OclThread.h
     src/workers/OclWorker.h
     src/workers/Workers.h
+    src/xmrig.h
    )
 
 set(HEADERS_CRYPTO

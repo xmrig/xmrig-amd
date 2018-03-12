@@ -56,6 +56,7 @@ static inline void port_sleep(size_t sec)
 #include "cryptonight.h"
 #include "log/Log.h"
 #include "Options.h"
+#include "xmrig.h"
 
 
 constexpr const char *kSetKernelArgErr = "Error %s when calling clSetKernelArg for kernel %d, argument %d.";
@@ -263,22 +264,17 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    size_t hashMemSize;
-    int threadMemMask;
-    int hasIterations;
-    int isMonero;
+    size_t hashMemSize = MONERO_MEMORY;
+    int threadMemMask  = MONERO_MASK;
+    int hasIterations  = MONERO_ITER;
 
-    if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT) {
-        hashMemSize   = MONERO_MEMORY;
-        threadMemMask = MONERO_MASK;
-        hasIterations = MONERO_ITER;
-        isMonero = 1;
-    } else {
+#   if !defined(XMRIG_NO_AEON)
+    if (Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE) {
         hashMemSize   = AEON_MEMORY;
         threadMemMask = AEON_MASK;
         hasIterations = AEON_ITER;
-        isMonero = 0;
     }
+#   endif
 
     size_t g_thd = ctx->rawIntensity;
     ctx->ExtraBuffers[0] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, hashMemSize * g_thd, NULL, &ret);
@@ -335,7 +331,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     }
 
     char options[256];
-    snprintf(options, sizeof(options), "-DITERATIONS=%d -DMASK=%d -DWORKSIZE=%zu -DMONERO=%d", hasIterations, threadMemMask, ctx->workSize, isMonero);
+    snprintf(options, sizeof(options), "-DITERATIONS=%d -DMASK=%d -DWORKSIZE=%zu", hasIterations, threadMemMask, ctx->workSize);
     ret = clBuildProgram(ctx->Program, 1, &ctx->DeviceID, options, NULL, NULL);
     if (ret != CL_SUCCESS) {
         size_t len;
@@ -629,7 +625,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t version)
+size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant)
 {
     cl_int ret;
 
@@ -675,7 +671,7 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
         return(OCL_ERR_API);
     }
 
-    if ((ret = clSetKernelArg(ctx->Kernels[1], 3, sizeof(cl_uint), &version)) != CL_SUCCESS) {
+    if ((ret = clSetKernelArg(ctx->Kernels[1], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
         return OCL_ERR_API;
     }
 

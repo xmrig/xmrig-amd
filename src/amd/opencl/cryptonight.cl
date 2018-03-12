@@ -85,20 +85,20 @@ XMRIG_INCLUDE_BLAKE256
 XMRIG_INCLUDE_GROESTL256
 
 #define VARIANT1_1(p) \
-    if (MONERO && version > 6) { \
+    if (variant > 0) { \
         uint table = 0x75310U; \
         uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
         (p).s2 ^= ((table >> index) & 0x30U) << 24; \
     }
 
 #define VARIANT1_2(p) \
-    if (MONERO && version > 6) { \
+    if (variant > 0) { \
         ((uint2 *)&(p))[0] ^= tweak1_2; \
     }
 
 #define VARIANT1_INIT() \
     uint2 tweak1_2; \
-    if (MONERO && version > 6) { \
+    if (variant > 0) { \
         tweak1_2 = as_uint2(input[4]); \
         tweak1_2.s0 >>= 24; \
         tweak1_2.s0 |= tweak1_2.s1 << 8; \
@@ -517,7 +517,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 }
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint version, __global ulong *input)
+__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
