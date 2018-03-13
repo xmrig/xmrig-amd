@@ -1,17 +1,26 @@
-/*
-  * This program is free software: you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation, either version 3 of the License, or
-  * any later version.
-  *
-  * This program is distributed in the hope that it will be useful,
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  * GNU General Public License for more details.
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+/* XMRig
+ * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
+ * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
+ * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
+ * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
+ * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -47,6 +56,7 @@ static inline void port_sleep(size_t sec)
 #include "cryptonight.h"
 #include "log/Log.h"
 #include "Options.h"
+#include "xmrig.h"
 
 
 constexpr const char *kSetKernelArgErr = "Error %s when calling clSetKernelArg for kernel %d, argument %d.";
@@ -254,19 +264,17 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    size_t hashMemSize;
-    int threadMemMask;
-    int hasIterations;
+    size_t hashMemSize = MONERO_MEMORY;
+    int threadMemMask  = MONERO_MASK;
+    int hasIterations  = MONERO_ITER;
 
-    if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT) {
-        hashMemSize   = MONERO_MEMORY;
-        threadMemMask = MONERO_MASK;
-        hasIterations = MONERO_ITER;
-    } else {
+#   if !defined(XMRIG_NO_AEON)
+    if (Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE) {
         hashMemSize   = AEON_MEMORY;
         threadMemMask = AEON_MASK;
         hasIterations = AEON_ITER;
     }
+#   endif
 
     size_t g_thd = ctx->rawIntensity;
     ctx->ExtraBuffers[0] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, hashMemSize * g_thd, NULL, &ret);
@@ -617,7 +625,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target)
+size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant)
 {
     cl_int ret;
 
@@ -661,6 +669,14 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     if ((ret = clSetKernelArg(ctx->Kernels[1], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
         return(OCL_ERR_API);
+    }
+
+    if ((ret = clSetKernelArg(ctx->Kernels[1], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
+        return OCL_ERR_API;
+    }
+
+    if ((ret = clSetKernelArg(ctx->Kernels[1], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        return OCL_ERR_API;
     }
 
     // CN3 Kernel

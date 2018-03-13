@@ -4,8 +4,9 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -114,7 +115,7 @@ void OclWorker::consumeJob()
     save(job);
 
     if (resume(job)) {
-        XMRSetJob(m_ctx, m_job.blobUnsafe(), m_job.size(), m_job.target());
+        setJob();
         return;
     }
 
@@ -129,7 +130,8 @@ void OclWorker::consumeJob()
     }
 
     m_ctx->Nonce = m_nonce;
-    XMRSetJob(m_ctx, m_job.blobUnsafe(), m_job.size(), m_job.target());
+
+    setJob();
 }
 
 
@@ -139,6 +141,14 @@ void OclWorker::save(const Job &job)
         m_pausedJob   = m_job;
         m_pausedNonce = m_nonce;
     }
+}
+
+
+void OclWorker::setJob()
+{
+    memcpy(m_blob, m_job.blob(), sizeof(m_blob));
+
+    XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.variant());
 }
 
 

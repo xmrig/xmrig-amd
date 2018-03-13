@@ -9,6 +9,10 @@ include (CheckIncludeFile)
 
 set(HEADERS
     src/3rdparty/align.h
+    src/amd/cryptonight.h
+    src/amd/GpuContext.h
+    src/amd/OclCLI.h
+    src/amd/OclGPU.h
     src/api/Api.h
     src/api/ApiState.h
     src/api/NetworkState.h
@@ -26,8 +30,8 @@ set(HEADERS
     src/log/FileLog.h
     src/log/Log.h
     src/net/Client.h
+    src/net/Id.h
     src/net/Job.h
-    src/net/JobId.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
@@ -35,19 +39,16 @@ set(HEADERS
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
     src/net/Url.h
-    src/amd/OclCLI.h
-    src/amd/OclGPU.h
-    src/amd/cryptonight.h
-    src/amd/GpuContext.h
     src/Options.h
     src/Platform.h
     src/Summary.h
     src/version.h
-    src/workers/OclWorker.h
-    src/workers/OclThread.h
     src/workers/Handle.h
     src/workers/Hashrate.h
+    src/workers/OclThread.h
+    src/workers/OclWorker.h
     src/workers/Workers.h
+    src/xmrig.h
    )
 
 set(HEADERS_CRYPTO
@@ -57,11 +58,13 @@ set(HEADERS_CRYPTO
     src/crypto/c_keccak.h
     src/crypto/c_skein.h
     src/crypto/CryptoNight.h
-    src/crypto/CryptoNight_p.h
+    src/crypto/CryptoNight_monero.h
     src/crypto/CryptoNight_test.h
+    src/crypto/CryptoNight_x86.h
     src/crypto/groestl_tables.h
     src/crypto/hash.h
     src/crypto/skein_port.h
+    src/crypto/soft_aes.h
    )
 
 set(SOURCES
@@ -96,13 +99,11 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/c_keccak.c
-    src/crypto/c_groestl.c
     src/crypto/c_blake256.c
+    src/crypto/c_groestl.c
     src/crypto/c_jh.c
+    src/crypto/c_keccak.c
     src/crypto/c_skein.c
-    src/crypto/soft_aes.c
-    src/crypto/soft_aes.c
     src/crypto/CryptoNight.cpp
    )
 
