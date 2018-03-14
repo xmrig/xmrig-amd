@@ -43,7 +43,8 @@ OclWorker::OclWorker(Handle *handle) :
     m_hashCount(0),
     m_timestamp(0),
     m_count(0),
-    m_sequence(0)
+    m_sequence(0),
+    m_blob()
 {
     const OclThread *thread = handle->gpuThread();
 

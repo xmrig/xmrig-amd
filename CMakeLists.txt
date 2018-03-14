@@ -8,7 +8,6 @@ include (CheckIncludeFile)
 
 
 set(HEADERS
-    src/3rdparty/align.h
     src/amd/cryptonight.h
     src/amd/GpuContext.h
     src/amd/OclCLI.h
