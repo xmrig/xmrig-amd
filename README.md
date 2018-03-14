@@ -23,6 +23,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * [Usage](#usage)
 * [Build](https://github.com/xmrig/xmrig-amd/wiki/Build)
 * [Donations](#donations)
+* [Release checksums](#release-checksums)
 * [Contacts](#contacts)
 
 ## Features
@@ -76,6 +77,13 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command 
 
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+
+## Release checksums
+### SHA-256
+```
+fd6d825e560624f070f3da9cf3e6a0e4f671bb3d922673bb0ac57ea37033f417 xmrig-amd-2.5.0-win32.zip/xmrig-amd.exe
+0d8b21622133764ca22d28d3af5b1f08c9397ec85996cad81feba0b267d95090 xmrig-amd-2.5.0-win64.zip/xmrig-amd.exe
+```
 
 ## Contacts
 * support@xmrig.com
