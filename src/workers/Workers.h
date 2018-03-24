@@ -46,7 +46,7 @@ public:
     static Job job();
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
-    static void setJob(const Job &job);
+    static void setJob(const Job &job, bool donate);
     static void stop();
     static void submit(const Job &result);
 
