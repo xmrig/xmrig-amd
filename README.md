@@ -86,6 +86,7 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command 
 ```
 0894c458403a13818739a09552f14bc12a10c7a71dbcf4ac19cb950c8cdbfbc5 xmrig-amd-2.5.1-win32.zip/xmrig-amd.exe
 c56068aec2873f7a3abd3b869d20a8b6077295ba7d6ef932df349a92d88b0a2c xmrig-amd-2.5.1-win64.zip/xmrig-amd.exe
+b1469588bf196b31454923200c2ae4726d200947775192d90c365b9cdfb238f4 xmrig-amd-2.5.1-debug-win64/xmrig-amd.exe
 ```
 
 ## Contacts
