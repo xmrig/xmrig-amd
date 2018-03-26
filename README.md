@@ -84,9 +84,9 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command 
 ## Release checksums
 ### SHA-256
 ```
-0894c458403a13818739a09552f14bc12a10c7a71dbcf4ac19cb950c8cdbfbc5 xmrig-amd-2.5.1-win32.zip/xmrig-amd.exe
-c56068aec2873f7a3abd3b869d20a8b6077295ba7d6ef932df349a92d88b0a2c xmrig-amd-2.5.1-win64.zip/xmrig-amd.exe
-b1469588bf196b31454923200c2ae4726d200947775192d90c365b9cdfb238f4 xmrig-amd-2.5.1-debug-win64/xmrig-amd.exe
+9587e92b84b28417427d3e3740c61ea12d86291264caf1c4634704211c030713 xmrig-amd-2.5.2-win32.zip/xmrig-amd.exe
+f8f1d869e508a24188531f507f0b9f3552accc55d05ef44ee63a98184eb51f26 xmrig-amd-2.5.2-win64.zip/xmrig-amd.exe
+4ffee947278e7cf5b1fc600d54984cf116cb59658329ef98c341b543770c3389 xmrig-amd-2.5.2-debug-win64/xmrig-amd.exe
 ```
 
 ## Contacts
