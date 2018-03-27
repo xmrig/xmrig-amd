@@ -8,7 +8,6 @@ include (CheckIncludeFile)
 
 
 set(HEADERS
-    src/3rdparty/align.h
     src/amd/cryptonight.h
     src/amd/GpuContext.h
     src/amd/OclCLI.h
@@ -143,10 +142,6 @@ add_definitions(/DRAPIDJSON_SSE2)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
-
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
-    set(CMAKE_BUILD_TYPE Release)
-endif()
 
 include(cmake/flags.cmake)
 include(cmake/OpenCL.cmake)

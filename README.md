@@ -1,4 +1,7 @@
 # XMRig AMD
+
+:warning: **You must update miners to version 2.5 before April 6 due [Monero PoW change](https://getmonero.org/2018/02/11/PoW-change-and-key-reuse.html).**
+
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/releases)
@@ -23,6 +26,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * [Usage](#usage)
 * [Build](https://github.com/xmrig/xmrig-amd/wiki/Build)
 * [Donations](#donations)
+* [Release checksums](#release-checksums)
 * [Contacts](#contacts)
 
 ## Features
@@ -76,6 +80,14 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command 
 
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+
+## Release checksums
+### SHA-256
+```
+9587e92b84b28417427d3e3740c61ea12d86291264caf1c4634704211c030713 xmrig-amd-2.5.2-win32.zip/xmrig-amd.exe
+f8f1d869e508a24188531f507f0b9f3552accc55d05ef44ee63a98184eb51f26 xmrig-amd-2.5.2-win64.zip/xmrig-amd.exe
+4ffee947278e7cf5b1fc600d54984cf116cb59658329ef98c341b543770c3389 xmrig-amd-2.5.2-debug-win64/xmrig-amd.exe
+```
 
 ## Contacts
 * support@xmrig.com
