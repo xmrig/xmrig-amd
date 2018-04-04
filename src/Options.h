@@ -65,7 +65,6 @@ public:
     inline const char *userAgent() const                  { return m_userAgent; }
     inline const std::vector<OclThread*> &threads() const { return m_threads; }
     inline const std::vector<Url*> &pools() const         { return m_pools; }
-    inline int algoVariant() const                        { return m_algoVariant; }
     inline int apiPort() const                            { return m_apiPort; }
     inline int donateLevel() const                        { return m_donateLevel; }
     inline int platformIndex() const                      { return m_platformIndex; }
@@ -114,7 +113,6 @@ private:
     char *m_configName;
     char *m_logFile;
     char *m_userAgent;
-    int m_algoVariant;
     int m_apiPort;
     int m_donateLevel;
     int m_platformIndex;

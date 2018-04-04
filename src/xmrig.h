@@ -56,6 +56,12 @@ enum AlgoVariant {
 };
 
 
+enum AlgoVerify {
+    VERIFY_HW_AES   = 1,
+    VERIFY_SOFT_AES = 2
+};
+
+
 enum Variant {
     VARIANT_AUTO = -1, // Autodetect
     VARIANT_NONE = 0,  // Original CryptoNight

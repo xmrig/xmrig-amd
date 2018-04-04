@@ -39,7 +39,6 @@
 
 
 #include "amd/OclGPU.h"
-#include "Cpu.h"
 #include "donate.h"
 #include "log/Log.h"
 #include "net/Url.h"
@@ -318,7 +317,6 @@ Options::Options(int argc, char **argv) :
     m_configName(nullptr),
     m_logFile(nullptr),
     m_userAgent(nullptr),
-    m_algoVariant(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
     m_platformIndex(0),
@@ -356,8 +354,6 @@ Options::Options(int argc, char **argv) :
         fprintf(stderr, "No pool URL supplied. Exiting.\n");
         return;
     }
-
-    m_algoVariant = Cpu::hasAES() ? AV1_AESNI : AV3_SOFT_AES;
 
     adjust();
 
