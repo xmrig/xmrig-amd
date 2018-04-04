@@ -269,7 +269,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     int hasIterations  = MONERO_ITER;
 
 #   if !defined(XMRIG_NO_AEON)
-    if (Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE) {
+    if (Options::i()->algorithm() == xmrig::CRYPTONIGHT_LITE) {
         hashMemSize   = AEON_MEMORY;
         threadMemMask = AEON_MASK;
         hasIterations = AEON_ITER;

@@ -104,7 +104,7 @@ bool CryptoNight::init(int algo, int variant)
     }
 
 #   ifndef XMRIG_NO_AEON
-    const int index = algo == xmrig::ALGO_CRYPTONIGHT_LITE ? (variant + 3) : (variant - 1);
+    const int index = algo == xmrig::CRYPTONIGHT_LITE ? (variant + 3) : (variant - 1);
 #   else
     const int index = variant - 1;
 #   endif
@@ -133,7 +133,7 @@ bool CryptoNight::selfTest(int algo) {
     cryptonight_hash_ctx(test_input, 76, output, ctx, 0);
 
 #   ifndef XMRIG_NO_AEON
-    bool rc = memcmp(output, algo == xmrig::ALGO_CRYPTONIGHT_LITE ? test_output_v0_lite : test_output_v0, 32) == 0;
+    bool rc = memcmp(output, algo == xmrig::CRYPTONIGHT_LITE ? test_output_v0_lite : test_output_v0, 32) == 0;
 #   else
     bool rc = memcmp(output, test_output_v0, 32) == 0;
 #   endif
@@ -142,7 +142,7 @@ bool CryptoNight::selfTest(int algo) {
         cryptonight_hash_ctx(test_input, 76, output, ctx, 1);
 
 #       ifndef XMRIG_NO_AEON
-        rc = memcmp(output, algo == xmrig::ALGO_CRYPTONIGHT_LITE ? test_output_v1_lite : test_output_v1, 32) == 0;
+        rc = memcmp(output, algo == xmrig::CRYPTONIGHT_LITE ? test_output_v1_lite : test_output_v1, 32) == 0;
 #       else
         rc = memcmp(output, test_output_v1, 32) == 0;
 #       endif

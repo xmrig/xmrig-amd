@@ -107,7 +107,7 @@ bool Workers::start(const std::vector<OclThread*> &threads)
     }
 
     for (size_t i = 0; i < count; ++i) {
-        Handle *handle = new Handle((int) i, threads[i], &contexts[i], (int) count, Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT_LITE);
+        Handle *handle = new Handle((int) i, threads[i], &contexts[i], (int) count, Options::i()->algorithm() == xmrig::CRYPTONIGHT_LITE);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }

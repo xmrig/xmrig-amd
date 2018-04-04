@@ -71,7 +71,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
     }
 
     constexpr size_t byteToMiB = 1024u * 1024u;
-    const size_t hashMemSize   = Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT ? MONERO_MEMORY : AEON_MEMORY;
+    const size_t hashMemSize   = Options::i()->algorithm() == xmrig::CRYPTONIGHT ? MONERO_MEMORY : AEON_MEMORY;
 
     for (GpuContext &ctx : devices) {
         size_t maxThreads = 1000u;
