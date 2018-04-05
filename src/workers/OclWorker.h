@@ -31,6 +31,7 @@
 #include "interfaces/IWorker.h"
 #include "net/Job.h"
 #include "net/JobResult.h"
+#include "xmrig.h"
 
 
 class Handle;
@@ -55,9 +56,9 @@ private:
     void setJob();
     void storeStats();
 
-    bool m_lite;
-    const int m_id;
-    const int m_threads;
+    const size_t m_id;
+    const size_t m_threads;
+    const xmrig::Algo m_algorithm;
     GpuContext *m_ctx;
     Job m_job;
     Job m_pausedJob;

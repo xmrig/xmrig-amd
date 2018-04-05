@@ -31,6 +31,7 @@
 #include "amd/cryptonight.h"
 #include "amd/OclCLI.h"
 #include "amd/OclGPU.h"
+#include "crypto/CryptoNight_constants.h"
 #include "log/Log.h"
 #include "Options.h"
 #include "workers/OclThread.h"
@@ -48,7 +49,7 @@ bool OclCLI::setup(std::vector<OclThread*> &threads)
         return false;
     }
 
-    for (int i = 0; i < m_devices.size(); i++) {
+    for (size_t i = 0; i < m_devices.size(); i++) {
         threads.push_back(new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i)));
     }
 
@@ -71,12 +72,30 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
     }
 
     constexpr size_t byteToMiB = 1024u * 1024u;
-    const size_t hashMemSize   = Options::i()->algo() == xmrig::ALGO_CRYPTONIGHT ? MONERO_MEMORY : AEON_MEMORY;
+    const size_t hashMemSize   = xmrig::cn_select_memory(Options::i()->algorithm());
 
     for (GpuContext &ctx : devices) {
         size_t maxThreads = 1000u;
-        if (ctx.name.compare("gfx901") == 0) {
+        if (
+            ctx.name.compare("gfx901") == 0 ||
+            ctx.name.compare("gfx904") == 0 ||
+            // APU
+            ctx.name.compare("gfx902") == 0 ||
+            // UNKNOWN
+            ctx.name.compare("gfx900") == 0 ||
+            ctx.name.compare("gfx903") == 0 ||
+            ctx.name.compare("gfx905") == 0
+        )
+        {
+            /* Increase the number of threads for AMD VEGA gpus.
+             * Limit the number of threads based on the issue: https://github.com/fireice-uk/xmr-stak/issues/5#issuecomment-339425089
+             * to avoid out of memory errors
+             */
             maxThreads = 2024u;
+        }
+
+        if (Options::i()->algorithm() == xmrig::CRYPTONIGHT_LITE) {
+            maxThreads *= 2u;
         }
 
         const size_t availableMem      = ctx.freeMem - (128u * byteToMiB);
@@ -134,7 +153,7 @@ int OclCLI::get(const std::vector<int> &vector, int index, int defaultValue) con
         return defaultValue;
     }
 
-    if (vector.size() <= index) {
+    if (static_cast<int>(vector.size()) <= index) {
         return vector.back();
     }
 

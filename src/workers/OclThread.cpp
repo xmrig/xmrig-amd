@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,20 +29,26 @@
 
 
 OclThread::OclThread() :
+    m_compMode(true),
+    m_memChunk(2),
+    m_stridedIndex(1),
     m_affinity(-1),
-    m_threadId(0),
     m_index(0),
     m_intensity(0),
+    m_threadId(0),
     m_worksize(0)
 {
 }
 
 
-OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int affinity) :
+OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity) :
+    m_compMode(true),
+    m_memChunk(2),
+    m_stridedIndex(1),
     m_affinity(affinity),
-    m_threadId(0),
     m_index(index),
     m_intensity(intensity),
+    m_threadId(0),
     m_worksize(worksize)
 {
 }

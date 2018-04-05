@@ -39,7 +39,6 @@
 
 
 #include "amd/OclGPU.h"
-#include "Cpu.h"
 #include "donate.h"
 #include "log/Log.h"
 #include "net/Url.h"
@@ -174,11 +173,10 @@ static struct option const api_options[] = {
 };
 
 
-static const char *algo_names[] = {
+static const char *algoNames[] = {
     "cryptonight",
-#   ifndef XMRIG_NO_AEON
-    "cryptonight-lite"
-#   endif
+    "cryptonight-lite",
+    "cryptonight-heavy"
 };
 
 
@@ -303,7 +301,7 @@ bool Options::save()
 
 const char *Options::algoName() const
 {
-    return algo_names[m_algo];
+    return algoNames[m_algorithm];
 }
 
 
@@ -319,15 +317,14 @@ Options::Options(int argc, char **argv) :
     m_configName(nullptr),
     m_logFile(nullptr),
     m_userAgent(nullptr),
-    m_algo(0),
-    m_algoVariant(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
     m_platformIndex(0),
     m_printTime(60),
     m_retries(5),
     m_retryPause(5),
-    m_threads(0)
+    m_threads(0),
+    m_algorithm(xmrig::CRYPTONIGHT)
 {
     m_pools.push_back(new Url());
 
@@ -357,8 +354,6 @@ Options::Options(int argc, char **argv) :
         fprintf(stderr, "No pool URL supplied. Exiting.\n");
         return;
     }
-
-    m_algoVariant = Cpu::hasAES() ? AV1_AESNI : AV3_SOFT_AES;
 
     adjust();
 
@@ -642,7 +637,7 @@ Url *Options::parseUrl(const char *arg) const
 void Options::adjust()
 {
     for (Url *url : m_pools) {
-        url->adjust(m_algo);
+        url->adjust(m_algorithm);
     }
 }
 
@@ -721,8 +716,8 @@ void Options::parseThread(const rapidjson::Value &object)
     thread->setWorksize(object["worksize"].GetUint());
 
     const rapidjson::Value &affinity = object["affine_to_cpu"];
-    if (affinity.IsInt()) {
-        thread->setAffinity(affinity.GetInt());
+    if (affinity.IsInt64()) {
+        thread->setAffinity(affinity.GetInt64());
     }
 
     m_threads.push_back(thread);
@@ -779,22 +774,19 @@ void Options::showVersion()
 
 bool Options::setAlgo(const char *algo)
 {
-    for (size_t i = 0; i < ARRAY_SIZE(algo_names); i++) {
-        if (algo_names[i] && !strcmp(algo, algo_names[i])) {
-            m_algo = (int) i;
-            break;
-        }
+    if (strcasecmp(algo, "cryptonight-light") == 0) {
+        fprintf(stderr, "Algorithm \"cryptonight-light\" is deprecated, use \"cryptonight-lite\" instead\n");
 
-#       ifndef XMRIG_NO_AEON
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light")) {
-            m_algo = xmrig::ALGO_CRYPTONIGHT_LITE;
-            break;
-        }
-#       endif
+        m_algorithm = xmrig::CRYPTONIGHT_LITE;
+        return true;
+    }
 
-        if (i == ARRAY_SIZE(algo_names) - 1) {
-            showUsage(1);
-            return false;
+    const size_t size = sizeof(algoNames) / sizeof((algoNames)[0]);
+
+    for (size_t i = 0; i < size; i++) {
+        if (algoNames[i] && strcasecmp(algo, algoNames[i]) == 0) {
+            m_algorithm = static_cast<xmrig::Algo>(i);
+            break;
         }
     }
 
