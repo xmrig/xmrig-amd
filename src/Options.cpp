@@ -59,6 +59,11 @@
 #endif
 
 
+#if defined(_WIN32) && !defined(strcasecmp)
+#   define strcasecmp _stricmp
+#endif
+
+
 Options *Options::m_self = nullptr;
 
 
