@@ -716,8 +716,8 @@ void Options::parseThread(const rapidjson::Value &object)
     thread->setWorksize(object["worksize"].GetUint());
 
     const rapidjson::Value &affinity = object["affine_to_cpu"];
-    if (affinity.IsInt()) {
-        thread->setAffinity(affinity.GetInt());
+    if (affinity.IsInt64()) {
+        thread->setAffinity(affinity.GetInt64());
     }
 
     m_threads.push_back(thread);

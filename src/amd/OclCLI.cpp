@@ -48,7 +48,7 @@ bool OclCLI::setup(std::vector<OclThread*> &threads)
         return false;
     }
 
-    for (int i = 0; i < m_devices.size(); i++) {
+    for (size_t i = 0; i < m_devices.size(); i++) {
         threads.push_back(new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i)));
     }
 
@@ -134,7 +134,7 @@ int OclCLI::get(const std::vector<int> &vector, int index, int defaultValue) con
         return defaultValue;
     }
 
-    if (vector.size() <= index) {
+    if (static_cast<int>(vector.size()) <= index) {
         return vector.back();
     }
 
