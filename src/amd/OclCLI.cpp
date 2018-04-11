@@ -75,7 +75,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
     const size_t hashMemSize   = xmrig::cn_select_memory(Options::i()->algorithm());
 
     for (GpuContext &ctx : devices) {
-        size_t maxThreads = 1000u;
+        size_t maxThreads = ctx.computeUnits * 8 * 4;  // use cu 4 times (cn1 algo)
         if (
             ctx.name.compare("gfx901") == 0 ||
             ctx.name.compare("gfx904") == 0 ||
@@ -94,6 +94,9 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
             maxThreads = 2024u;
         }
 
+		if (maxThreads > 2024)
+			maxThreads = 2024;
+
         if (Options::i()->algorithm() == xmrig::CRYPTONIGHT_LITE) {
             maxThreads *= 2u;
         }
@@ -102,7 +105,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
         const size_t perThread         = hashMemSize + 224u;
         const size_t maxIntensity      = availableMem / perThread;
         const size_t possibleIntensity = std::min(maxThreads, maxIntensity);
-        const size_t intensity         = (possibleIntensity / (8 * ctx.computeUnits)) * ctx.computeUnits * 8;
+        const size_t intensity         = ( (possibleIntensity+7) / 8) * 8;
 
         threads.push_back(new OclThread(ctx.deviceIdx, intensity, 8));
     }

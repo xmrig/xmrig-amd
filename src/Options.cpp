@@ -772,6 +772,13 @@ void Options::showVersion()
 }
 
 
+
+#if defined(WIN32) || defined(WIN64)
+#define strcasecmp _stricmp
+#endif /* Def WIN32 or Def WIN64 */
+
+
+
 bool Options::setAlgo(const char *algo)
 {
     if (strcasecmp(algo, "cryptonight-light") == 0) {
