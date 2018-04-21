@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
 #include <uv.h>
 
 
+#include "xmrig.h"
+
+
 class IWorker;
 class OclThread;
 struct GpuContext;
@@ -37,23 +40,24 @@ struct GpuContext;
 class Handle
 {
 public:
-    Handle(int threadId, OclThread *thread, GpuContext *ctx, int threads, bool lite);
+    Handle(size_t threadId, OclThread *thread, GpuContext *ctx, size_t threads, xmrig::Algo algorithm);
+
     void join();
     void start(void (*callback) (void *));
 
-    inline bool isLite() const                { return m_lite; }
     inline const OclThread *gpuThread() const { return m_gpuThread; }
     inline GpuContext *ctx() const            { return m_ctx; }
     inline int threadId() const               { return m_threadId; }
     inline int threads() const                { return m_threads; }
     inline IWorker *worker() const            { return m_worker; }
     inline void setWorker(IWorker *worker)    { m_worker = worker; }
+    inline xmrig::Algo algorithm() const      { return m_algorithm; }
 
 private:
-    const bool m_lite;
-    const int m_threadId;
-    const int m_threads;
     const OclThread *m_gpuThread;
+    const size_t m_threadId;
+    const size_t m_threads;
+    const xmrig::Algo m_algorithm;
     GpuContext *m_ctx;
     IWorker *m_worker;
     uv_thread_t m_thread;
