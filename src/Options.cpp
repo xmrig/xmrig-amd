@@ -680,7 +680,7 @@ void Options::parseConfig(const char *fileName)
     }
 
     const rapidjson::Value &threads = doc["threads"];
-    if (pools.IsArray()) {
+    if (threads.IsArray()) {
         for (const rapidjson::Value &value : threads.GetArray()) {
             if (!value.IsObject()) {
                 continue;
