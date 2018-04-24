@@ -23,8 +23,15 @@
 
 #include "App.h"
 
+#if defined(_WIN32)
+#define _WINSOCKAPI_
+#include <windows.h>
+#pragma comment(lib, "Winmm.lib")
+#endif
 
 int main(int argc, char **argv) {
+
+	timeBeginPeriod(1);
     App app(argc, argv);
 
     return app.exec();

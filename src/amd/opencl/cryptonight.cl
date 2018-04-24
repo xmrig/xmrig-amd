@@ -78,16 +78,25 @@ inline int amd_bfe(const uint src0, const uint offset, const uint width)
 }
 #endif
 
-//#include "opencl/wolf-aes.cl"
+//#include "D:\Genoil\xmrig-amd\src\amd\opencl\wolf-aes.cl"
 XMRIG_INCLUDE_WOLF_AES
-//#include "opencl/wolf-skein.cl"
+//#include "D:\Genoil\xmrig-amd\src\amd\opencl/wolf-skein.cl"
 XMRIG_INCLUDE_WOLF_SKEIN
-//#include "opencl/jh.cl"
+//#include "D:\Genoil\xmrig-amd\src\amd\opencl/jh.cl"
 XMRIG_INCLUDE_JH
-//#include "opencl/blake256.cl"
+//#include "D:\Genoil\xmrig-amd\src\amd\opencl/blake256.cl"
 XMRIG_INCLUDE_BLAKE256
-//#include "opencl/groestl256.cl"
+//#include "D:\Genoil\xmrig-amd\src\amd\opencl/groestl256.cl"
 XMRIG_INCLUDE_GROESTL256
+
+#ifndef WORKSIZE
+#define WORKSIZE 8
+#define MEMORY  2 * 1024 * 1024
+#define MASK     0x1FFFF0
+#define ITERATIONS 0x80000
+#define COMP_MODE 1
+#define STRIDED_INDEX 0
+#endif
 
 
 static const __constant ulong keccakf_rndc[24] =
@@ -418,9 +427,12 @@ void AESExpandKey256(uint *keybuf)
 }
 
 #define MEM_CHUNK (1 << MEM_CHUNK_EXPONENT)
+//#define MEM_CHANNEL_SIZE 256
+
 
 #if (STRIDED_INDEX == 0)
 #   define IDX(x)   (x)
+//#   define IDX8(x)   ((get_global_id(0) % (WORKSIZE) ) * MEM_CHANNEL_SIZE + (x/MEM_CHANNEL_SIZE/WORKSIZE)*MEM_CHANNEL_SIZE*WORKSIZE)
 #elif (STRIDED_INDEX == 1)
 #   define IDX(x)   ((x) * (Threads))
 #elif (STRIDED_INDEX == 2)
@@ -442,7 +454,8 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     ulong State[25];
     uint ExpandedKey1[40];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
-    uint4 text;
+   
+	uint4 text;
 
     const ulong gIdx = getIdx();
 
@@ -550,28 +563,43 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
 
+
+
 #define VARIANT1_1(p) \
-        uint table = 0x75310U; \
-        uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
-        (p).s2 ^= ((table >> index) & 0x30U) << 24
+{    uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
+     (p).s2 ^= ((0x75310U >> index) & 0x30U) << 24 ; }
 
 #define VARIANT1_2(p) ((uint2 *)&(p))[0] ^= tweak1_2
+
+
+
+//#define WORKSIZE 8
+
+
 
 #define VARIANT1_INIT() \
         tweak1_2 = as_uint2(input[4]); \
         tweak1_2.s0 >>= 24; \
         tweak1_2.s0 |= tweak1_2.s1 << 8; \
-        tweak1_2.s1 = get_global_id(0); \
+        tweak1_2.s1 = Nonce + get_global_id(0);  \
         tweak1_2 ^= as_uint2(states[24])
 
-__attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, __global ulong *input)
+
+
+
+//__attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
+__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, __global ulong *input, const uint Nonce)
 {
-    ulong a[2], b[2];
+   
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
 
     const ulong gIdx = getIdx();
-
+    ulong a[2], b[2];
+	  uint2 tweak1_2;
+    uint4 b_x;
+		ulong c[2];
+	
+	
     for(int i = get_local_id(0); i < 256; i += WORKSIZE)
     {
         const uint tmp = AES0_C[i];
@@ -583,8 +611,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    uint2 tweak1_2;
-    uint4 b_x;
+    
 #   if (COMP_MODE == 1)
     // do not use early return here
     if(gIdx < Threads)
@@ -605,7 +632,11 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
         b[1] = states[3] ^ states[7];
 
         b_x = ((uint4 *)b)[0];
-        VARIANT1_INIT();
+        tweak1_2 = as_uint2(input[4]); 
+        tweak1_2.s0 >>= 24; 
+        tweak1_2.s0 |= tweak1_2.s1 << 8; 
+        tweak1_2.s1 = Nonce + gIdx;  
+        tweak1_2 ^= as_uint2(states[24]);
     }
 
     mem_fence(CLK_LOCAL_MEM_FENCE);
@@ -615,17 +646,21 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
     if(gIdx < Threads)
 #   endif
     {
-        #pragma unroll 8
+       
         for(int i = 0; i < ITERATIONS; ++i)
         {
-            ulong c[2];
+            
 
             ((uint4 *)c)[0] = Scratchpad[IDX((a[0] & MASK) >> 4)];
             ((uint4 *)c)[0] = AES_Round(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint4 *)a)[0]);
 
             b_x ^= ((uint4 *)c)[0];
-            VARIANT1_1(b_x);
-            Scratchpad[IDX((a[0] & MASK) >> 4)] = b_x;
+          //  VARIANT1_1(b_x);
+					
+				   const uint index = ((b_x.s2 >> 26) & 12) | ((b_x.s2 >> 23) & 2); 
+           b_x.s2 ^= ((0x75310U >> index) & 0x30U) << 24 ; 
+           
+					 Scratchpad[IDX((a[0] & MASK) >> 4)] = b_x;
 
             uint4 tmp;
             tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
@@ -633,9 +668,11 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
 
-            VARIANT1_2(a[1]);
+          //  VARIANT1_2(a[1]);  
+					*((uint2 *)&(a[1])) ^= tweak1_2;
             Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
-            VARIANT1_2(a[1]);
+           *((uint2 *)&(a[1])) ^= tweak1_2;
+					 // VARIANT1_2(a[1]);
 
             ((uint4 *)a)[0] ^= tmp;
 
@@ -644,6 +681,130 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
+
+__attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))	
+__kernel void cn1_monero_Parallel(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, __global ulong *input, const uint Nonce)
+{
+    ulong a[2], b[2];
+    __local uint AES0[256], AES1[256], AES2[256], AES3[256];
+    ulong C0;
+	uint4 tmp;
+	ulong c[2];
+	__global uint * Scratchpad2;
+	__global ulong *IdxC;
+	__global ulong *IdxA;
+	uint2 tweak1_2;
+    uint4 b_x;
+		
+   
+	 
+     for(ushort i = get_local_id(0); i < 256; i += WORKSIZE)
+    {
+        const uint tmp = AES0_C[i];
+        AES0[i] = tmp;
+        AES1[i] = rotate(tmp, 8U);
+        AES2[i] = rotate(tmp, 16U);
+        AES3[i] = rotate(tmp, 24U);
+    }
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    
+	bool exec = (get_global_id(0) < Threads); 
+#   if (COMP_MODE == 1)
+    // do not use early return here
+    if( exec )
+#   endif
+    {
+        states += 25 * get_global_id(0);
+#       if (STRIDED_INDEX == 0)
+        Scratchpad += get_global_id(0) * (MEMORY >> 4);
+#       elif (STRIDED_INDEX == 1)
+        Scratchpad += get_global_id(0);
+#       elif (STRIDED_INDEX == 2)
+        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
+#       endif
+
+        a[0] = states[0] ^ states[4];
+        b[0] = states[2] ^ states[6];
+        a[1] = states[1] ^ states[5];
+        b[1] = states[3] ^ states[7];
+
+        b_x = ((uint4 *)b)[0];
+        VARIANT1_INIT();
+    }	
+    
+	
+     mem_fence(CLK_LOCAL_MEM_FENCE);
+	
+	
+	
+#   if (COMP_MODE == 1)
+    // do not use early return here
+    if(exec)
+#   endif
+    {
+   #pragma unroll 8   
+     for (uint i=0; i < ITERATIONS; i++)
+        {
+			
+			IdxA = (__global ulong *)&Scratchpad[IDX((a[0] & MASK) >> 4)];
+			c[0] = IdxA[0];
+			c[1] = IdxA[1];
+			//((uint4 *)c)[0] = *IdxA;
+			
+			C0 = AES_Round_C0(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[0]);
+			 
+			IdxC = (__global ulong *)&Scratchpad[IDX((C0 & MASK) >> 4)];			
+			if ( IdxA==IdxC)
+			{
+             c[1] = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[1]);
+			 c[0] = C0;
+			 b_x ^= ((uint4 *)c)[0];
+             VARIANT1_1(b_x);
+             tmp = b_x;
+             a[1] += c[0] * as_ulong2(tmp).s0;
+             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
+			 IdxC[0] = a[0];
+			 VARIANT1_2(a[1]);
+			 IdxC[1] = a[1];
+			 //*IdxC = ((uint4 *)a)[0];
+             VARIANT1_2(a[1]);
+             ((uint4 *)a)[0] ^= tmp;
+            }
+			  else
+			{
+			 tmp.s01 = as_uint2(IdxC[0]);
+			 tmp.s23 = as_uint2(IdxC[1]);
+			 
+			 //tmp  = *IdxC;
+			 c[1] = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[1]);
+			 c[0] = C0;		
+			 b_x ^= ((uint4 *)c)[0];
+             VARIANT1_1(b_x);
+             //*IdxA = b_x;
+			 IdxA[0] = as_ulong(b_x.s01);
+             IdxA[1] = as_ulong(b_x.s23);
+			 a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
+			 IdxC[0] =a[0];
+			 a[1] += c[0] * as_ulong2(tmp).s0;
+			 VARIANT1_2(a[1]);          
+			 //*IdxC = ((uint4 *)a)[0];
+			 IdxC[1] =a[1];
+			             
+			 VARIANT1_2(a[1]);
+             ((uint4 *)a)[0] ^= tmp; 			 
+			}	  
+            b_x = ((uint4 *)c)[0]; 
+        }
+    }
+    mem_fence(CLK_GLOBAL_MEM_FENCE);
+}
+
+
+
+)==="
+R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads)
@@ -702,7 +863,9 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
         #pragma unroll 8
         for(int i = 0; i < iterations; ++i)
         {
-            ulong c[2];
+          
+
+		  ulong c[2];
 
             ((uint4 *)c)[0] = Scratchpad[IDX((idx0 & mask) >> 4)];
             ((uint4 *)c)[0] = AES_Round(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint4 *)a)[0]);

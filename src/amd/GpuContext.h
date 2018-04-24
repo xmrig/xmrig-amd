@@ -42,7 +42,7 @@ struct GpuContext
         deviceIdx(0),
         rawIntensity(0),
         workSize(0),
-        stridedIndex(1),
+        stridedIndex(0), // 0
         memChunk(2),
         compMode(1),
         DeviceID(nullptr),

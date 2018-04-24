@@ -330,6 +330,9 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
              ctx->compMode, hashMemSize, static_cast<int>(algo)
              );
 
+	LOG_INFO("OPENCL COMPILE OPTIONS");
+	LOG_INFO(options);
+
     ret = clBuildProgram(ctx->Program, 1, &ctx->DeviceID, options, nullptr, nullptr);
     if (ret != CL_SUCCESS) {
         size_t len;
@@ -367,7 +370,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     }
     while(status == CL_BUILD_IN_PROGRESS);
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero"};
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero_Parallel"};
     for(int i = 0; i < 8; ++i) {
         ctx->Kernels[i] = clCreateKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
@@ -425,15 +428,17 @@ std::vector<GpuContext> getAMDDevices(int index)
         ctx.DeviceID = device_list[i];
         ctx.computeUnits = getDeviceMaxComputeUnits(ctx.DeviceID);
 
-        size_t maxMem;
+        size_t maxMem,bits;
         clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem), nullptr);
         clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &(ctx.freeMem), nullptr);
+		clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_ADDRESS_BITS, sizeof(size_t), &(bits), nullptr);
+		
         // if environment variable GPU_SINGLE_ALLOC_PERCENT is not set we can not allocate the full memory
         ctx.freeMem = std::min(ctx.freeMem, maxMem);
 
         getDeviceName(ctx.DeviceID, buf, sizeof(buf));
 
-        LOG_INFO(Options::i()->colors() ? "\x1B[01;32mfound\x1B[0m OpenCL GPU: \x1B[01;37m%s\x1B[0m, cu: \x1B[01;37m%d" : "found OpenCL GPU: %s, cu:", buf, ctx.computeUnits);
+        LOG_INFO(Options::i()->colors() ? "\x1B[01;32mfound\x1B[0m OpenCL GPU: \x1B[01;37m%s\x1B[0m, cu: \x1B[01;37m%d bits:%d" : "found OpenCL GPU: %s, cu:", buf, ctx.computeUnits,bits);
 
         clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf, nullptr);
         ctx.name = buf;
@@ -760,31 +765,49 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
 
     clFinish(ctx->CommandQueues);
 
-    size_t Nonce[2] = {ctx->Nonce, 1}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { w_size, 8 };
+    size_t Nonce[2] = {ctx->Nonce, 0}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { w_size, 8 };
+
+	// KERNEL CN0
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[0], 2, Nonce, gthreads, lthreads, 0, NULL, NULL)) != CL_SUCCESS)
     {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 0);
         return OCL_ERR_API;
     }
 
-    /*for(int i = 1; i < 3; ++i)
-    {
-        if((ret = clEnqueueNDRangeKernel(*ctx->CommandQueues, ctx->Kernels[i], 1, &ctx->Nonce, &g_thd, &w_size, 0, NULL, NULL)) != CL_SUCCESS)
-        {
-            Log(LOG_CRITICAL, "Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), i);
-            return(ERR_OCL_API);
-        }
-    }*/
+    
+	// NumWaves 
 
-    size_t tmpNonce = ctx->Nonce;
+	size_t tmpNonce[2] = {0,0}; // ctx->Nonce;
+	size_t w_size_cn1[2] = { w_size,2 };
+	size_t g_thd_cn1[2] = { g_thd , 2 };
+
+	
+	cl_uint KernelNonce = ctx->Nonce;
+
     int cn_kernel_offset = 0;
     if (algorithm != xmrig::CRYPTONIGHT_HEAVY && variant > 0) {
         cn_kernel_offset = 6;
+		// w_size = num active threads per WAVE 1
+	//	const size_t num_waves = 4;
+		
+		//w_size_cn1 =  (AMD_wave_size * num_waves);
+	//	size_t global_div =  AMD_wave_size / (w_size  );
+	///	g_thd_cn1  *= global_div;
+		//tmpNonce   *= global_div;
     }
 
-    if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, &tmpNonce, &g_thd, &w_size, 0, NULL, NULL)) != CL_SUCCESS)
+
+
+	// Nonce !
+	if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_uint), &KernelNonce)) != CL_SUCCESS) {
+		LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
+		return(OCL_ERR_API);
+	}
+
+
+    if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, tmpNonce, g_thd_cn1, w_size_cn1, 0, NULL, NULL)) != CL_SUCCESS)
     {
-        LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1);
+        LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1 + cn_kernel_offset);
         return OCL_ERR_API;
     }
 

@@ -44,7 +44,7 @@ public:
     };
 
     constexpr static const char* kCL_N      = "\x1B[0m";
-    constexpr static const char* kCL_RED    = "\x1B[31m";
+    constexpr static const char* kCL_RED    = "\x1B[91m";
     constexpr static const char* kCL_YELLOW = "\x1B[33m";
     constexpr static const char* kCL_WHITE  = "\x1B[01;37m";
 

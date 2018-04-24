@@ -1,0 +1,60 @@
+
+D:\Genoil\xmrig-amd\build\Debug>xmrig-amd -o europe.cryptonight-hub.miningpoolhu
+b.com:20580 -u giovannicastelli.MadKernel -p x
+ * VERSIONS:     XMRig/2.6.0-beta1 libuv/1.20.0 OpenCL/2.0 MSVC/2017
+ * CPU:          AMD Opteron(tm) Processor 3320 EE               x64 AES-NI
+ * ALGO:         cryptonight, donate=5%
+ * POOL #1:      europe.cryptonight-hub.miningpoolhub.com:20580
+ * COMMANDS:     hashrate, pause, resume
+[2018-04-16 10:36:14] compiling code and initializing GPUs. This will take a whi
+le...
+[2018-04-16 10:36:15] found AMD platform index: 0, name: Advanced Micro Devices,
+ Inc.
+[2018-04-16 10:36:15] found OpenCL GPU: AMD Radeon HD 7900 Series, cu: 28
+[2018-04-16 10:36:15] found OpenCL GPU: AMD Radeon (TM) R9 390 Series, cu: 44
+[2018-04-16 10:36:15] #0, GPU #0 AMD Radeon HD 7900 Series, intensity: 896 (8/25
+6), cu: 28
+[2018-04-16 10:36:15] OPENCL COMPILE OPTIONS
+[2018-04-16 10:36:15] -DITERATIONS=524288 -DMASK=2097136 -DWORKSIZE=8 -DSTRIDED_
+INDEX=0 -DMEM_CHUNK_EXPONENT=4 -DCOMP_MODE=1 -DMEMORY=2097152 -DALGO=0
+[2018-04-16 10:36:33] #1, GPU #1 AMD Radeon (TM) R9 390 Series, intensity: 1408
+(8/256), cu: 44
+[2018-04-16 10:36:34] OPENCL COMPILE OPTIONS
+[2018-04-16 10:36:34] -DITERATIONS=524288 -DMASK=2097136 -DWORKSIZE=8 -DSTRIDED_
+INDEX=0 -DMEM_CHUNK_EXPONENT=4 -DCOMP_MODE=1 -DMEMORY=2097152 -DALGO=0
+[2018-04-16 10:37:08] use pool europe.cryptonight-hub.miningpoolhub.com:20580 17
+2.104.250.141
+[2018-04-16 10:37:08] new job from europe.cryptonight-hub.miningpoolhub.com:2058
+0 diff 40000
+GLID=0   GID=0 local_offset=0
+GLID=1   GID=1 local_offset=0
+GLID=2   GID=2 local_offset=0
+GLID=3   GID=3 local_offset=0
+GLID=4   GID=0 local_offset=4
+GLID=5   GID=1 local_offset=4
+GLID=6   GID=2 local_offset=4
+GLID=7   GID=3 local_offset=4
+GLID=8   GID=0 local_offset=8
+GLID=9   GID=1 local_offset=8
+GLID=10   GID=2 local_offset=8
+GLID=11   GID=3 local_offset=8
+GLID=12   GID=0 local_offset=12
+GLID=13   GID=1 local_offset=12
+GLID=14   GID=2 local_offset=12
+GLID=15   GID=3 local_offset=12
+GLID=16   GID=0 local_offset=16
+GLID=17   GID=1 local_offset=16
+GLID=18   GID=2 local_offset=16
+GLID=19   GID=3 local_offset=16
+GLID=20   GID=0 local_offset=20
+GLID=21   GID=1 local_offset=20
+GLID=22   GID=2 local_offset=20
+GLID=23   GID=3 local_offset=20
+GLID=24   GID=0 local_offset=24
+GLID=25   GID=1 local_offset=24
+GLID=26   GID=2 local_offset=24
+GLID=27   GID=3 local_offset=24
+GLID=28   GID=0 local_offset=28
+GLID=29   GID=1 local_offset=28
+GLID=30   GID=2 local_offset=28
+GLID=31   GID=3 local_offset=28
