@@ -62,7 +62,7 @@ public:
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
     inline void setPoolId(int poolId)      { m_poolId = poolId; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }
-    inline xmrig::Variant variant() const  { return (m_variant == xmrig::VARIANT_AUTO ? (m_blob[0] > 6 ? xmrig::VARIANT_V1 : xmrig::VARIANT_NONE) : m_variant); }
+    inline xmrig::Variant variant() const  { return (m_variant == xmrig::VARIANT_AUTO ? (m_algo == xmrig::CRYPTONIGHT_IPBC ? xmrig::VARIANT_V1 : (m_blob[0] > 6 ? xmrig::VARIANT_V1 : xmrig::VARIANT_NONE)) : m_variant); }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }

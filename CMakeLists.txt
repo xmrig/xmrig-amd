@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(xmrig-amd)
 
 option(WITH_AEON  "CryptoNight-Lite support" ON)
+option(WITH_IPBC  "CryptoNight-IPBC support" ON)
 option(WITH_HTTPD "HTTP REST API" ON)
 
 include (CheckIncludeFile)
@@ -155,6 +156,10 @@ endif()
 
 if (NOT WITH_AEON)
     add_definitions(/DXMRIG_NO_AEON)
+endif()
+
+if (NOT WITH_IPBC)
+    add_definitions(/DXMRIG_NO_IPBC)
 endif()
 
 if (WITH_HTTPD)
