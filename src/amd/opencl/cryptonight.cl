@@ -636,6 +636,11 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
             VARIANT1_2(a[1]);
             Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
             VARIANT1_2(a[1]);
+#if (ALGO == 3) // CRYPTONIGHT_IPBC
+			long prev = *((__global long*)(Scratchpad + (IDX((c[0] & MASK) >> 4))));
+			long cur = *((__global long*)(Scratchpad + (IDX((c[0] & MASK) >> 4))) + 1);
+			*((__global long*)(Scratchpad + (IDX((c[0] & MASK) >> 4))) + 1) = prev ^ cur;
+#endif
 
             ((uint4 *)a)[0] ^= tmp;
 
