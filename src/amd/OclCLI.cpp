@@ -75,7 +75,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
     const size_t hashMemSize   = xmrig::cn_select_memory(Options::i()->algorithm());
 
     for (GpuContext &ctx : devices) {
-        size_t maxThreads = ctx.computeUnits * 8 * 4 ;  // use cu 3 times (cn1 algo)
+        size_t maxThreads = (ctx.computeUnits-1) * 8 * 4;  // use cu 4 times (cn1 algo)
         if (
             ctx.name.compare("gfx901") == 0 ||
             ctx.name.compare("gfx904") == 0 ||
@@ -91,7 +91,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
              * Limit the number of threads based on the issue: https://github.com/fireice-uk/xmr-stak/issues/5#issuecomment-339425089
              * to avoid out of memory errors
              */
-            maxThreads = 2024u;
+            maxThreads = 2024;
         }
 
 		if (maxThreads > 2024)
@@ -105,7 +105,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
         const size_t perThread         = hashMemSize + 224u;
         const size_t maxIntensity      = availableMem / perThread;
         const size_t possibleIntensity = std::min(maxThreads, maxIntensity);
-        const size_t intensity         = ( (possibleIntensity+15) / 16) * 16 ;
+        const size_t intensity         = ( (possibleIntensity+7) / 8) * 8 ;
 
         threads.push_back(new OclThread(ctx.deviceIdx, intensity, 8));
 	

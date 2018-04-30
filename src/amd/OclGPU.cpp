@@ -778,8 +778,8 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
 	// NumWaves 
 
 	size_t tmpNonce[2] = {0,0}; // ctx->Nonce;
-	size_t w_size_cn1[2] = { w_size,2 };
-	size_t g_thd_cn1[2] = { g_thd , 2 };
+	size_t w_size_cn1[2] = { w_size*32,2 };      // Workgroup sempre 256
+	size_t g_thd_cn1[2] = { g_thd *64UL / 4  , 2 }; // Threads * 256 / GROUP * wave
 
 	
 	cl_uint KernelNonce = ctx->Nonce;
@@ -794,15 +794,18 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
 	//	size_t global_div =  AMD_wave_size / (w_size  );
 	///	g_thd_cn1  *= global_div;
 		//tmpNonce   *= global_div;
+
+		// Nonce !
+		if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_uint), &KernelNonce)) != CL_SUCCESS) {
+			LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
+			return(OCL_ERR_API);
+		}
+
     }
 
 
 
-	// Nonce !
-	if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_uint), &KernelNonce)) != CL_SUCCESS) {
-		LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
-		return(OCL_ERR_API);
-	}
+	
 
 
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, tmpNonce, g_thd_cn1, w_size_cn1, 0, NULL, NULL)) != CL_SUCCESS)

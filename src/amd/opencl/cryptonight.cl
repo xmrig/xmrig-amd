@@ -78,16 +78,20 @@ inline int amd_bfe(const uint src0, const uint offset, const uint width)
 }
 #endif
 
-//#include "D:\Genoil\xmrig-amd\src\amd\opencl\wolf-aes.cl"
+
 XMRIG_INCLUDE_WOLF_AES
-//#include "D:\Genoil\xmrig-amd\src\amd\opencl/wolf-skein.cl"
 XMRIG_INCLUDE_WOLF_SKEIN
-//#include "D:\Genoil\xmrig-amd\src\amd\opencl/jh.cl"
 XMRIG_INCLUDE_JH
-//#include "D:\Genoil\xmrig-amd\src\amd\opencl/blake256.cl"
 XMRIG_INCLUDE_BLAKE256
-//#include "D:\Genoil\xmrig-amd\src\amd\opencl/groestl256.cl"
 XMRIG_INCLUDE_GROESTL256
+
+/*
+#include "D:\Genoil\xmrig-amd\src\amd\opencl\wolf-aes.cl"
+#include "D:\Genoil\xmrig-amd\src\amd\opencl/wolf-skein.cl"
+#include "D:\Genoil\xmrig-amd\src\amd\opencl/jh.cl"
+#include "D:\Genoil\xmrig-amd\src\amd\opencl/blake256.cl"
+#include "D:\Genoil\xmrig-amd\src\amd\opencl/groestl256.cl"
+*/
 
 #ifndef WORKSIZE
 #define WORKSIZE 8
@@ -581,7 +585,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
         tweak1_2 = as_uint2(input[4]); \
         tweak1_2.s0 >>= 24; \
         tweak1_2.s0 |= tweak1_2.s1 << 8; \
-        tweak1_2.s1 = Nonce + get_global_id(0);  \
+        tweak1_2.s1 = Nonce + gIdx;  \
         tweak1_2 ^= as_uint2(states[24])
 
 
@@ -682,23 +686,52 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
 
-__attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))	
+#ifdef COMPMODE
+#undef COMP_MODE
+#endif
+
+#define MULTIWAVE 
+#ifdef MULTIWAVE
+#define WAVESIZE  256
+#else
+#define WAVESIZE  8
+#endif
+
+#define N_EL_PER_WAVE 4
+
+#define WAVE_DIVISOR (64/N_EL_PER_WAVE)
+
+__attribute__((reqd_work_group_size(WAVESIZE, 1, 1)))
 __kernel void cn1_monero_Parallel(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, __global ulong *input, const uint Nonce)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
-    ulong C0;
-	uint4 tmp;
-	ulong c[2];
+     ulong2 C;
+	 //ulong2 tmp;
+	// ulong2 c;
+	 
+	  uint4 tmp;
+	  
+	 ulong c[2];
 	__global uint * Scratchpad2;
 	__global ulong *IdxC;
 	__global ulong *IdxA;
 	uint2 tweak1_2;
     uint4 b_x;
-		
+	
+#ifdef MULTIWAVE 
+   //ulong gIdx = ((get_global_id(0)/64U) * N_EL_PER_WAVE) + (get_global_id(0) & (N_EL_PER_WAVE-1));
    
-	 
-     for(ushort i = get_local_id(0); i < 256; i += WORKSIZE)
+   ulong gIdx = ((get_global_id(0)/WAVE_DIVISOR));
+   
+   //ulong gIdx = (get_global_id(0)/64U);
+   
+   for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
+#else
+   ulong gIdx = get_global_id(0);
+#endif
+
+for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
     {
         const uint tmp = AES0_C[i];
         AES0[i] = tmp;
@@ -709,18 +742,22 @@ __kernel void cn1_monero_Parallel(__global uint4 *Scratchpad, __global ulong *st
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    
-	bool exec = (get_global_id(0) < Threads); 
+#ifdef MULTIWAVE    
+	bool exec = (gIdx < Threads) && ( (get_global_id(0) % WAVE_DIVISOR)== 0); //(((get_local_id(0)  & 63)<N_EL_PER_WAVE) ); 
+#else	
+	bool exec = (gIdx < Threads);
+#endif
+	
 #   if (COMP_MODE == 1)
     // do not use early return here
     if( exec )
 #   endif
     {
-        states += 25 * get_global_id(0);
+        states += 25 * gIdx;
 #       if (STRIDED_INDEX == 0)
-        Scratchpad += get_global_id(0) * (MEMORY >> 4);
+        Scratchpad +=gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += get_global_id(0);
+        Scratchpad += gIdx;
 #       elif (STRIDED_INDEX == 2)
         Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #       endif
@@ -739,63 +776,183 @@ __kernel void cn1_monero_Parallel(__global uint4 *Scratchpad, __global ulong *st
 	
 	
 	
+	
+	
 #   if (COMP_MODE == 1)
     // do not use early return here
     if(exec)
 #   endif
     {
-   #pragma unroll 8   
+	//	IdxA = (__global ulong *)&Scratchpad[IDX((a[0] & MASK) >> 4)];
+	//	C = vload2(0,IdxA);
+   #pragma unroll 4   
      for (uint i=0; i < ITERATIONS; i++)
         {
+		
+
+#if false
+ulong c[2];
+
+            ((uint4 *)c)[0] = Scratchpad[IDX((a[0] & MASK) >> 4)];
+            ((uint4 *)c)[0] = AES_Round(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint4 *)a)[0]);
+
+            b_x ^= ((uint4 *)c)[0];
+            VARIANT1_1(b_x);
+            Scratchpad[IDX((a[0] & MASK) >> 4)] = b_x;
+
+            uint4 tmp;
+            tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
+
+            a[1] += c[0] * as_ulong2(tmp).s0;
+            a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
+
+            VARIANT1_2(a[1]);
+            Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
+            VARIANT1_2(a[1]);
+
+            ((uint4 *)a)[0] ^= tmp;
+
+            b_x = ((uint4 *)c)[0];
+		
+#endif		
+#if false			
+			//IdxA = (__global ulong *)&Scratchpad[IDX((a[0] & MASK) >> 4)];
+			c = C;
+			C.s0= AES_Round_C0(AES0, AES1, AES2, AES3, ((uint4 *)&c)[0], ((uint2 *)a)[0]);
+			IdxC = (__global ulong *)&Scratchpad[IDX((C.s0 & MASK) >> 4)];			
 			
-			IdxA = (__global ulong *)&Scratchpad[IDX((a[0] & MASK) >> 4)];
-			c[0] = IdxA[0];
-			c[1] = IdxA[1];
-			//((uint4 *)c)[0] = *IdxA;
+			if ( IdxA!=IdxC)
 			
-			C0 = AES_Round_C0(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[0]);
+			{
+			  tmp=vload2(0,IdxC);
+			  C.s1 = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)&c)[0], ((uint2 *)a)[1]);
+			  b_x ^= ((uint4 *)&C)[0];
+              VARIANT1_1(b_x);
+			  IdxA[0] = as_ulong(b_x.s01);
+              IdxA[1] = as_ulong(b_x.s23);
+			}
+ else			
+	
+{
+				C.s1 = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)&c)[0], ((uint2 *)a)[1]);
+			    b_x ^= ((uint4 *)&C)[0];
+				VARIANT1_1(b_x);
+				tmp = as_ulong2(b_x);	
+			}
+			  
+             a[0] += mul_hi(C.s0, tmp.s0);			
+			 IdxA = (__global ulong *)&Scratchpad[IDX(((a[0]^tmp.s0) & MASK) >> 4)];
+			 c=C;
+			 C = vload2(0,IdxA);
+			 a[1] += c.s0 * tmp.s0;
+			 VARIANT1_2(a[1]);
+			 IdxC[0] = a[0];
+			 IdxC[1] = a[1];
+             VARIANT1_2(a[1]);
+             a[0] ^= tmp.s0;
+			 a[1] ^= tmp.s1;
 			 
-			IdxC = (__global ulong *)&Scratchpad[IDX((C0 & MASK) >> 4)];			
+            b_x = ((uint4 *)&c)[0]; 
+			
+			
+			//IdxA = (__global ulong *)&Scratchpad[IDX((a[0] & MASK) >> 4)];
+			c = C;
+			C.s0= AES_Round_C0(AES0, AES1, AES2, AES3, ((uint4 *)&c)[0], ((uint2 *)a)[0]);
+			 
+			IdxC = (__global ulong *)&Scratchpad[IDX((C.s0 & MASK) >> 4)];			
 			if ( IdxA==IdxC)
 			{
-             c[1] = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[1]);
-			 c[0] = C0;
-			 b_x ^= ((uint4 *)c)[0];
+             C.s1 = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)&c)[0], ((uint2 *)a)[1]);
+			 b_x ^= ((uint4 *)&C)[0];
              VARIANT1_1(b_x);
-             tmp = b_x;
-             a[1] += c[0] * as_ulong2(tmp).s0;
-             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
-			 IdxC[0] = a[0];
+             tmp = as_ulong2(b_x);
+             a[0] += mul_hi(C.s0, tmp.s0);
+			 IdxA = (__global ulong *)&Scratchpad[IDX(((a[0]^tmp.s0) & MASK) >> 4)];
+			 /*c=C;
+			 C = vload2(0,IdxA);
+			 a[1] += C.s0 * tmp.s0;
 			 VARIANT1_2(a[1]);
+			 IdxC[0] = a[0];
 			 IdxC[1] = a[1];
-			 //*IdxC = ((uint4 *)a)[0];
              VARIANT1_2(a[1]);
-             ((uint4 *)a)[0] ^= tmp;
+             a[0] ^= tmp.s0;
+			 a[1] ^= tmp.s1;*/
             }
 			  else
 			{
-			 tmp.s01 = as_uint2(IdxC[0]);
-			 tmp.s23 = as_uint2(IdxC[1]);
-			 
-			 //tmp  = *IdxC;
-			 c[1] = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[1]);
-			 c[0] = C0;		
-			 b_x ^= ((uint4 *)c)[0];
+			 tmp=vload2(0,IdxC);
+			 C.s1 = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)&c)[0], ((uint2 *)a)[1]);
+			 b_x ^= ((uint4 *)&C)[0];
              VARIANT1_1(b_x);
-             //*IdxA = b_x;
 			 IdxA[0] = as_ulong(b_x.s01);
              IdxA[1] = as_ulong(b_x.s23);
-			 a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
-			 IdxC[0] =a[0];
-			 a[1] += c[0] * as_ulong2(tmp).s0;
+			 a[0] += mul_hi(C.s0, tmp.s0);
+			 IdxA = (__global ulong *)&Scratchpad[IDX(((a[0]^tmp.s0) & MASK) >> 4)];
+             /*
+			 c = C;
+			 C = vload2(0,IdxA);
+			 a[1] += C.s0 * as_ulong2(tmp).s0;
 			 VARIANT1_2(a[1]);          
-			 //*IdxC = ((uint4 *)a)[0];
-			 IdxC[1] =a[1];
-			             
+			 IdxC[0] =a[0];
+			 IdxC[1] =a[1];          
 			 VARIANT1_2(a[1]);
-             ((uint4 *)a)[0] ^= tmp; 			 
+             a[0] ^= tmp.s0; 			 
+			 a[1] ^= tmp.s1;*/
 			}	  
-            b_x = ((uint4 *)c)[0]; 
+			 c=C;
+			 C = vload2(0,IdxA);
+			 a[1] += c.s0 * tmp.s0;
+			 VARIANT1_2(a[1]);
+			 IdxC[0] = a[0];
+			 IdxC[1] = a[1];
+             VARIANT1_2(a[1]);
+             a[0] ^= tmp.s0;
+			 a[1] ^= tmp.s1;
+			 
+            b_x = ((uint4 *)&c)[0]; 
+			
+#endif			
+
+#if true
+		   IdxA = (__global ulong *)&Scratchpad[IDX((a[0] & MASK) >> 4)];
+			c[0] = IdxA[0];
+			c[1] = IdxA[1];
+			
+			 ulong C0 = AES_Round_C0(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[0]);
+			 IdxC = (__global ulong *)&Scratchpad[IDX((C0 & MASK) >> 4)];			
+			 tmp.s01 = as_uint2(IdxC[0]);
+			 tmp.s23 = as_uint2(IdxC[1]);
+			 c[1] = AES_Round_C1(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint2 *)a)[1]);
+			 c[0] = C0;	
+			 
+			if ( IdxA==IdxC)
+			{
+			 b_x ^= ((uint4 *)c)[0];
+             VARIANT1_1(b_x);
+             tmp = b_x;
+            }
+			  else
+			{ 	
+			 b_x ^= ((uint4 *)c)[0];
+             VARIANT1_1(b_x);
+			 IdxA[0] = as_ulong(b_x.s01);
+             IdxA[1] = as_ulong(b_x.s23);	 
+			}	  
+			
+			 a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
+			 
+			// IdxA = (__global ulong *)&Scratchpad[IDX(( (a[0]^as_ulong(tmp.s01) & MASK) >> 4)];
+			 
+			 IdxC[0] = a[0];
+			 a[1] += c[0] * as_ulong2(tmp).s0;
+			 VARIANT1_2(a[1]);
+			 IdxC[1] = a[1];
+             VARIANT1_2(a[1]);
+             ((uint4 *)a)[0] ^= tmp;
+            b_x = ((uint4 *)c)[0];
+		
+			#endif
+			
         }
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
