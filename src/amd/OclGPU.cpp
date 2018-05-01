@@ -777,9 +777,18 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
     
 	// NumWaves 
 
+	const size_t wavesize = 8;
+
+/*
+	size_t tmpNonce[2] = { 0,0 }; // ctx->Nonce;
+	size_t w_size_cn1[2] = { wavesize,2 };      // Workgroup sempre 256
+	size_t g_thd_cn1[2] = { (g_thd+ wavesize -1)/ wavesize  * wavesize, 2 }; // Threads * 256 / GROUP * wave
+	*/
+
+	
 	size_t tmpNonce[2] = {0,0}; // ctx->Nonce;
 	size_t w_size_cn1[2] = { w_size*32,2 };      // Workgroup sempre 256
-	size_t g_thd_cn1[2] = { g_thd *64UL / 4  , 2 }; // Threads * 256 / GROUP * wave
+	size_t g_thd_cn1[2] = { g_thd *64UL / 8  , 2 }; // Threads * 256 / GROUP * wave
 
 	
 	cl_uint KernelNonce = ctx->Nonce;
