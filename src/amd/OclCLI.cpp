@@ -105,7 +105,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
         const size_t perThread         = hashMemSize + 224u;
         const size_t maxIntensity      = availableMem / perThread;
         const size_t possibleIntensity = std::min(maxThreads, maxIntensity);
-        const size_t intensity         = ( (possibleIntensity+7) / 8) * 8 ;
+        const size_t intensity         = ( (possibleIntensity+31) / 32) * 32 ;
 
         threads.push_back(new OclThread(ctx.deviceIdx, intensity, 8));
 	
