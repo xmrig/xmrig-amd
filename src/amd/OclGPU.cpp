@@ -579,7 +579,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
 #   ifdef __GNUC__
     cl_device_id TempDeviceList[num_gpus];
 #   else
-    cl_device_id* TempDeviceList = (cl_device_id*)_alloca(entries * sizeof(cl_device_id));
+    cl_device_id* TempDeviceList = (cl_device_id*)_alloca(num_gpus * sizeof(cl_device_id));
 #   endif
 
     for (size_t i = 0; i < num_gpus; ++i) {
@@ -782,7 +782,7 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
 
 	size_t tmpNonce[2] = { 0,0 }; // ctx->Nonce;
 	size_t w_size_cn1[2] = { wavesize,2 };      // Workgroup sempre 256
-	size_t g_thd_cn1[2] = { (g_thd+ wavesize -1)/ wavesize  * wavesize, 2 }; // Threads * 256 / GROUP * wave
+	size_t g_thd_cn1[2] = { (g_thd+ wavesize -1)/ wavesize  * wavesize / 1, 2 }; // Threads * 256 / GROUP * wave
 	
 
 	/*
@@ -794,34 +794,38 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
 	cl_uint KernelNonce = ctx->Nonce;
 
     int cn_kernel_offset = 0;
-    if (algorithm != xmrig::CRYPTONIGHT_HEAVY && variant > 0) {
-        cn_kernel_offset = 6;
-		// w_size = num active threads per WAVE 1
-	//	const size_t num_waves = 4;
-		
-		//w_size_cn1 =  (AMD_wave_size * num_waves);
-	//	size_t global_div =  AMD_wave_size / (w_size  );
-	///	g_thd_cn1  *= global_div;
-		//tmpNonce   *= global_div;
 
-		// Nonce !
-		if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_uint), &KernelNonce)) != CL_SUCCESS) {
-			LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
-			return(OCL_ERR_API);
+	for (int i = 0; i < 1; i++)
+	{
+		if (algorithm != xmrig::CRYPTONIGHT_HEAVY && variant > 0) {
+			cn_kernel_offset = 6;
+			// w_size = num active threads per WAVE 1
+		//	const size_t num_waves = 4;
+
+			//w_size_cn1 =  (AMD_wave_size * num_waves);
+		//	size_t global_div =  AMD_wave_size / (w_size  );
+		///	g_thd_cn1  *= global_div;
+			//tmpNonce   *= global_div;
+
+			// Nonce !
+			if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_uint), &KernelNonce)) != CL_SUCCESS) {
+				LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
+				return(OCL_ERR_API);
+			}
+
 		}
 
-    }
+
+		if ((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, tmpNonce, g_thd_cn1, w_size_cn1, 0, NULL, NULL)) != CL_SUCCESS)
+		{
+			LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1 + cn_kernel_offset);
+			return OCL_ERR_API;
+		}
 
 
-
-	
-
-
-    if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, tmpNonce, g_thd_cn1, w_size_cn1, 0, NULL, NULL)) != CL_SUCCESS)
-    {
-        LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1 + cn_kernel_offset);
-        return OCL_ERR_API;
-    }
+		KernelNonce += g_thd_cn1[0] ;
+		tmpNonce[0] += g_thd_cn1[0];
+	}
 
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[2], 2, Nonce, gthreads, lthreads, 0, NULL, NULL)) != CL_SUCCESS)
     {
