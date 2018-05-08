@@ -118,6 +118,7 @@ static struct option const options[] = {
     { "background",       0, nullptr, 'B'  },
     { "config",           1, nullptr, 'c'  },
     { "donate-level",     1, nullptr, 1003 },
+    { "dry-run",          0, nullptr, 5000 },
     { "help",             0, nullptr, 'h'  },
     { "keepalive",        0, nullptr ,'k'  },
     { "log-file",         1, nullptr, 'l'  },
@@ -148,6 +149,7 @@ static struct option const config_options[] = {
     { "background",       0, nullptr, 'B'  },
     { "colors",           0, nullptr, 2000 },
     { "donate-level",     1, nullptr, 1003 },
+    { "dry-run",          0, nullptr, 5000 },
     { "log-file",         1, nullptr, 'l'  },
     { "opencl-platform",  1, nullptr, 1400 },
     { "print-time",       1, nullptr, 1007 },
@@ -322,6 +324,7 @@ Options::Options(int argc, char **argv) :
     m_autoConf(false),
     m_background(false),
     m_colors(true),
+    m_dryRun(false),
     m_ready(false),
     m_shouldSave(false),
     m_syslog(false),
@@ -494,6 +497,7 @@ bool Options::parseArg(int key, const char *arg)
     case 'S':  /* --syslog */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
+    case 5000: /* --dry-run */
         return parseBoolean(key, true);
 
     case 1002: /* --no-color */
@@ -623,6 +627,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 2000: /* colors */
         m_colors = enable;
+        break;
+
+    case 5000: /* --dry-run */
+        m_dryRun = enable;
         break;
 
     default:

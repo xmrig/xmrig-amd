@@ -126,6 +126,14 @@ int App::exec()
     }
 
     Summary::print();
+
+    if (m_options->dryRun()) {
+        LOG_NOTICE("OK");
+        release();
+
+        return 0;
+    }
+
     m_options->oclInit();
 
 #   ifndef XMRIG_NO_API
@@ -149,8 +157,7 @@ int App::exec()
 
     delete m_network;
 
-    Options::release();
-    Platform::release();
+    release();
 
     return r;
 }
@@ -201,6 +208,17 @@ void App::close()
     Workers::stop();
 
     uv_stop(uv_default_loop());
+}
+
+
+void App::release()
+{
+    if (m_network) {
+        delete m_network;
+    }
+
+    Options::release();
+    Platform::release();
 }
 
 
