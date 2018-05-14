@@ -198,7 +198,7 @@ static const __constant ulong C[] =
     W ## ro(h7); \
   } while (0)
 
-#if SPH_SMALL_FOOTPRINT_JH
+#if true || SPH_SMALL_FOOTPRINT_JH
 
 /*
  * The "small footprint" 64-bit version just uses a partially unrolled

@@ -325,9 +325,9 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     }
 
     char options[512];
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d",
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d -DNTHREADS=%d",
              hashIterations, threadMemMask, ctx->workSize, ctx->stridedIndex, static_cast<int>(1u << ctx->memChunk),
-             ctx->compMode, hashMemSize, static_cast<int>(algo)
+             ctx->compMode, hashMemSize, static_cast<int>(algo), (int)ctx->rawIntensity
              );
 
 	LOG_INFO("OPENCL COMPILE OPTIONS");
@@ -647,6 +647,7 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     memset(input + input_len + 1, 0, 88 - input_len - 1);
     
     size_t numThreads = ctx->rawIntensity;
+	
 
     if ((ret = clEnqueueWriteBuffer(ctx->CommandQueues, ctx->InputBuffer, CL_TRUE, 0, 88, input, 0, NULL, NULL)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill input buffer.", err_to_str(ret));
@@ -763,7 +764,7 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
         return OCL_ERR_API;
     }
 
-    clFinish(ctx->CommandQueues);
+   // clFinish(ctx->CommandQueues);
 
     size_t Nonce[2] = {ctx->Nonce, 0}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { w_size, 8 };
 
@@ -866,7 +867,7 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
                 LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 4);
                 return OCL_ERR_API;
             }
-
+			size_t w_size = 4;
             // round up to next multiple of w_size
             BranchNonces[i] = ((BranchNonces[i] + w_size - 1u) / w_size) * w_size;
             // number of global threads must be a multiple of the work group size (w_size)
