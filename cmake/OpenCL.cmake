@@ -27,6 +27,7 @@ if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         ENV "PROGRAMFILES(X86)"
     PATH_SUFFIXES
         "AMD APP/lib/x86_64"
+        "AMD APP SDK/lib/x86_64"
         lib/x86_64
         lib/x64
         OpenCL/common/lib/x64)
@@ -43,6 +44,7 @@ else()
         ENV "PROGRAMFILES(X86)"
     PATH_SUFFIXES
         "AMD APP/lib/x86"
+        "AMD APP SDK/lib/x86"
         lib/x86
         OpenCL/common/lib/x86)
 endif()
