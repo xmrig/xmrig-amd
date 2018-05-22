@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,26 +22,22 @@
  */
 
 #include <cmath>
-
-#ifdef __GNUC__
-#   include <mm_malloc.h>
-#else
-#   include <malloc.h>
-#endif
+#include <thread>
 
 
-#include "amd/OclGPU.h"
 #include "api/Api.h"
-#include "crypto/CryptoNight.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
+#include "core/Controller.h"
+#include "crypto/CryptoNight_constants.h"
 #include "interfaces/IJobResultListener.h"
-#include "log/Log.h"
-#include "Options.h"
-#include "workers/OclWorker.h"
+#include "interfaces/IThread.h"
+#include "Mem.h"
+#include "rapidjson/document.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
-#include "workers/OclThread.h"
+#include "workers/MultiWorker.h"
 #include "workers/Workers.h"
-#include "xmrig.h"
 
 
 bool Workers::m_active = false;
@@ -49,81 +45,16 @@ bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
+Workers::LaunchStatus Workers::m_status;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
-std::list<Job> Workers::m_queue;
+std::list<JobResult> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
 uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
-uv_timer_t Workers::m_reportTimer;
 uv_timer_t Workers::m_timer;
-
-
-static std::vector<GpuContext> contexts;
-
-
-struct JobBaton
-{
-    uv_work_t request;
-    std::vector<Job> jobs;
-    std::vector<JobResult> results;
-    int errors = 0;
-
-    JobBaton() {
-        request.data = this;
-    }
-};
-
-
-
-bool Workers::start(const std::vector<OclThread*> &threads)
-{
-    const size_t count = threads.size();
-    m_hashrate = new Hashrate((int) count);
-
-    if (count == 0) {
-        return false;
-    }
-
-    uv_mutex_init(&m_mutex);
-    uv_rwlock_init(&m_rwlock);
-
-    m_sequence = 1;
-    m_paused   = 1;
-
-    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
-
-    contexts.resize(count);
-
-    for (size_t i = 0; i < count; ++i) {
-        const OclThread *thread = threads[i];
-        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
-    }
-
-    if (InitOpenCL(contexts.data(), count, Options::i()->platformIndex()) != OCL_ERR_SUCCESS) {
-        return false;
-    }
-
-    for (size_t i = 0; i < count; ++i) {
-        Handle *handle = new Handle((int) i, threads[i], &contexts[i], (int) count, Options::i()->algorithm());
-        m_workers.push_back(handle);
-        handle->start(Workers::onReady);
-    }
-
-    uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
- 
-    const int printTime = Options::i()->printTime();
-    if (printTime > 0) {
-        uv_timer_init(uv_default_loop(), &m_reportTimer);
-        uv_timer_start(&m_reportTimer, Workers::onReport, (printTime + 4) * 1000, printTime * 1000);
-    }
-
-    Options::i()->save();
-    return true;
-}
 
 
 Job Workers::job()
@@ -136,14 +67,28 @@ Job Workers::job()
 }
 
 
+size_t Workers::hugePages()
+{
+    uv_mutex_lock(&m_mutex);
+    const size_t hugePages = m_status.hugePages;
+    uv_mutex_unlock(&m_mutex);
+
+    return hugePages;
+}
+
+
+size_t Workers::threads()
+{
+    uv_mutex_lock(&m_mutex);
+    const size_t threads = m_status.threads;
+    uv_mutex_unlock(&m_mutex);
+
+    return threads;
+}
+
+
 void Workers::printHashrate(bool detail)
 {
-    if (detail) {
-       for (const OclThread *thread : Options::i()->threads()) {
-            m_hashrate->print(thread->threadId(), thread->index());
-        }
-    }
-
     m_hashrate->print();
 }
 
@@ -184,12 +129,43 @@ void Workers::setJob(const Job &job, bool donate)
 }
 
 
-void Workers::stop()
+void Workers::start(xmrig::Controller *controller)
 {
-    if (Options::i()->printTime() > 0) {
-        uv_timer_stop(&m_reportTimer);
+    const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+    m_status.algo    = controller->config()->algorithm().algo();
+    m_status.colors  = controller->config()->isColors();
+    m_status.threads = threads.size();
+
+    for (const xmrig::IThread *thread : threads) {
+       m_status.ways += thread->multiway();
     }
 
+    m_hashrate = new Hashrate(threads.size(), controller);
+
+    uv_mutex_init(&m_mutex);
+    uv_rwlock_init(&m_rwlock);
+
+    m_sequence = 1;
+    m_paused   = 1;
+
+    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
+    uv_timer_init(uv_default_loop(), &m_timer);
+    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
+
+    uint32_t offset = 0;
+
+    for (xmrig::IThread *thread : threads) {
+        Handle *handle = new Handle(thread, offset, m_status.ways);
+        offset += thread->multiway();
+
+        m_workers.push_back(handle);
+        handle->start(Workers::onReady);
+    }
+}
+
+
+void Workers::stop()
+{
     uv_timer_stop(&m_timer);
     m_hashrate->stop();
 
@@ -203,7 +179,7 @@ void Workers::stop()
 }
 
 
-void Workers::submit(const Job &result)
+void Workers::submit(const JobResult &result)
 {
     uv_mutex_lock(&m_mutex);
     m_queue.push_back(result);
@@ -213,64 +189,85 @@ void Workers::submit(const Job &result)
 }
 
 
+#ifndef XMRIG_NO_API
+void Workers::threadsSummary(rapidjson::Document &doc)
+{
+    uv_mutex_lock(&m_mutex);
+    const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
+    const uint64_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
+    uv_mutex_unlock(&m_mutex);
+
+    auto &allocator = doc.GetAllocator();
+
+    rapidjson::Value hugepages(rapidjson::kArrayType);
+    hugepages.PushBack(pages[0], allocator);
+    hugepages.PushBack(pages[1], allocator);
+
+    doc.AddMember("hugepages", hugepages, allocator);
+    doc.AddMember("memory", memory, allocator);
+}
+#endif
+
+
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
-    handle->setWorker(new OclWorker(handle));
 
-    handle->worker()->start();
+    IWorker *worker = nullptr;
+
+    switch (handle->config()->multiway()) {
+    case 1:
+        worker = new MultiWorker<1>(handle);
+        break;
+
+    case 2:
+        worker = new MultiWorker<2>(handle);
+        break;
+
+    case 3:
+        worker = new MultiWorker<3>(handle);
+        break;
+
+    case 4:
+        worker = new MultiWorker<4>(handle);
+        break;
+
+    case 5:
+        worker = new MultiWorker<5>(handle);
+        break;
+
+    default:
+        break;
+    }
+
+    handle->setWorker(worker);
+
+    if (!worker->selfTest()) {
+        LOG_ERR("thread %zu error: \"hash self-test failed\".", handle->worker()->id());
+
+        return;
+    }
+
+    start(worker);
 }
 
 
 void Workers::onResult(uv_async_t *handle)
 {
-    JobBaton *baton = new JobBaton();
+    std::list<JobResult> results;
 
     uv_mutex_lock(&m_mutex);
     while (!m_queue.empty()) {
-        baton->jobs.push_back(std::move(m_queue.front()));
+        results.push_back(std::move(m_queue.front()));
         m_queue.pop_front();
     }
     uv_mutex_unlock(&m_mutex);
 
-    uv_queue_work(uv_default_loop(), &baton->request,
-        [](uv_work_t* req) {
-            JobBaton *baton = static_cast<JobBaton*>(req->data);
-            cryptonight_ctx *ctx = static_cast<cryptonight_ctx*>(_mm_malloc(sizeof(cryptonight_ctx), 16));
+    for (auto result : results) {
+        m_listener->onJobResult(result);
+    }
 
-            for (const Job &job : baton->jobs) {
-                JobResult result(job);
-
-                if (CryptoNight::hash(job, result, ctx)) {
-                    baton->results.push_back(result);
-                }
-                else {
-                    baton->errors++;
-                }
-            }
-
-            _mm_free(ctx);
-        },
-        [](uv_work_t* req, int status) {
-            JobBaton *baton = static_cast<JobBaton*>(req->data);
-
-            for (const JobResult &result : baton->results) {
-                m_listener->onJobResult(result);
-            }
-
-            if (baton->errors > 0 && !baton->jobs.empty()) {
-                LOG_ERR("GPU #%d COMPUTE ERROR", baton->jobs[0].threadId());
-            }
-
-            delete baton;
-        }
-    );
-}
-
-
-void Workers::onReport(uv_timer_t *handle)
-{
-    m_hashrate->print();
+    results.clear();
 }
 
 
@@ -287,8 +284,35 @@ void Workers::onTick(uv_timer_t *handle)
     if ((m_ticks++ & 0xF) == 0)  {
         m_hashrate->updateHighest();
     }
+}
 
-#   ifndef XMRIG_NO_API
-    Api::tick(m_hashrate);
-#   endif
+
+void Workers::start(IWorker *worker)
+{
+    const Worker *w = static_cast<const Worker *>(worker);
+
+    uv_mutex_lock(&m_mutex);
+    m_status.started++;
+    m_status.pages     += w->memory().pages;
+    m_status.hugePages += w->memory().hugePages;
+
+    if (m_status.started == m_status.threads) {
+        const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
+        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1048576;
+
+        if (m_status.colors) {
+            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu.0 MB") "",
+                     m_status.threads, m_status.ways,
+                     (m_status.hugePages == m_status.pages ? "\x1B[1;32m" : (m_status.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
+                     m_status.hugePages, m_status.pages, percent, memory);
+        }
+        else {
+            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %1.0f%% memory %zu.0 MB",
+                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, memory);
+        }
+    }
+
+    uv_mutex_unlock(&m_mutex);
+
+    worker->start();
 }
