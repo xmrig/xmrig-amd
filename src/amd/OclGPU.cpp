@@ -53,11 +53,10 @@ static inline void port_sleep(size_t sec)
 
 
 #include "amd/OclGPU.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
 #include "crypto/CryptoNight_constants.h"
 #include "cryptonight.h"
-#include "log/Log.h"
-#include "Options.h"
-#include "xmrig.h"
 
 
 constexpr const char *kSetKernelArgErr = "Error %s when calling clSetKernelArg for kernel %d, argument %d.";
@@ -229,7 +228,7 @@ inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, 
 }
 
 
-size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code)
+size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
 {
     size_t MaximumWorkSize;
     cl_int ret;
@@ -243,7 +242,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     getDeviceName(ctx->DeviceID, buf, sizeof(buf));
     ctx->computeUnits = getDeviceMaxComputeUnits(ctx->DeviceID);
 
-    LOG_INFO(Options::i()->colors() ? "\x1B[01;37m#%d\x1B[0m, GPU \x1B[01;37m#%zu\x1B[0m \x1B[01;32m%s\x1B[0m, intensity: \x1B[01;37m%zu\x1B[0m (%zu/%zu), cu: \x1B[01;37m%d"  : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), cu: %d",
+    LOG_INFO(config->isColors() ? "\x1B[01;37m#%d\x1B[0m, GPU \x1B[01;37m#%zu\x1B[0m \x1B[01;32m%s\x1B[0m, intensity: \x1B[01;37m%zu\x1B[0m (%zu/%zu), cu: \x1B[01;37m%d"  : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), cu: %d",
         index, ctx->deviceIdx, buf, ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->computeUnits);
 
 #   ifdef CL_VERSION_2_0
@@ -265,7 +264,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const xmrig::Algo algo        = Options::i()->algorithm();
+    const xmrig::Algo algo        = config->algorithm().algo();
     const size_t hashMemSize      = xmrig::cn_select_memory(algo);
     const uint32_t threadMemMask  = xmrig::cn_select_mask(algo);
     const uint32_t hashIterations = xmrig::cn_select_iter(algo);
@@ -398,7 +397,7 @@ cl_uint getNumPlatforms()
 }
 
 
-std::vector<GpuContext> getAMDDevices(int index)
+std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 {
     const uint32_t numPlatforms = getNumPlatforms();
 
@@ -433,7 +432,7 @@ std::vector<GpuContext> getAMDDevices(int index)
 
         getDeviceName(ctx.DeviceID, buf, sizeof(buf));
 
-        LOG_INFO(Options::i()->colors() ? "\x1B[01;32mfound\x1B[0m OpenCL GPU: \x1B[01;37m%s\x1B[0m, cu: \x1B[01;37m%d" : "found OpenCL GPU: %s, cu:", buf, ctx.computeUnits);
+        LOG_INFO(config->isColors() ? "\x1B[01;32mfound\x1B[0m OpenCL GPU: \x1B[01;37m%s\x1B[0m, cu: \x1B[01;37m%d" : "found OpenCL GPU: %s, cu:", buf, ctx.computeUnits);
 
         clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf, nullptr);
         ctx.name = buf;
@@ -473,7 +472,7 @@ void printPlatforms()
 }
 
 
-int getAMDPlatformIdx()
+int getAMDPlatformIdx(xmrig::Config *config)
 {
     const uint32_t numPlatforms = getNumPlatforms();
     if (numPlatforms == 0) {
@@ -492,7 +491,7 @@ int getAMDPlatformIdx()
 
         if (strstr(buf, "Advanced Micro Devices") != nullptr) {
             platformIndex = i;
-            LOG_INFO(Options::i()->colors() ? "\x1B[01;32mfound\x1B[0m AMD platform index: \x1B[01;37m%d\x1B[0m, name: \x1B[01;37m%s" : "found AMD platform index: %d, name: %s", i , buf);
+            LOG_INFO(config->isColors() ? "\x1B[01;32mfound\x1B[0m AMD platform index: \x1B[01;37m%d\x1B[0m, name: \x1B[01;37m%s" : "found AMD platform index: %d, name: %s", i , buf);
             break;
         }
     }
@@ -508,9 +507,10 @@ int getAMDPlatformIdx()
 // RequestedDeviceIdxs is a list of OpenCL device indexes
 // NumDevicesRequested is number of devices in RequestedDeviceIdxs list
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
+size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
 {
-    cl_uint entries = getNumPlatforms();
+    const size_t platform_idx = config->platformIndex();
+    cl_uint entries           = getNumPlatforms();
     if (entries == 0) {
         return OCL_ERR_API;
     }
@@ -622,7 +622,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, size_t platform_idx)
             LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
         }
 
-        if ((ret = InitOpenCLGpu(i, opencl_ctx, &ctx[i], source_code.c_str())) != OCL_ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }

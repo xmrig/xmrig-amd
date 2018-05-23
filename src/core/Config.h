@@ -29,6 +29,7 @@
 #include <vector>
 
 
+#include "amd/OclCLI.h"
 #include "common/config/CommonConfig.h"
 #include "common/xmrig.h"
 #include "rapidjson/fwd.h"
@@ -47,82 +48,36 @@ class IThread;
 class IWatcherListener;
 
 
-/**
- * @brief The Config class
- *
- * Options with dynamic reload:
- *   colors
- *   debug
- *   verbose
- *   custom-diff (only for new connections)
- *   api/worker-id
- *   pools/
- */
 class Config : public CommonConfig
 {
 public:
-    enum ThreadsMode {
-        Automatic,
-        Simple,
-        Advanced
-    };
-
-
     Config();
     ~Config();
 
+    bool oclInit();
     bool reload(const char *json);
 
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline AesMode aesMode() const                       { return m_aesMode; }
-    inline AlgoVariant algoVariant() const               { return m_algoVariant; }
-    inline bool isDryRun() const                         { return m_dryRun; }
-    inline bool isHugePages() const                      { return m_hugePages; }
-    inline const std::vector<IThread *> &threads() const { return m_threads.list; }
-    inline int priority() const                          { return m_priority; }
-    inline int threadsCount() const                      { return m_threads.list.size(); }
-    inline int64_t affinity() const                      { return m_threads.mask; }
-    inline ThreadsMode threadsMode() const               { return m_threads.mode; }
+    inline const std::vector<IThread *> &threads() const { return m_threads; }
+    inline int platformIndex() const                     { return m_platformIndex; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
 
 protected:
     bool finalize() override;
-    bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
     void parseJSON(const rapidjson::Document &doc) override;
 
 private:
-    bool parseInt(int key, int arg);
+    void parseThread(const rapidjson::Value &object);
 
-    AlgoVariant getAlgoVariant() const;
-#   ifndef XMRIG_NO_AEON
-    AlgoVariant getAlgoVariantLite() const;
-#   endif
-
-
-    struct Threads
-    {
-       inline Threads() : mask(-1L), count(0), mode(Automatic) {}
-
-       int64_t mask;
-       size_t count;
-       std::vector<CpuThread::Data> cpu;
-       std::vector<IThread *> list;
-       ThreadsMode mode;
-    };
-
-
-    AesMode m_aesMode;
-    AlgoVariant m_algoVariant;
-    bool m_dryRun;
-    bool m_hugePages;
-    bool m_safe;
-    int m_maxCpuUsage;
-    int m_priority;
-    Threads m_threads;
+    bool m_autoConf;
+    bool m_shouldSave;
+    int m_platformIndex;
+    OclCLI m_oclCLI;
+    std::vector<IThread *> m_threads;
 };
 
 

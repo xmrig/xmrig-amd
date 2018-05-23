@@ -103,7 +103,6 @@ int xmrig::Controller::init(int argc, char **argv)
 
     Log::init();
     Platform::init(config()->userAgent());
-    Platform::setProcessPriority(d_ptr->config->priority());
 
     if (!config()->isBackground()) {
         Log::add(new ConsoleLog(this));

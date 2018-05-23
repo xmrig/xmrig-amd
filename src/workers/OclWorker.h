@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,50 +22,56 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKER_H__
-#define __WORKER_H__
-
+#ifndef __OCLWORKER_H__
+#define __OCLWORKER_H__
 
 #include <atomic>
-#include <stdint.h>
 
 
+#include "amd/GpuContext.h"
+#include "common/net/Job.h"
+#include "common/xmrig.h"
 #include "interfaces/IWorker.h"
-#include "Mem.h"
+#include "net/JobResult.h"
 
 
-struct cryptonight_ctx;
 class Handle;
 
 
-namespace xmrig {
-    class CpuThread;
-}
-
-
-class Worker : public IWorker
+class OclWorker : public IWorker
 {
 public:
-    Worker(Handle *handle);
-
-    inline const MemInfo &memory() const       { return m_memory; }
-    inline size_t id() const override          { return m_id; }
-    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
-    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
+    OclWorker(Handle *handle);
 
 protected:
+    inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
+    inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
+    inline bool selfTest() override            { return true; }
+    inline size_t id() const override          { return m_id; }
+
+    void start() override;
+
+private:
+    bool resume(const Job &job);
+    void consumeJob();
+    void save(const Job &job);
+    void setJob();
     void storeStats();
 
     const size_t m_id;
-    const size_t m_totalWays;
-    const uint32_t m_offset;
-    MemInfo m_memory;
+    const size_t m_threads;
+    const xmrig::Algo m_algorithm;
+    GpuContext *m_ctx;
+    Job m_job;
+    Job m_pausedJob;
     std::atomic<uint64_t> m_hashCount;
     std::atomic<uint64_t> m_timestamp;
+    uint32_t m_nonce;
+    uint32_t m_pausedNonce;
     uint64_t m_count;
     uint64_t m_sequence;
-    xmrig::CpuThread *m_thread;
+    uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
 };
 
 
-#endif /* __WORKER_H__ */
+#endif /* __OCLWORKER_H__ */

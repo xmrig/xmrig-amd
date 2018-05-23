@@ -11,6 +11,10 @@ include (cmake/cpu.cmake)
 
 
 set(HEADERS
+    src/amd/cryptonight.h
+    src/amd/GpuContext.h
+    src/amd/OclCLI.h
+    src/amd/OclGPU.h
     src/api/NetworkState.h
     src/App.h
     src/common/config/CommonConfig.h
@@ -58,9 +62,9 @@ set(HEADERS
     src/workers/CpuThread.h
     src/workers/Handle.h
     src/workers/Hashrate.h
-    src/workers/MultiWorker.h
-    src/workers/Worker.h
+    src/workers/OclWorker.h
     src/workers/Workers.h
+    src/workers/OclThread.h
    )
 
 set(HEADERS_CRYPTO
@@ -85,6 +89,8 @@ else()
 endif()
 
 set(SOURCES
+    src/amd/OclCLI.cpp
+    src/amd/OclGPU.cpp
     src/api/NetworkState.cpp
     src/App.cpp
     src/common/config/CommonConfig.cpp
@@ -112,9 +118,9 @@ set(SOURCES
     src/workers/CpuThread.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
-    src/workers/MultiWorker.cpp
-    src/workers/Worker.cpp
+    src/workers/OclWorker.cpp
     src/workers/Workers.cpp
+    src/workers/OclThread.cpp
     src/xmrig.cpp
    )
 
@@ -127,7 +133,7 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
-        res/app.rc
+        #res/app.rc
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Cpu_win.cpp

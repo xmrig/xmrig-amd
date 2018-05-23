@@ -97,16 +97,7 @@ int App::exec()
 
     background();
 
-    Mem::init(m_controller->config()->isHugePages());
-
     Summary::print(m_controller);
-
-    if (m_controller->config()->isDryRun()) {
-        LOG_NOTICE("OK");
-        release();
-
-        return 0;
-    }
 
 #   ifndef XMRIG_NO_API
     Api::start(m_controller);
@@ -123,6 +114,7 @@ int App::exec()
     m_httpd->start();
 #   endif
 
+    m_controller->config()->oclInit();
     Workers::start(m_controller);
 
     m_controller->network()->connect();

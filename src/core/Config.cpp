@@ -27,6 +27,7 @@
 
 
 #include "common/config/ConfigLoader.h"
+#include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
 #include "Cpu.h"
@@ -34,26 +35,33 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
-#include "workers/CpuThread.h"
-
-
-static char affinity_tmp[20] = { 0 };
+#include "workers/OclThread.h"
 
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
-    m_aesMode(AES_AUTO),
-    m_algoVariant(AV_AUTO),
-    m_dryRun(false),
-    m_hugePages(true),
-    m_safe(false),
-    m_maxCpuUsage(75),
-    m_priority(-1)
+    m_autoConf(false),
+    m_shouldSave(false),
+    m_platformIndex(0)
 {
 }
 
 
 xmrig::Config::~Config()
 {
+}
+
+
+bool xmrig::Config::oclInit()
+{
+    LOG_WARN("compiling code and initializing GPUs. This will take a while...");
+
+    if (m_threads.empty() && !m_oclCLI.setup(m_threads)) {
+        m_autoConf   = true;
+        m_shouldSave = true;
+        m_oclCLI.autoConf(m_threads, &m_platformIndex, this);
+    }
+
+    return true;
 }
 
 
@@ -81,24 +89,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("restricted",   isApiRestricted(), allocator);
     doc.AddMember("api",          api, allocator);
 
-    doc.AddMember("av",           algoVariant(), allocator);
     doc.AddMember("background",   isBackground(), allocator);
     doc.AddMember("colors",       isColors(), allocator);
-
-    if (affinity() != -1L) {
-        snprintf(affinity_tmp, sizeof(affinity_tmp) - 1, "0x%" PRIX64, affinity());
-        doc.AddMember("cpu-affinity", StringRef(affinity_tmp), allocator);
-    }
-    else {
-        doc.AddMember("cpu-affinity", kNullType, allocator);
-    }
-
-    doc.AddMember("cpu-priority",  priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
-    doc.AddMember("donate-level",  donateLevel(), allocator);
-    doc.AddMember("huge-pages",    isHugePages(), allocator);
-    doc.AddMember("hw-aes",        m_aesMode == AES_AUTO ? Value(kNullType) : Value(m_aesMode == AES_HW), allocator);
-    doc.AddMember("log-file",      logFile()             ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
-    doc.AddMember("max-cpu-usage", m_maxCpuUsage, allocator);
+    doc.AddMember("donate-level", donateLevel(), allocator);
+    doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
 
     Value pools(kArrayType);
 
@@ -110,20 +104,19 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("print-time",    printTime(), allocator);
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);
-    doc.AddMember("safe",          m_safe, allocator);
 
-    if (threadsMode() == Advanced) {
-        Value threads(kArrayType);
+//    if (threadsMode() == Advanced) {
+//        Value threads(kArrayType);
 
-        for (const IThread *thread : m_threads.list) {
-            threads.PushBack(thread->toConfig(doc), doc.GetAllocator());
-        }
+//        for (const IThread *thread : m_threadsCPU.list) {
+//            threads.PushBack(thread->toConfig(doc), doc.GetAllocator());
+//        }
 
-        doc.AddMember("threads", threads, allocator);
-    }
-    else {
-        doc.AddMember("threads", threadsMode() == Automatic ? Value(kNullType) : Value(threadsCount()), allocator);
-    }
+//        doc.AddMember("threads", threads, allocator);
+//    }
+//    else {
+//        doc.AddMember("threads", threadsMode() == Automatic ? Value(kNullType) : Value(threadsCount()), allocator);
+//    }
 
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
 
@@ -151,67 +144,6 @@ bool xmrig::Config::finalize()
         return false;
     }
 
-    if (!m_threads.cpu.empty()) {
-        m_threads.mode     = Advanced;
-        const bool softAES = (m_aesMode == AES_AUTO ? (Cpu::hasAES() ? AES_HW : AES_SOFT) : m_aesMode) == AES_SOFT;
-
-        for (size_t i = 0; i < m_threads.cpu.size(); ++i) {
-            m_threads.list.push_back(CpuThread::createFromData(i, m_algorithm.algo(), m_threads.cpu[i], m_priority, softAES));
-        }
-
-        return true;
-    }
-
-    const AlgoVariant av = getAlgoVariant();
-    m_threads.mode = m_threads.count ? Simple : Automatic;
-
-    const size_t size = CpuThread::multiway(av) * cn_select_memory(m_algorithm.algo()) / 1024;
-
-    if (!m_threads.count) {
-        m_threads.count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
-    }
-    else if (m_safe) {
-        const size_t count = Cpu::optimalThreadsCount(size, m_maxCpuUsage);
-        if (m_threads.count > count) {
-            m_threads.count = count;
-        }
-    }
-
-    for (size_t i = 0; i < m_threads.count; ++i) {
-        m_threads.list.push_back(CpuThread::createFromAV(i, m_algorithm.algo(), av, m_threads.mask, m_priority));
-    }
-
-    return true;
-}
-
-
-bool xmrig::Config::parseBoolean(int key, bool enable)
-{
-    if (!CommonConfig::parseBoolean(key, enable)) {
-        return false;
-    }
-
-    switch (key) {
-    case IConfig::SafeKey: /* --safe */
-        m_safe = enable;
-        break;
-
-    case IConfig::HugePagesKey: /* --no-huge-pages */
-        m_hugePages = enable;
-        break;
-
-    case IConfig::DryRunKey: /* --dry-run */
-        m_dryRun = enable;
-        break;
-
-    case IConfig::HardwareAESKey: /* hw-aes config only */
-        m_aesMode = enable ? AES_HW : AES_SOFT;
-        break;
-
-    default:
-        break;
-    }
-
     return true;
 }
 
@@ -223,31 +155,17 @@ bool xmrig::Config::parseString(int key, const char *arg)
     }
 
     switch (key) {
-    case xmrig::IConfig::AVKey:          /* --av */
-    case xmrig::IConfig::MaxCPUUsageKey: /* --max-cpu-usage */
-    case xmrig::IConfig::CPUPriorityKey: /* --cpu-priority */
-        return parseUint64(key, strtol(arg, nullptr, 10));
+    case OclDevices: /* --opencl-devices */
+        m_oclCLI.parseDevices(arg);
+        break;
 
-    case xmrig::IConfig::SafeKey:   /* --safe */
-    case xmrig::IConfig::DryRunKey: /* --dry-run */
-        return parseBoolean(key, true);
+    case OclLaunch: /* --opencl-launch */
+        m_oclCLI.parseLaunch(arg);
+        break;
 
-    case xmrig::IConfig::HugePagesKey: /* --no-huge-pages */
-        return parseBoolean(key, false);
-
-    case xmrig::IConfig::ThreadsKey:  /* --threads */
-        if (strncmp(arg, "all", 3) == 0) {
-            m_threads.count = Cpu::threads();
-            return true;
-        }
-
-        return parseUint64(key, strtol(arg, nullptr, 10));
-
-    case xmrig::IConfig::CPUAffinityKey: /* --cpu-affinity */
-        {
-            const char *p  = strstr(arg, "0x");
-            return parseUint64(key, p ? strtoull(p, nullptr, 16) : strtoull(arg, nullptr, 10));
-        }
+    case OclAffinity: /* --opencl-affinity */
+        m_oclCLI.parseAffinity(arg);
+        break;
 
     default:
         break;
@@ -264,14 +182,12 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     }
 
     switch (key) {
-    case xmrig::IConfig::CPUAffinityKey: /* --cpu-affinity */
-        if (arg) {
-            m_threads.mask = arg;
-        }
+    case OclPlatform: /* --opencl-platform */
+        m_platformIndex = static_cast<int>(arg);
         break;
 
     default:
-        return parseInt(key, static_cast<int>(arg));
+        break;
     }
 
     return true;
@@ -288,84 +204,25 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
                 continue;
             }
 
-            if (value.HasMember("low_power_mode")) {
-                auto data = CpuThread::parse(value);
-
-                if (data.valid) {
-                    m_threads.cpu.push_back(std::move(data));
-                }
+            if (value.HasMember("intensity")) {
+                parseThread(value);
             }
         }
     }
 }
 
 
-bool xmrig::Config::parseInt(int key, int arg)
+void xmrig::Config::parseThread(const rapidjson::Value &object)
 {
-    switch (key) {
-    case xmrig::IConfig::ThreadsKey: /* --threads */
-        if (arg >= 0 && arg < 1024) {
-            m_threads.count = arg;
-        }
-        break;
+    OclThread *thread = new OclThread();
+    thread->setIndex(object["index"].GetInt());
+    thread->setIntensity(object["intensity"].GetUint());
+    thread->setWorksize(object["worksize"].GetUint());
 
-    case xmrig::IConfig::AVKey: /* --av */
-        if (arg >= AV_AUTO && arg < AV_MAX) {
-            m_algoVariant = static_cast<AlgoVariant>(arg);
-        }
-        break;
-
-    case xmrig::IConfig::MaxCPUUsageKey: /* --max-cpu-usage */
-        if (m_maxCpuUsage > 0 && arg <= 100) {
-            m_maxCpuUsage = arg;
-        }
-        break;
-
-    case xmrig::IConfig::CPUPriorityKey: /* --cpu-priority */
-        if (arg >= 0 && arg <= 5) {
-            m_priority = arg;
-        }
-        break;
-
-    default:
-        break;
+    const rapidjson::Value &affinity = object["affine_to_cpu"];
+    if (affinity.IsInt64()) {
+        thread->setAffinity(affinity.GetInt64());
     }
 
-    return true;
+    m_threads.push_back(thread);
 }
-
-
-xmrig::AlgoVariant xmrig::Config::getAlgoVariant() const
-{
-#   ifndef XMRIG_NO_AEON
-    if (m_algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
-        return getAlgoVariantLite();
-    }
-#   endif
-
-    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV_SINGLE : AV_SINGLE_SOFT;
-    }
-
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
-        return static_cast<AlgoVariant>(m_algoVariant + 2);
-    }
-
-    return m_algoVariant;
-}
-
-
-#ifndef XMRIG_NO_AEON
-xmrig::AlgoVariant xmrig::Config::getAlgoVariantLite() const
-{
-    if (m_algoVariant <= AV_AUTO || m_algoVariant >= AV_MAX) {
-        return Cpu::hasAES() ? AV_DOUBLE : AV_DOUBLE_SOFT;
-    }
-
-    if (m_safe && !Cpu::hasAES() && m_algoVariant <= AV_DOUBLE) {
-        return static_cast<AlgoVariant>(m_algoVariant + 2);
-    }
-
-    return m_algoVariant;
-}
-#endif

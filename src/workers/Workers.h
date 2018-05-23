@@ -55,9 +55,9 @@ public:
     static void printHashrate(bool detail);
     static void setEnabled(bool enabled);
     static void setJob(const Job &job, bool donate);
-    static void start(xmrig::Controller *controller);
+    static bool start(xmrig::Controller *controller);
     static void stop();
-    static void submit(const JobResult &result);
+    static void submit(const Job &result);
 
     static inline bool isEnabled()                               { return m_enabled; }
     static inline bool isOutdated(uint64_t sequence)             { return m_sequence.load(std::memory_order_relaxed) != sequence; }
@@ -104,7 +104,6 @@ private:
     static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
-    static LaunchStatus m_status;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
     static std::list<JobResult> m_queue;

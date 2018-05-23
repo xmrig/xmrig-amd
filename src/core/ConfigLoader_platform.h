@@ -93,7 +93,7 @@ Options:\n\
 ";
 
 
-static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
+static char const short_options[] = "a:c:khBp:Px:r:R:s:T:o:u:O:Vl:S";
 
 
 static struct option const options[] = {
@@ -103,58 +103,46 @@ static struct option const options[] = {
     { "api-worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
     { "api-ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "api-no-restricted", 0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
-    { "av",                1, nullptr, xmrig::IConfig::AVKey             },
     { "background",        0, nullptr, xmrig::IConfig::BackgroundKey     },
     { "config",            1, nullptr, xmrig::IConfig::ConfigKey         },
-    { "cpu-affinity",      1, nullptr, xmrig::IConfig::CPUAffinityKey    },
-    { "cpu-priority",      1, nullptr, xmrig::IConfig::CPUPriorityKey    },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
-    { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
     { "help",              0, nullptr, xmrig::IConfig::HelpKey           },
     { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey        },
-    { "max-cpu-usage",     1, nullptr, xmrig::IConfig::MaxCPUUsageKey    },
     { "nicehash",          0, nullptr, xmrig::IConfig::NicehashKey       },
     { "no-color",          0, nullptr, xmrig::IConfig::ColorKey          },
-    { "no-huge-pages",     0, nullptr, xmrig::IConfig::HugePagesKey      },
     { "variant",           1, nullptr, xmrig::IConfig::VariantKey        },
     { "pass",              1, nullptr, xmrig::IConfig::PasswordKey       },
     { "print-time",        1, nullptr, xmrig::IConfig::PrintTimeKey      },
     { "retries",           1, nullptr, xmrig::IConfig::RetriesKey        },
     { "retry-pause",       1, nullptr, xmrig::IConfig::RetryPauseKey     },
-    { "safe",              0, nullptr, xmrig::IConfig::SafeKey           },
     { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey         },
-    { "threads",           1, nullptr, xmrig::IConfig::ThreadsKey        },
     { "url",               1, nullptr, xmrig::IConfig::UrlKey            },
     { "user",              1, nullptr, xmrig::IConfig::UserKey           },
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey      },
     { "userpass",          1, nullptr, xmrig::IConfig::UserpassKey       },
     { "rig-id",            1, nullptr, xmrig::IConfig::RigIdKey          },
     { "version",           0, nullptr, xmrig::IConfig::VersionKey        },
+    { "opencl-affinity",   1, nullptr, xmrig::IConfig::OclAffinity       },
+    { "opencl-devices",    1, nullptr, xmrig::IConfig::OclDevices        },
+    { "opencl-launch",     1, nullptr, xmrig::IConfig::OclLaunch         },
+    { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform       },
     { 0, 0, 0, 0 }
 };
 
 
 static struct option const config_options[] = {
-    { "algo",          1, nullptr, xmrig::IConfig::AlgorithmKey   },
-    { "av",            1, nullptr, xmrig::IConfig::AVKey          },
-    { "background",    0, nullptr, xmrig::IConfig::BackgroundKey  },
-    { "colors",        0, nullptr, xmrig::IConfig::ColorKey       },
-    { "cpu-affinity",  1, nullptr, xmrig::IConfig::CPUAffinityKey },
-    { "cpu-priority",  1, nullptr, xmrig::IConfig::CPUPriorityKey },
-    { "donate-level",  1, nullptr, xmrig::IConfig::DonateLevelKey },
-    { "dry-run",       0, nullptr, xmrig::IConfig::DryRunKey      },
-    { "huge-pages",    0, nullptr, xmrig::IConfig::HugePagesKey   },
-    { "log-file",      1, nullptr, xmrig::IConfig::LogFileKey     },
-    { "max-cpu-usage", 1, nullptr, xmrig::IConfig::MaxCPUUsageKey },
-    { "print-time",    1, nullptr, xmrig::IConfig::PrintTimeKey   },
-    { "retries",       1, nullptr, xmrig::IConfig::RetriesKey     },
-    { "retry-pause",   1, nullptr, xmrig::IConfig::RetryPauseKey  },
-    { "safe",          0, nullptr, xmrig::IConfig::SafeKey        },
-    { "syslog",        0, nullptr, xmrig::IConfig::SyslogKey      },
-    { "threads",       1, nullptr, xmrig::IConfig::ThreadsKey     },
-    { "user-agent",    1, nullptr, xmrig::IConfig::UserAgentKey   },
-    { "hw-aes",        0, nullptr, xmrig::IConfig::HardwareAESKey },
+    { "algo",              1, nullptr, xmrig::IConfig::AlgorithmKey   },
+    { "background",        0, nullptr, xmrig::IConfig::BackgroundKey  },
+    { "colors",            0, nullptr, xmrig::IConfig::ColorKey       },
+    { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey },
+    { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey     },
+    { "print-time",        1, nullptr, xmrig::IConfig::PrintTimeKey   },
+    { "retries",           1, nullptr, xmrig::IConfig::RetriesKey     },
+    { "retry-pause",       1, nullptr, xmrig::IConfig::RetryPauseKey  },
+    { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey      },
+    { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey   },
+    { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
     { 0, 0, 0, 0 }
 };
 

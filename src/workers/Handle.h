@@ -33,16 +33,18 @@
 #include "interfaces/IThread.h"
 
 
+class GpuContext;
 class IWorker;
 
 
 class Handle
 {
 public:
-    Handle(xmrig::IThread *config, uint32_t offset, size_t totalWays);
+    Handle(xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays);
     void join();
     void start(void (*callback) (void *));
 
+    inline GpuContext *ctx() const         { return m_ctx; }
     inline IWorker *worker() const         { return m_worker; }
     inline size_t threadId() const         { return m_config->index(); }
     inline size_t totalWays() const        { return m_totalWays; }
@@ -51,6 +53,7 @@ public:
     inline xmrig::IThread *config() const  { return m_config; }
 
 private:
+    GpuContext *m_ctx;
     IWorker *m_worker;
     size_t m_totalWays;
     uint32_t m_offset;
