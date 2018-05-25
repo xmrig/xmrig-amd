@@ -106,7 +106,7 @@ private:
     static Job m_job;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
-    static std::list<JobResult> m_queue;
+    static std::list<Job> m_queue;
     static std::vector<Handle*> m_workers;
     static uint64_t m_ticks;
     static uv_async_t m_async;

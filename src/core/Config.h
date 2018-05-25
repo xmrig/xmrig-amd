@@ -33,11 +33,6 @@
 #include "common/config/CommonConfig.h"
 #include "common/xmrig.h"
 #include "rapidjson/fwd.h"
-#include "workers/CpuThread.h"
-
-
-class Addr;
-class Url;
 
 
 namespace xmrig {

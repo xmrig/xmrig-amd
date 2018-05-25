@@ -30,9 +30,40 @@
 #include <stdint.h>
 
 
+#include "common/xmrig.h"
+#include "crypto/CryptoNight_constants.h"
+
+
 struct cryptonight_ctx {
     alignas(16) uint8_t state[200];
     alignas(16) uint8_t* memory;
+};
+
+
+class Job;
+class JobResult;
+
+
+class CryptoNight
+{
+public:
+    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx);
+
+    static inline cn_hash_fun fn(xmrig::Variant variant) { return fn(m_algorithm, m_av, variant); }
+
+    static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
+    static bool init(xmrig::Algo algorithm);
+    static cn_hash_fun fn(xmrig::Algo algorithm, xmrig::AlgoVerify av, xmrig::Variant variant);
+    static cryptonight_ctx *createCtx(xmrig::Algo algorithm);
+    static void freeCtx(cryptonight_ctx *ctx);
+
+private:
+    static bool selfTest();
+    static bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
+
+    alignas(16) static cryptonight_ctx *m_ctx;
+    static xmrig::Algo m_algorithm;
+    static xmrig::AlgoVerify m_av;
 };
 
 

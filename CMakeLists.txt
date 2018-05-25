@@ -59,7 +59,6 @@ set(HEADERS
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
-    src/workers/CpuThread.h
     src/workers/Handle.h
     src/workers/Hashrate.h
     src/workers/OclWorker.h
@@ -115,7 +114,6 @@ set(SOURCES
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
-    src/workers/CpuThread.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
     src/workers/OclWorker.cpp
@@ -129,6 +127,7 @@ set(SOURCES_CRYPTO
     src/crypto/c_blake256.c
     src/crypto/c_jh.c
     src/crypto/c_skein.c
+    src/crypto/CryptoNight.cpp
    )
 
 if (WIN32)

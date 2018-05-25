@@ -38,7 +38,7 @@ class Hashrate
 {
 public:
     enum Intervals {
-        ShortInterval  = 2500,
+        ShortInterval  = 10000,
         MediumInterval = 60000,
         LargeInterval  = 900000
     };

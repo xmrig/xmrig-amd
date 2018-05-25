@@ -30,7 +30,7 @@
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "crypto/CryptoNight_constants.h"
+#include "crypto/CryptoNight.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
 #include "Mem.h"
@@ -49,7 +49,7 @@ IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
-std::list<JobResult> Workers::m_queue;
+std::list<Job> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
@@ -59,6 +59,19 @@ uv_timer_t Workers::m_timer;
 
 
 static std::vector<GpuContext> contexts;
+
+
+struct JobBaton
+{
+    uv_work_t request;
+    std::vector<Job> jobs;
+    std::vector<JobResult> results;
+    int errors = 0;
+
+    JobBaton() {
+        request.data = this;
+    }
+};
 
 
 Job Workers::job()
@@ -190,11 +203,11 @@ void Workers::stop()
 
 void Workers::submit(const Job &result)
 {
-//    uv_mutex_lock(&m_mutex);
-//    m_queue.push_back(result);
-//    uv_mutex_unlock(&m_mutex);
+    uv_mutex_lock(&m_mutex);
+    m_queue.push_back(result);
+    uv_mutex_unlock(&m_mutex);
 
-//    uv_async_send(&m_async);
+    uv_async_send(&m_async);
 }
 
 
@@ -231,20 +244,47 @@ void Workers::onReady(void *arg)
 
 void Workers::onResult(uv_async_t *handle)
 {
-    std::list<JobResult> results;
+    JobBaton *baton = new JobBaton();
 
     uv_mutex_lock(&m_mutex);
     while (!m_queue.empty()) {
-        results.push_back(std::move(m_queue.front()));
+        baton->jobs.push_back(std::move(m_queue.front()));
         m_queue.pop_front();
     }
     uv_mutex_unlock(&m_mutex);
 
-    for (auto result : results) {
-        m_listener->onJobResult(result);
-    }
+    uv_queue_work(uv_default_loop(), &baton->request,
+        [](uv_work_t* req) {
+            JobBaton *baton = static_cast<JobBaton*>(req->data);
+            cryptonight_ctx *ctx = CryptoNight::createCtx(baton->jobs[0].algorithm().algo());
 
-    results.clear();
+            for (const Job &job : baton->jobs) {
+                JobResult result(job);
+
+                if (CryptoNight::hash(job, result, ctx)) {
+                    baton->results.push_back(result);
+                }
+                else {
+                    baton->errors++;
+                }
+            }
+
+            CryptoNight::freeCtx(ctx);
+        },
+        [](uv_work_t* req, int status) {
+            JobBaton *baton = static_cast<JobBaton*>(req->data);
+
+            for (const JobResult &result : baton->results) {
+                m_listener->onJobResult(result);
+            }
+
+            if (baton->errors > 0 && !baton->jobs.empty()) {
+                LOG_ERR("GPU #%d COMPUTE ERROR", baton->jobs[0].threadId());
+            }
+
+            delete baton;
+        }
+    );
 }
 
 
@@ -266,30 +306,5 @@ void Workers::onTick(uv_timer_t *handle)
 
 void Workers::start(IWorker *worker)
 {
-//    const Worker *w = static_cast<const Worker *>(worker);
-
-//    uv_mutex_lock(&m_mutex);
-//    m_status.started++;
-//    m_status.pages     += w->memory().pages;
-//    m_status.hugePages += w->memory().hugePages;
-
-//    if (m_status.started == m_status.threads) {
-//        const double percent = (double) m_status.hugePages / m_status.pages * 100.0;
-//        const size_t memory  = m_status.ways * xmrig::cn_select_memory(m_status.algo) / 1048576;
-
-//        if (m_status.colors) {
-//            LOG_INFO(GREEN_BOLD("READY (CPU)") " threads " CYAN_BOLD("%zu(%zu)") " huge pages %s%zu/%zu %1.0f%%\x1B[0m memory " CYAN_BOLD("%zu.0 MB") "",
-//                     m_status.threads, m_status.ways,
-//                     (m_status.hugePages == m_status.pages ? "\x1B[1;32m" : (m_status.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
-//                     m_status.hugePages, m_status.pages, percent, memory);
-//        }
-//        else {
-//            LOG_INFO("READY (CPU) threads %zu(%zu) huge pages %zu/%zu %1.0f%% memory %zu.0 MB",
-//                     m_status.threads, m_status.ways, m_status.hugePages, m_status.pages, percent, memory);
-//        }
-//    }
-
-//    uv_mutex_unlock(&m_mutex);
-
     worker->start();
 }

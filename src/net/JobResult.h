@@ -47,6 +47,16 @@ public:
     }
 
 
+    inline JobResult(const Job &job) : poolId(0), diff(0), nonce(0)
+    {
+        jobId     = job.id();
+        poolId    = job.poolId();
+        diff      = job.diff();
+        nonce     = *job.nonce();
+        algorithm = job.algorithm();
+    }
+
+
     inline uint64_t actualDiff() const
     {
         return Job::toDiff(reinterpret_cast<const uint64_t*>(result)[3]);

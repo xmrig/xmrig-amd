@@ -97,6 +97,11 @@ int App::exec()
 
     background();
 
+    if (!CryptoNight::init(m_controller->config()->algorithm().algo())) {
+        LOG_ERR("\"%s\" hash self-test failed.", m_controller->config()->algorithm().name());
+        return 1;
+    }
+
     Summary::print(m_controller);
 
 #   ifndef XMRIG_NO_API
