@@ -63,19 +63,7 @@ OclThread::~OclThread()
 #ifndef XMRIG_NO_API
 rapidjson::Value OclThread::toAPI(rapidjson::Document &doc) const
 {
-    using namespace rapidjson;
-
-    Value obj(kObjectType);
-//    auto &allocator = doc.GetAllocator();
-
-//    obj.AddMember("type",          "cpu", allocator);
-//    obj.AddMember("av",             m_av, allocator);
-//    obj.AddMember("low_power_mode", multiway(), allocator);
-//    obj.AddMember("affine_to_cpu",  affinity(), allocator);
-//    obj.AddMember("priority",       priority(), allocator);
-//    obj.AddMember("soft_aes",       isSoftAES(), allocator);
-
-    return obj;
+    return toConfig(doc);
 }
 #endif
 
@@ -85,10 +73,21 @@ rapidjson::Value OclThread::toConfig(rapidjson::Document &doc) const
     using namespace rapidjson;
 
     Value obj(kObjectType);
-//    auto &allocator = doc.GetAllocator();
+    auto &allocator = doc.GetAllocator();
 
-//    obj.AddMember("low_power_mode", multiway(), allocator);
-//    obj.AddMember("affine_to_cpu",  affinity() == -1L ? Value(kFalseType) : Value(affinity()), allocator);
+    obj.AddMember("index",         static_cast<uint64_t>(index()),     allocator);
+    obj.AddMember("intensity",     static_cast<uint64_t>(intensity()), allocator);
+    obj.AddMember("worksize",      static_cast<uint64_t>(worksize()),  allocator);
+    obj.AddMember("strided_index", stridedIndex(),                     allocator);
+    obj.AddMember("mem_chunk",     memChunk(),                         allocator);
+    obj.AddMember("comp_mode",     isCompMode(),                       allocator);
+
+    if (affinity() >= 0) {
+        obj.AddMember("affine_to_cpu", affinity(), allocator);
+    }
+    else {
+        obj.AddMember("affine_to_cpu", false, allocator);
+    }
 
     return obj;
 }

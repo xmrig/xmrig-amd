@@ -47,6 +47,7 @@ bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
+size_t Workers::m_threadsCount = 0;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<Job> Workers::m_queue;
@@ -92,7 +93,7 @@ size_t Workers::hugePages()
 
 size_t Workers::threads()
 {
-    return 0;
+    return m_threadsCount;
 }
 
 
@@ -147,7 +148,8 @@ bool Workers::start(xmrig::Controller *controller)
        ways += thread->multiway();
     }
 
-    m_hashrate = new Hashrate(threads.size(), controller);
+    m_threadsCount = threads.size();
+    m_hashrate = new Hashrate(m_threadsCount, controller);
 
     uv_mutex_init(&m_mutex);
     uv_rwlock_init(&m_rwlock);
@@ -157,14 +159,14 @@ bool Workers::start(xmrig::Controller *controller)
 
     uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
 
-    contexts.resize(threads.size());
+    contexts.resize(m_threadsCount);
 
-    for (size_t i = 0; i < threads.size(); ++i) {
+    for (size_t i = 0; i < m_threadsCount; ++i) {
         const OclThread *thread = static_cast<OclThread *>(threads[i]);
         contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
     }
 
-    if (InitOpenCL(contexts.data(), threads.size(), controller->config()) != OCL_ERR_SUCCESS) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != OCL_ERR_SUCCESS) {
         return false;
     }
 

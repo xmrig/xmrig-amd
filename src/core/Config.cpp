@@ -93,6 +93,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("colors",       isColors(), allocator);
     doc.AddMember("donate-level", donateLevel(), allocator);
     doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
+    doc.AddMember("opencl-platform", platformIndex(), allocator);
 
     Value pools(kArrayType);
 
@@ -105,26 +106,15 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);
 
-//    if (threadsMode() == Advanced) {
-//        Value threads(kArrayType);
-
-//        for (const IThread *thread : m_threadsCPU.list) {
-//            threads.PushBack(thread->toConfig(doc), doc.GetAllocator());
-//        }
-
-//        doc.AddMember("threads", threads, allocator);
-//    }
-//    else {
-//        doc.AddMember("threads", threadsMode() == Automatic ? Value(kNullType) : Value(threadsCount()), allocator);
-//    }
+    Value threads(kArrayType);
+    for (const IThread *thread : m_threads) {
+        threads.PushBack(thread->toConfig(doc), allocator);
+    }
+    doc.AddMember("threads", threads, allocator);
 
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
-
-#   ifdef HAVE_SYSLOG_H
-    doc.AddMember("syslog", isSyslog(), allocator);
-#   endif
-
-    doc.AddMember("watch", m_watch, allocator);
+    doc.AddMember("syslog",     isSyslog(), allocator);
+    doc.AddMember("watch",      m_watch, allocator);
 }
 
 

@@ -77,33 +77,12 @@ private:
     static void onTick(uv_timer_t *handle);
     static void start(IWorker *worker);
 
-    class LaunchStatus
-    {
-    public:
-        inline LaunchStatus() :
-            colors(true),
-            hugePages(0),
-            pages(0),
-            started(0),
-            threads(0),
-            ways(0),
-            algo(xmrig::CRYPTONIGHT)
-        {}
-
-        bool colors;
-        size_t hugePages;
-        size_t pages;
-        size_t started;
-        size_t threads;
-        size_t ways;
-        xmrig::Algo algo;
-    };
-
     static bool m_active;
     static bool m_enabled;
     static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
+    static size_t m_threadsCount;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
     static std::list<Job> m_queue;
