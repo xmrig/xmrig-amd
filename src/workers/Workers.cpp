@@ -57,6 +57,7 @@ uv_async_t Workers::m_async;
 uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
+xmrig::Controller *Workers::m_controller = nullptr;
 
 
 static std::vector<GpuContext> contexts;
@@ -99,6 +100,32 @@ size_t Workers::threads()
 
 void Workers::printHashrate(bool detail)
 {
+    assert(m_controller != nullptr);
+    if (!m_controller) {
+        return;
+    }
+
+    if (detail) {
+        const bool isColors = m_controller->config()->isColors();
+        char num1[8] = { 0 };
+        char num2[8] = { 0 };
+        char num3[8] = { 0 };
+
+        Log::i()->text("%s| THREAD | GPU | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
+
+        size_t i = 0;
+        for (const xmrig::IThread *thread : m_controller->config()->threads()) {
+             Log::i()->text("| %6zu | %3zu | %7s | %7s | %7s |",
+                            i, thread->index(),
+                            Hashrate::format(m_hashrate->calc(i, Hashrate::ShortInterval), num1, sizeof num1),
+                            Hashrate::format(m_hashrate->calc(i, Hashrate::MediumInterval), num2, sizeof num2),
+                            Hashrate::format(m_hashrate->calc(i, Hashrate::LargeInterval), num3, sizeof num3)
+                            );
+
+             i++;
+        }
+    }
+
     m_hashrate->print();
 }
 
@@ -141,6 +168,7 @@ void Workers::setJob(const Job &job, bool donate)
 
 bool Workers::start(xmrig::Controller *controller)
 {
+    m_controller = controller;
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     size_t ways = 0;
 

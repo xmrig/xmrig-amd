@@ -47,12 +47,14 @@ public:
     double calc(size_t ms) const;
     double calc(size_t threadId, size_t ms) const;
     void add(size_t threadId, uint64_t count, uint64_t timestamp);
-    void print();
+    void print() const;
     void stop();
     void updateHighest();
 
     inline double highest() const { return m_highest; }
     inline size_t threads() const { return m_threads; }
+
+    static const char *format(double h, char *buf, size_t size);
 
 private:
     static void onReport(uv_timer_t *handle);
