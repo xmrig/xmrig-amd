@@ -54,6 +54,7 @@ public:
 
     void getJSON(rapidjson::Document &doc) const override;
 
+    inline bool isShouldSave() const                     { return m_shouldSave; }
     inline const std::vector<IThread *> &threads() const { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
 

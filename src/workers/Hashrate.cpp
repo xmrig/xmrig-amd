@@ -91,6 +91,9 @@ double Hashrate::calc(size_t ms) const
 double Hashrate::calc(size_t threadId, size_t ms) const
 {
     assert(threadId < m_threads);
+    if (threadId >= m_threads) {
+        return nan("");
+    }
 
     using namespace std::chrono;
     const uint64_t now = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
