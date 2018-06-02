@@ -204,15 +204,5 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 
 void xmrig::Config::parseThread(const rapidjson::Value &object)
 {
-    OclThread *thread = new OclThread();
-    thread->setIndex(object["index"].GetInt());
-    thread->setIntensity(object["intensity"].GetUint());
-    thread->setWorksize(object["worksize"].GetUint());
-
-    const rapidjson::Value &affinity = object["affine_to_cpu"];
-    if (affinity.IsInt64()) {
-        thread->setAffinity(affinity.GetInt64());
-    }
-
-    m_threads.push_back(thread);
+    m_threads.push_back(new OclThread(object));
 }
