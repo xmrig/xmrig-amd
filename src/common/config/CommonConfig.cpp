@@ -44,6 +44,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_apiRestricted(true),
     m_background(false),
     m_colors(true),
+    m_dryRun(false),
     m_syslog(false),
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -172,9 +173,15 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 
     case ApiIPv6Key: /* ipv6 */
         m_apiIPv6 = enable;
+        break;
 
     case ApiRestrictedKey: /* restricted */
         m_apiRestricted = enable;
+        break;
+
+    case IConfig::DryRunKey: /* --dry-run */
+        m_dryRun = enable;
+        break;
 
     default:
         break;

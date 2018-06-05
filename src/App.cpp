@@ -104,6 +104,11 @@ int App::exec()
 
     Summary::print(m_controller);
 
+    if (m_controller->config()->isDryRun()) {
+        LOG_NOTICE("OK");
+        return 0;
+    }
+
 #   ifndef XMRIG_NO_API
     Api::start(m_controller);
 #   endif
@@ -127,7 +132,6 @@ int App::exec()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    release();
     return r;
 }
 
@@ -173,11 +177,6 @@ void App::close()
     Workers::stop();
 
     uv_stop(uv_default_loop());
-}
-
-
-void App::release()
-{
 }
 
 
