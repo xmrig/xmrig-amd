@@ -551,8 +551,9 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 }
 
 #define VARIANT1_1(p) \
-        uint table = 0x75310U; \
-        uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
+        uint table  = 0x75310U; \
+        uint offset = variant == 3 ? 27 : 26; \
+        uint index  = (((p).s2 >> offset) & 12) | (((p).s2 >> 23) & 2); \
         (p).s2 ^= ((table >> index) & 0x30U) << 24
 
 #define VARIANT1_2(p) ((uint2 *)&(p))[0] ^= tweak1_2_0
