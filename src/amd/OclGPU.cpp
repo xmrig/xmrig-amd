@@ -778,12 +778,10 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
     
 	// NumWaves 
 
-	const size_t wavesize = 8;
-	
-
+	const size_t wavesize = 64;
 	size_t tmpNonce[2] = { 0,0 }; // ctx->Nonce;
-	size_t w_size_cn1[2] = { wavesize,2 };      // Workgroup sempre 256
-	size_t g_thd_cn1[2] = { (g_thd+ wavesize -1)/ wavesize  * wavesize / 1, 2 }; // Threads * 256 / GROUP * wave
+	size_t w_size_cn1[2] = { 256,2 };      // Workgroup sempre 256
+	size_t g_thd_cn1[2] = { (g_thd*wavesize /ctx->workSize -1)/ 256  *256 / 1, 2 }; // Threads * 256 / GROUP * wave
 	
 
 	/*
@@ -824,8 +822,8 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
 		}
 
 
-		KernelNonce += g_thd_cn1[0] ;
-		tmpNonce[0] += g_thd_cn1[0];
+		KernelNonce += g_thd;
+		tmpNonce[0] += g_thd;
 	}
 
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[2], 2, Nonce, gthreads, lthreads, 0, NULL, NULL)) != CL_SUCCESS)
@@ -857,9 +855,9 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
         LOG_ERR("Error %s when calling clEnqueueReadBuffer to fetch results.", err_to_str(ret));
         return OCL_ERR_API;
     }
-
     clFinish(ctx->CommandQueues);
-
+	
+	
     for (int i = 0; i < 4; ++i) {
         if (BranchNonces[i]) {
             // Threads
@@ -867,7 +865,7 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
                 LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 4);
                 return OCL_ERR_API;
             }
-			size_t w_size = 4;
+			size_t w_size = 8;
             // round up to next multiple of w_size
             BranchNonces[i] = ((BranchNonces[i] + w_size - 1u) / w_size) * w_size;
             // number of global threads must be a multiple of the work group size (w_size)

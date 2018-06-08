@@ -517,7 +517,7 @@ inline ulong getIdx()
 __attribute__((reqd_work_group_size(WORKSIZE, 8, 1)))
 __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, ulong Threads)
 {
-    volatile ulong State[25];
+    ulong State[25];
     uint ExpandedKey1[40];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
    
@@ -651,20 +651,20 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
         tweak1_2 ^= as_uint2(states[24])
 
 
-#ifdef COMPMODE
-#undef COMP_MODE
-#endif
+//#ifdef COMPMODE
+//#undef COMP_MODE
+//#endif
 
-//#define MULTIWAVE 
+#define MULTIWAVE 
 #ifdef MULTIWAVE
 #define WAVESIZE  256
 #else
-#define WAVESIZE  8
+#define WAVESIZE  WORKSIZE
 #endif
 
-#define N_EL_PER_WAVE 8
+#define N_EL_PER_WAVE WORKSIZE
 
-#define WAVE_DIVISOR (64/N_EL_PER_WAVE)
+
 //#define USE_PNT
 
 __attribute__((reqd_work_group_size(WAVESIZE, 1, 1)))
@@ -673,7 +673,7 @@ __kernel void cn1_monero_Parallel(__global uint4 * restrict Scratchpad, __global
      ulong a[2], b[2];
     //__local uint AES0[256], AES1[256], AES2[256], AES3[256];
     __local uint AES[1024];
-	__local uint4 AEX[WAVESIZE];
+	//__local uint4 AEX[WAVESIZE];
 	
  ulong C[2];
 	
@@ -695,13 +695,15 @@ __kernel void cn1_monero_Parallel(__global uint4 * restrict Scratchpad, __global
     uint4 b_x;
 	
 #ifdef MULTIWAVE 
-   //ulong gIdx = ((get_global_id(0)/64U) * N_EL_PER_WAVE) + (get_global_id(0) & (N_EL_PER_WAVE-1));
    
-   ulong gIdx = ((get_global_id(0)/WAVE_DIVISOR));
+   
+   ulong gIdx = (get_global_id(0)/64U) * (WORKSIZE);
+   uint  lid  = get_local_id(0) & 63;
+   gIdx+=lid;
    
    //ulong gIdx = (get_global_id(0)/64U);
    
-   for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
+   
 #else
    ulong gIdx = get_global_id(0);
 #endif
@@ -718,7 +720,7 @@ for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
     barrier(CLK_LOCAL_MEM_FENCE);
 
 #ifdef MULTIWAVE    
-	bool exec = (gIdx < NTHREADS) && ( (get_global_id(0) % WAVE_DIVISOR)== 0); //(((get_local_id(0)  & 63)<N_EL_PER_WAVE) ); 
+	bool exec = (gIdx < Threads) && (lid<(WORKSIZE)); 
 #else	
 	bool exec = (gIdx < Threads);
 #endif
@@ -768,21 +770,17 @@ for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
    uint4 tmp;
    ulong C0;
    
-   #pragma unroll 8
+   
      for (uint i=0; i < ITERATIONS ; i++)
         {
 		
 
 #if true
-            
-	        C0 = AES_Round_C0(AES, AES+256, AES+512, AES+768, ((uint4 *)C)[0], ((uint2 *)a)[0]); // Use (2)
+           
+ C0 = AES_Round_C0(AES, AES+256, AES+512, AES+768, ((uint4 *)C)[0], ((uint2 *)a)[0]); // Use (2)
             IdxC = IDX((C0 & MASK) >> 4);
 			equal = IdxA==IdxC;
-			tmp = Scratchpad[IdxC];  // 	Prefetch (1)
-            
-			
-             
-            
+			tmp = Scratchpad[IdxC];  // 	Prefetch (1) 
             if  (equal)
              {
 			  c[1] = AES_Round_C1(AES, AES+256, AES+512, AES+768, ((uint4 *)C)[0], ((uint2 *)a)[1]);
@@ -797,28 +795,22 @@ for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
               b_x ^= ((uint4 *)c)[0];
               VARIANT1_1(b_x);
             }
+            //if  (equal)				
+				//tmp =b_x;				
+			tmp = equal ? b_x : tmp;	
 				
-            if  (equal)				
-				tmp =b_x;		
-					
-					
 			Scratchpad[IdxA] = b_x; 
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);   // Use (1)
 			ulong a0_xor = a[0] ^ as_ulong(tmp.s01);
 			IdxA = IDX((a0_xor & MASK) >> 4);
 			equal = IdxA ==IdxC;
-
-			
-	
 	        uint4 olda;
-			
 			if (equal)
 			{
 			 a[1] += c[0] * as_ulong2(tmp).s0;
              VARIANT1_2(a[1]);
 			 Scratchpad[IdxC ] = ((uint4 *)a)[0];
 			 olda = ((uint4 *)a)[0];
-			 //((uint4 *)C)[0] = ((uint4 *)a)[0];
              VARIANT1_2(a[1]);
 			 a[0] = a0_xor;
 			 a[1]^= as_ulong(tmp.s23);
@@ -827,32 +819,24 @@ for(ushort i = get_local_id(0); i < 256; i += WAVESIZE)
 			 else
 			{
 			 ((uint4 *)C)[0] = Scratchpad[IdxA]; 
-			 
 			 a[1] += c[0] * as_ulong2(tmp).s0;
              VARIANT1_2(a[1]);
-			 
 			 Scratchpad[IdxC ] = ((uint4 *)a)[0];
-			 //barrier(CLK_LOCAL_MEM_FENCE);
              VARIANT1_2(a[1]);
 			 a[0] = a0_xor;
 			 a[1]^= as_ulong(tmp.s23);
 			 b_x = ((uint4 *)c)[0]; 	 
-			 
 			}
 if (equal)
-    ((uint4 *)C)[0] = olda;        
-
-
-
-
-
+    ((uint4 *)C)[0] = olda;   
+     
 			
 
 )==="
 R"===(
 			
-			
-			/* 811 / 433
+			/*
+			// 811 / 433
 			Scratchpad[IdxA] = b_x; 
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);   // Use (1)
 			ulong a0_xor = a[0] ^ as_ulong(tmp.s01);
@@ -1030,7 +1014,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 {
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
     uint ExpandedKey2[40];
-    volatile ulong State[25];
+    ulong State[25];
     uint4 text;
 
     const ulong gIdx = getIdx();
