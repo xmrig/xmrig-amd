@@ -53,7 +53,6 @@ set(HEADERS
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
-    src/Mem.h
     src/net/JobResult.h
     src/net/Network.h
     src/net/strategies/DonateStrategy.h
@@ -110,7 +109,6 @@ set(SOURCES
     src/common/Platform.cpp
     src/core/Config.cpp
     src/core/Controller.cpp
-    src/Mem.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
@@ -132,11 +130,10 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
-        #res/app.rc
+        res/app.rc
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Cpu_win.cpp
-        src/Mem_win.cpp
         )
 
     add_definitions(/DWIN32)
@@ -146,14 +143,12 @@ elseif (APPLE)
         src/App_unix.cpp
         src/common/Platform_mac.cpp
         src/Cpu_mac.cpp
-        src/Mem_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/App_unix.cpp
         src/common/Platform_unix.cpp
         src/Cpu_unix.cpp
-        src/Mem_unix.cpp
         )
 
     set(EXTRA_LIBS pthread rt)
