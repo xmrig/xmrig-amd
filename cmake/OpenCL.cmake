@@ -51,7 +51,7 @@ endif()
 
 # find package will use the previews searched path variables
 find_package(OpenCL)
-if(OpenCL_FOUND)
+if (OpenCL_FOUND)
     include_directories(SYSTEM ${OpenCL_INCLUDE_DIRS})
     #set(LIBS ${LIBS} ${OpenCL_LIBRARY})
     link_directories(${OpenCL_LIBRARY})

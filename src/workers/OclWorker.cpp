@@ -27,18 +27,18 @@
 
 
 #include "amd/OclGPU.h"
+#include "common/Platform.h"
 #include "crypto/CryptoNight.h"
-#include "Platform.h"
-#include "workers/OclWorker.h"
-#include "workers/OclThread.h"
 #include "workers/Handle.h"
+#include "workers/OclThread.h"
+#include "workers/OclWorker.h"
 #include "workers/Workers.h"
 
 
 OclWorker::OclWorker(Handle *handle) :
     m_id(handle->threadId()),
-    m_threads(handle->threads()),
-    m_algorithm(handle->algorithm()),
+    m_threads(handle->totalWays()),
+    m_algorithm(handle->config()->algorithm()),
     m_ctx(handle->ctx()),
     m_hashCount(0),
     m_timestamp(0),
@@ -46,10 +46,10 @@ OclWorker::OclWorker(Handle *handle) :
     m_sequence(0),
     m_blob()
 {
-    const OclThread *thread = handle->gpuThread();
+    const int64_t affinity = handle->config()->affinity();
 
-    if (thread->affinity() >= 0) {
-        Platform::setThreadAffinity(thread->affinity());
+    if (affinity >= 0) {
+        Platform::setThreadAffinity(affinity);
     }
 }
 

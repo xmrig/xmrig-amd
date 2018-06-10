@@ -28,14 +28,14 @@
 #include <atomic>
 
 
+#include "amd/GpuContext.h"
+#include "common/net/Job.h"
+#include "common/xmrig.h"
 #include "interfaces/IWorker.h"
-#include "net/Job.h"
 #include "net/JobResult.h"
-#include "xmrig.h"
 
 
 class Handle;
-struct GpuContext;
 
 
 class OclWorker : public IWorker
@@ -46,6 +46,8 @@ public:
 protected:
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
     inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }
+    inline bool selfTest() override            { return true; }
+    inline size_t id() const override          { return m_id; }
 
     void start() override;
 

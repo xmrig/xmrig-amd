@@ -25,6 +25,7 @@
 #include <string.h>
 
 
+#include "rapidjson/document.h"
 #include "workers/OclThread.h"
 
 
@@ -35,9 +36,43 @@ OclThread::OclThread() :
     m_affinity(-1),
     m_index(0),
     m_intensity(0),
-    m_threadId(0),
     m_worksize(0)
 {
+}
+
+
+OclThread::OclThread(const rapidjson::Value &object) :
+    m_compMode(true),
+    m_memChunk(2),
+    m_stridedIndex(1),
+    m_affinity(-1)
+{
+    setIndex(object["index"].GetInt());
+    setIntensity(object["intensity"].GetUint());
+    setWorksize(object["worksize"].GetUint());
+
+    const rapidjson::Value &affinity = object["affine_to_cpu"];
+    if (affinity.IsInt64()) {
+        setAffinity(affinity.GetInt64());
+    }
+
+    const rapidjson::Value &stridedIndex = object["strided_index"];
+    if (stridedIndex.IsBool()) {
+        setStridedIndex(stridedIndex.IsTrue() ? 1 : 0);
+    }
+    else if (stridedIndex.IsUint()) {
+        setStridedIndex(stridedIndex.GetInt());
+    }
+
+    const rapidjson::Value &memChunk = object["mem_chunk"];
+    if (memChunk.IsUint()) {
+        setMemChunk(memChunk.GetInt());
+    }
+
+    const rapidjson::Value &compMode = object["comp_mode"];
+    if (compMode.IsBool()) {
+        m_compMode = compMode.IsBool();
+    }
 }
 
 
@@ -48,7 +83,6 @@ OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t af
     m_affinity(affinity),
     m_index(index),
     m_intensity(intensity),
-    m_threadId(0),
     m_worksize(worksize)
 {
 }
@@ -56,4 +90,53 @@ OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t af
 
 OclThread::~OclThread()
 {
+}
+
+
+void OclThread::setMemChunk(int memChunk)
+{
+    if (memChunk >= 0 && memChunk <= 18) {
+        m_memChunk = memChunk;
+    }
+}
+
+
+void OclThread::setStridedIndex(int stridedIndex)
+{
+    if (stridedIndex >= 0 && stridedIndex <= 2) {
+        m_stridedIndex = stridedIndex;
+    }
+}
+
+
+#ifndef XMRIG_NO_API
+rapidjson::Value OclThread::toAPI(rapidjson::Document &doc) const
+{
+    return toConfig(doc);
+}
+#endif
+
+
+rapidjson::Value OclThread::toConfig(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    Value obj(kObjectType);
+    auto &allocator = doc.GetAllocator();
+
+    obj.AddMember("index",         static_cast<uint64_t>(index()),     allocator);
+    obj.AddMember("intensity",     static_cast<uint64_t>(intensity()), allocator);
+    obj.AddMember("worksize",      static_cast<uint64_t>(worksize()),  allocator);
+    obj.AddMember("strided_index", stridedIndex(),                     allocator);
+    obj.AddMember("mem_chunk",     memChunk(),                         allocator);
+    obj.AddMember("comp_mode",     isCompMode(),                       allocator);
+
+    if (affinity() >= 0) {
+        obj.AddMember("affine_to_cpu", affinity(), allocator);
+    }
+    else {
+        obj.AddMember("affine_to_cpu", false, allocator);
+    }
+
+    return obj;
 }

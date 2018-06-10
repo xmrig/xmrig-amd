@@ -551,11 +551,12 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 }
 
 #define VARIANT1_1(p) \
-        uint table = 0x75310U; \
-        uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
+        uint table  = 0x75310U; \
+        uint offset = variant == 3 ? 27 : 26; \
+        uint index  = (((p).s2 >> offset) & 12) | (((p).s2 >> 23) & 2); \
         (p).s2 ^= ((table >> index) & 0x30U) << 24
 
-#define VARIANT1_2(p) ((uint2 *)&(p))[0] ^= tweak1_2
+#define VARIANT1_2(p) ((uint2 *)&(p))[0] ^= tweak1_2_0
 
 #define VARIANT1_INIT() \
         tweak1_2 = as_uint2(input[4]); \
@@ -565,7 +566,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
         tweak1_2 ^= as_uint2(states[24])
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, __global ulong *input)
+__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -632,6 +633,11 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
+
+            uint2 tweak1_2_0 = tweak1_2;
+            if (variant == 2) {
+                tweak1_2_0 ^= ((uint2 *)&(a[0]))[0];
+            }
 
             VARIANT1_2(a[1]);
             Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
