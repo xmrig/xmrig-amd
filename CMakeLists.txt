@@ -130,11 +130,14 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
-        res/app.rc
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Cpu_win.cpp
         )
+
+    if (NOT CMAKE_CXX_COMPILER_ID MATCHES GNU)
+        set(SOURCES_OS ${SOURCES_OS} res/app.rc)
+    endif()
 
     add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
