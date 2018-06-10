@@ -33,7 +33,7 @@
 #include "interfaces/IThread.h"
 
 
-class GpuContext;
+struct GpuContext;
 class IWorker;
 
 
