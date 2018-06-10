@@ -42,7 +42,6 @@
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "interfaces/IThread.h"
-#include "Mem.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"

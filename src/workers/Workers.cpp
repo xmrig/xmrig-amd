@@ -33,7 +33,6 @@
 #include "crypto/CryptoNight.h"
 #include "interfaces/IJobResultListener.h"
 #include "interfaces/IThread.h"
-#include "Mem.h"
 #include "rapidjson/document.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"

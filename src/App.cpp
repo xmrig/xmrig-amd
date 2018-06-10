@@ -35,7 +35,6 @@
 #include "core/Controller.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight.h"
-#include "Mem.h"
 #include "net/Network.h"
 #include "Summary.h"
 #include "version.h"

@@ -39,7 +39,6 @@
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "Cpu.h"
-#include "Mem.h"
 #include "Summary.h"
 #include "version.h"
 
