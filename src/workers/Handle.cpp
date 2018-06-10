@@ -25,9 +25,10 @@
 #include "workers/Handle.h"
 
 
-Handle::Handle(xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays) :
+Handle::Handle(size_t threadId, xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays) :
     m_ctx(ctx),
     m_worker(nullptr),
+    m_threadId(threadId),
     m_totalWays(totalWays),
     m_offset(offset),
     m_config(config)

@@ -40,13 +40,13 @@ class IWorker;
 class Handle
 {
 public:
-    Handle(xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays);
+    Handle(size_t threadId, xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays);
     void join();
     void start(void (*callback) (void *));
 
     inline GpuContext *ctx() const         { return m_ctx; }
     inline IWorker *worker() const         { return m_worker; }
-    inline size_t threadId() const         { return m_config->index(); }
+    inline size_t threadId() const         { return m_threadId; }
     inline size_t totalWays() const        { return m_totalWays; }
     inline uint32_t offset() const         { return m_offset; }
     inline void setWorker(IWorker *worker) { assert(worker != nullptr); m_worker = worker; }
@@ -55,6 +55,7 @@ public:
 private:
     GpuContext *m_ctx;
     IWorker *m_worker;
+    size_t m_threadId;
     size_t m_totalWays;
     uint32_t m_offset;
     uv_thread_t m_thread;

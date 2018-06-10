@@ -204,8 +204,9 @@ bool Workers::start(xmrig::Controller *controller)
 
     size_t i = 0;
     for (xmrig::IThread *thread : threads) {
-        Handle *handle = new Handle(thread, &contexts[i++], offset, ways);
+        Handle *handle = new Handle(i, thread, &contexts[i], offset, ways);
         offset += thread->multiway();
+        i++;
 
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
