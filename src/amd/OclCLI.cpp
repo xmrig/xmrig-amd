@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,11 +31,10 @@
 #include "amd/cryptonight.h"
 #include "amd/OclCLI.h"
 #include "amd/OclGPU.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
 #include "crypto/CryptoNight_constants.h"
-#include "log/Log.h"
-#include "Options.h"
 #include "workers/OclThread.h"
-#include "xmrig.h"
 
 
 OclCLI::OclCLI()
@@ -43,7 +42,7 @@ OclCLI::OclCLI()
 }
 
 
-bool OclCLI::setup(std::vector<OclThread*> &threads)
+bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
 {
     if (isEmpty()) {
         return false;
@@ -57,22 +56,22 @@ bool OclCLI::setup(std::vector<OclThread*> &threads)
 }
 
 
-void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
+void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config)
 {
-    *platformIndex = getAMDPlatformIdx();
+    *platformIndex = getAMDPlatformIdx(config);
     if (*platformIndex == -1) {
         LOG_ERR("No AMD OpenCL platform found. Possible driver issues or wrong vendor driver.");
         return;
     }
 
-    std::vector<GpuContext> devices = getAMDDevices(*platformIndex);
+    std::vector<GpuContext> devices = getAMDDevices(*platformIndex, config);
     if (devices.empty()) {
         LOG_ERR("No AMD device found.");
         return;
     }
 
     constexpr size_t byteToMiB = 1024u * 1024u;
-    const size_t hashMemSize   = xmrig::cn_select_memory(Options::i()->algorithm());
+    const size_t hashMemSize   = xmrig::cn_select_memory(config->algorithm().algo());
 
     for (GpuContext &ctx : devices) {
         size_t maxThreads = 1000u;
@@ -94,7 +93,7 @@ void OclCLI::autoConf(std::vector<OclThread*> &threads, int *platformIndex)
             maxThreads = 2024u;
         }
 
-        if (Options::i()->algorithm() == xmrig::CRYPTONIGHT_LITE) {
+        if (config->algorithm().algo() == xmrig::CRYPTONIGHT_LITE) {
             maxThreads *= 2u;
         }
 

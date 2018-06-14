@@ -23,18 +23,16 @@
 
 
 #include "workers/Handle.h"
-#include "workers/OclThread.h"
 
 
-Handle::Handle(size_t threadId, OclThread *thread, GpuContext *ctx, size_t threads, xmrig::Algo algorithm) :
-    m_gpuThread(thread),
-    m_threadId(threadId),
-    m_threads(threads),
-    m_algorithm(algorithm),
+Handle::Handle(size_t threadId, xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays) :
     m_ctx(ctx),
-    m_worker(nullptr)
+    m_worker(nullptr),
+    m_threadId(threadId),
+    m_totalWays(totalWays),
+    m_offset(offset),
+    m_config(config)
 {
-    thread->setThreadId(threadId);
 }
 
 

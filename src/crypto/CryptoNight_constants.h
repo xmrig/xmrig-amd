@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 
-#include "xmrig.h"
+#include "common/xmrig.h"
 
 
 namespace xmrig
@@ -53,6 +53,7 @@ template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT>()       { retur
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_MEMORY; }
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_MEMORY; }
 
+
 inline size_t cn_select_memory(Algo algorithm)
 {
     switch(algorithm)
@@ -65,6 +66,9 @@ inline size_t cn_select_memory(Algo algorithm)
 
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_MEMORY;
+
+    default:
+        break;
     }
 
     return 0;
@@ -75,6 +79,7 @@ template<Algo ALGO> inline constexpr uint32_t cn_select_mask()           { retur
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT>()       { return CRYPTONIGHT_MASK; }
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_MASK; }
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_MASK; }
+
 
 inline uint32_t cn_select_mask(Algo algorithm)
 {
@@ -88,6 +93,9 @@ inline uint32_t cn_select_mask(Algo algorithm)
 
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_MASK;
+
+    default:
+        break;
     }
 
     return 0;
@@ -98,6 +106,7 @@ template<Algo ALGO> inline constexpr uint32_t cn_select_iter()           { retur
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT>()       { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_ITER; }
+
 
 inline uint32_t cn_select_iter(Algo algorithm)
 {
@@ -111,6 +120,9 @@ inline uint32_t cn_select_iter(Algo algorithm)
 
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_ITER;
+
+    default:
+        break;
     }
 
     return 0;

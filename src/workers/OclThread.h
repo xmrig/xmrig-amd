@@ -25,33 +25,45 @@
 #define __OCLTHREAD_H__
 
 
-#include <vector>
+#include "common/xmrig.h"
+#include "interfaces/IThread.h"
 
 
-#include "amd/GpuContext.h"
-
-
-class OclThread
+class OclThread : public xmrig::IThread
 {
 public:
     OclThread();
+    OclThread(const rapidjson::Value &object);
     OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity = -1);
     ~OclThread();
 
     inline bool isCompMode() const  { return m_compMode; }
-    inline int affinity() const     { return m_affinity; }
     inline int memChunk() const     { return m_memChunk; }
     inline int stridedIndex() const { return m_stridedIndex; }
-    inline int threadId() const     { return m_threadId; }
-    inline size_t index() const     { return m_index; }
     inline size_t intensity() const { return m_intensity; }
     inline size_t worksize() const  { return m_worksize; }
 
     inline void setAffinity(int64_t affinity)  { m_affinity = affinity; }
     inline void setIndex(size_t index)         { m_index = index; }
     inline void setIntensity(size_t intensity) { m_intensity = intensity; }
-    inline void setThreadId(size_t threadId)   { m_threadId = threadId; }
     inline void setWorksize(size_t worksize)   { m_worksize = worksize; }
+
+    inline xmrig::Algo algorithm() const override { return m_algorithm; }
+    inline int priority() const override          { return -1; }
+    inline int64_t affinity() const override      { return m_affinity; }
+    inline Multiway multiway() const override     { return SingleWay; }
+    inline size_t index() const override          { return m_index; }
+    inline Type type() const override             { return CPU; }
+
+    void setMemChunk(int memChunk);
+    void setStridedIndex(int stridedIndex);
+
+protected:
+#   ifndef XMRIG_NO_API
+    rapidjson::Value toAPI(rapidjson::Document &doc) const override;
+#   endif
+
+    rapidjson::Value toConfig(rapidjson::Document &doc) const override;
 
 private:
     bool m_compMode;
@@ -60,8 +72,8 @@ private:
     int64_t m_affinity;
     size_t m_index;
     size_t m_intensity;
-    size_t m_threadId;
     size_t m_worksize;
+    xmrig::Algo m_algorithm;
 };
 
 

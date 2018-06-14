@@ -1,3 +1,10 @@
+# v2.7.0-beta
+- **Added support for cryptonight-lite variant ipbc** (`cn-lite/ipbc`) for BitTube also was known as IPBC.
+- **Added support for cryptonight variant xtl** (`cn/xtl`) for Stellite.
+- Added [config options](https://github.com/xmrig/xmrig-amd/blob/dev/doc/THREADS.md) `strided_index`, `mem_chunk` and `comp_mode`.
+- Added new detailed hashrate report.
+- Added command line option `--dry-run`.
+
 # v2.6.1
 - Fixed critical bug, in some cases miner was can't recovery connection and switch to failover pool, version 2.5.2 and v2.6.0-beta1 affected.
 - [#499](https://github.com/xmrig/xmrig/issues/499) IPv6 support disabled for internal HTTP API.

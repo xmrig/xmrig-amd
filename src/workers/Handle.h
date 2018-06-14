@@ -25,42 +25,41 @@
 #define __HANDLE_H__
 
 
+#include <assert.h>
 #include <stdint.h>
 #include <uv.h>
 
 
-#include "xmrig.h"
+#include "interfaces/IThread.h"
 
 
-class IWorker;
-class OclThread;
 struct GpuContext;
+class IWorker;
 
 
 class Handle
 {
 public:
-    Handle(size_t threadId, OclThread *thread, GpuContext *ctx, size_t threads, xmrig::Algo algorithm);
-
+    Handle(size_t threadId, xmrig::IThread *config, GpuContext *ctx, uint32_t offset, size_t totalWays);
     void join();
     void start(void (*callback) (void *));
 
-    inline const OclThread *gpuThread() const { return m_gpuThread; }
-    inline GpuContext *ctx() const            { return m_ctx; }
-    inline int threadId() const               { return m_threadId; }
-    inline int threads() const                { return m_threads; }
-    inline IWorker *worker() const            { return m_worker; }
-    inline void setWorker(IWorker *worker)    { m_worker = worker; }
-    inline xmrig::Algo algorithm() const      { return m_algorithm; }
+    inline GpuContext *ctx() const         { return m_ctx; }
+    inline IWorker *worker() const         { return m_worker; }
+    inline size_t threadId() const         { return m_threadId; }
+    inline size_t totalWays() const        { return m_totalWays; }
+    inline uint32_t offset() const         { return m_offset; }
+    inline void setWorker(IWorker *worker) { assert(worker != nullptr); m_worker = worker; }
+    inline xmrig::IThread *config() const  { return m_config; }
 
 private:
-    const OclThread *m_gpuThread;
-    const size_t m_threadId;
-    const size_t m_threads;
-    const xmrig::Algo m_algorithm;
     GpuContext *m_ctx;
     IWorker *m_worker;
+    size_t m_threadId;
+    size_t m_totalWays;
+    uint32_t m_offset;
     uv_thread_t m_thread;
+    xmrig::IThread *m_config;
 };
 
 

@@ -4,8 +4,8 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,26 +22,23 @@
  */
 
 #include <cmath>
-
-#ifdef __GNUC__
-#   include <mm_malloc.h>
-#else
-#   include <malloc.h>
-#endif
+#include <thread>
 
 
 #include "amd/OclGPU.h"
 #include "api/Api.h"
+#include "common/log/Log.h"
+#include "core/Config.h"
+#include "core/Controller.h"
 #include "crypto/CryptoNight.h"
 #include "interfaces/IJobResultListener.h"
-#include "log/Log.h"
-#include "Options.h"
-#include "workers/OclWorker.h"
+#include "interfaces/IThread.h"
+#include "rapidjson/document.h"
 #include "workers/Handle.h"
 #include "workers/Hashrate.h"
 #include "workers/OclThread.h"
+#include "workers/OclWorker.h"
 #include "workers/Workers.h"
-#include "xmrig.h"
 
 
 bool Workers::m_active = false;
@@ -49,6 +46,7 @@ bool Workers::m_enabled = true;
 Hashrate *Workers::m_hashrate = nullptr;
 IJobResultListener *Workers::m_listener = nullptr;
 Job Workers::m_job;
+size_t Workers::m_threadsCount = 0;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
 std::list<Job> Workers::m_queue;
@@ -57,8 +55,8 @@ uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
 uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
-uv_timer_t Workers::m_reportTimer;
 uv_timer_t Workers::m_timer;
+xmrig::Controller *Workers::m_controller = nullptr;
 
 
 static std::vector<GpuContext> contexts;
@@ -77,55 +75,6 @@ struct JobBaton
 };
 
 
-
-bool Workers::start(const std::vector<OclThread*> &threads)
-{
-    const size_t count = threads.size();
-    m_hashrate = new Hashrate((int) count);
-
-    if (count == 0) {
-        return false;
-    }
-
-    uv_mutex_init(&m_mutex);
-    uv_rwlock_init(&m_rwlock);
-
-    m_sequence = 1;
-    m_paused   = 1;
-
-    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
-
-    contexts.resize(count);
-
-    for (size_t i = 0; i < count; ++i) {
-        const OclThread *thread = threads[i];
-        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
-    }
-
-    if (InitOpenCL(contexts.data(), count, Options::i()->platformIndex()) != OCL_ERR_SUCCESS) {
-        return false;
-    }
-
-    for (size_t i = 0; i < count; ++i) {
-        Handle *handle = new Handle((int) i, threads[i], &contexts[i], (int) count, Options::i()->algorithm());
-        m_workers.push_back(handle);
-        handle->start(Workers::onReady);
-    }
-
-    uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
- 
-    const int printTime = Options::i()->printTime();
-    if (printTime > 0) {
-        uv_timer_init(uv_default_loop(), &m_reportTimer);
-        uv_timer_start(&m_reportTimer, Workers::onReport, (printTime + 4) * 1000, printTime * 1000);
-    }
-
-    Options::i()->save();
-    return true;
-}
-
-
 Job Workers::job()
 {
     uv_rwlock_rdlock(&m_rwlock);
@@ -136,11 +85,43 @@ Job Workers::job()
 }
 
 
+size_t Workers::hugePages()
+{
+    return 0;
+}
+
+
+size_t Workers::threads()
+{
+    return m_threadsCount;
+}
+
+
 void Workers::printHashrate(bool detail)
 {
+    assert(m_controller != nullptr);
+    if (!m_controller) {
+        return;
+    }
+
     if (detail) {
-       for (const OclThread *thread : Options::i()->threads()) {
-            m_hashrate->print(thread->threadId(), thread->index());
+        const bool isColors = m_controller->config()->isColors();
+        char num1[8] = { 0 };
+        char num2[8] = { 0 };
+        char num3[8] = { 0 };
+
+        Log::i()->text("%s| THREAD | GPU | 10s H/s | 60s H/s | 15m H/s |", isColors ? "\x1B[1;37m" : "");
+
+        size_t i = 0;
+        for (const xmrig::IThread *thread : m_controller->config()->threads()) {
+             Log::i()->text("| %6zu | %3zu | %7s | %7s | %7s |",
+                            i, thread->index(),
+                            Hashrate::format(m_hashrate->calc(i, Hashrate::ShortInterval), num1, sizeof num1),
+                            Hashrate::format(m_hashrate->calc(i, Hashrate::MediumInterval), num2, sizeof num2),
+                            Hashrate::format(m_hashrate->calc(i, Hashrate::LargeInterval), num3, sizeof num3)
+                            );
+
+             i++;
         }
     }
 
@@ -184,12 +165,63 @@ void Workers::setJob(const Job &job, bool donate)
 }
 
 
-void Workers::stop()
+bool Workers::start(xmrig::Controller *controller)
 {
-    if (Options::i()->printTime() > 0) {
-        uv_timer_stop(&m_reportTimer);
+    m_controller = controller;
+    const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+    size_t ways = 0;
+
+    for (const xmrig::IThread *thread : threads) {
+       ways += thread->multiway();
     }
 
+    m_threadsCount = threads.size();
+    m_hashrate = new Hashrate(m_threadsCount, controller);
+
+    uv_mutex_init(&m_mutex);
+    uv_rwlock_init(&m_rwlock);
+
+    m_sequence = 1;
+    m_paused   = 1;
+
+    uv_async_init(uv_default_loop(), &m_async, Workers::onResult);
+
+    contexts.resize(m_threadsCount);
+
+    for (size_t i = 0; i < m_threadsCount; ++i) {
+        const OclThread *thread = static_cast<OclThread *>(threads[i]);
+        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
+    }
+
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != OCL_ERR_SUCCESS) {
+        return false;
+    }
+
+    uv_timer_init(uv_default_loop(), &m_timer);
+    uv_timer_start(&m_timer, Workers::onTick, 500, 500);
+
+    uint32_t offset = 0;
+
+    size_t i = 0;
+    for (xmrig::IThread *thread : threads) {
+        Handle *handle = new Handle(i, thread, &contexts[i], offset, ways);
+        offset += thread->multiway();
+        i++;
+
+        m_workers.push_back(handle);
+        handle->start(Workers::onReady);
+    }
+
+    if (controller->config()->isShouldSave()) {
+        controller->config()->save();
+    }
+
+    return true;
+}
+
+
+void Workers::stop()
+{
     uv_timer_stop(&m_timer);
     m_hashrate->stop();
 
@@ -213,12 +245,34 @@ void Workers::submit(const Job &result)
 }
 
 
+#ifndef XMRIG_NO_API
+void Workers::threadsSummary(rapidjson::Document &doc)
+{
+//    uv_mutex_lock(&m_mutex);
+//    const uint64_t pages[2] = { m_status.hugePages, m_status.pages };
+//    const uint64_t memory   = m_status.ways * xmrig::cn_select_memory(m_status.algo);
+//    uv_mutex_unlock(&m_mutex);
+
+//    auto &allocator = doc.GetAllocator();
+
+//    rapidjson::Value hugepages(rapidjson::kArrayType);
+//    hugepages.PushBack(pages[0], allocator);
+//    hugepages.PushBack(pages[1], allocator);
+
+//    doc.AddMember("hugepages", hugepages, allocator);
+//    doc.AddMember("memory", memory, allocator);
+}
+#endif
+
+
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
-    handle->setWorker(new OclWorker(handle));
 
-    handle->worker()->start();
+    IWorker *worker = new OclWorker(handle);
+    handle->setWorker(worker);
+
+    start(worker);
 }
 
 
@@ -236,7 +290,7 @@ void Workers::onResult(uv_async_t *handle)
     uv_queue_work(uv_default_loop(), &baton->request,
         [](uv_work_t* req) {
             JobBaton *baton = static_cast<JobBaton*>(req->data);
-            cryptonight_ctx *ctx = static_cast<cryptonight_ctx*>(_mm_malloc(sizeof(cryptonight_ctx), 16));
+            cryptonight_ctx *ctx = CryptoNight::createCtx(baton->jobs[0].algorithm().algo());
 
             for (const Job &job : baton->jobs) {
                 JobResult result(job);
@@ -249,7 +303,7 @@ void Workers::onResult(uv_async_t *handle)
                 }
             }
 
-            _mm_free(ctx);
+            CryptoNight::freeCtx(ctx);
         },
         [](uv_work_t* req, int status) {
             JobBaton *baton = static_cast<JobBaton*>(req->data);
@@ -268,12 +322,6 @@ void Workers::onResult(uv_async_t *handle)
 }
 
 
-void Workers::onReport(uv_timer_t *handle)
-{
-    m_hashrate->print();
-}
-
-
 void Workers::onTick(uv_timer_t *handle)
 {
     for (Handle *handle : m_workers) {
@@ -287,8 +335,10 @@ void Workers::onTick(uv_timer_t *handle)
     if ((m_ticks++ & 0xF) == 0)  {
         m_hashrate->updateHighest();
     }
+}
 
-#   ifndef XMRIG_NO_API
-    Api::tick(m_hashrate);
-#   endif
+
+void Workers::start(IWorker *worker)
+{
+    worker->start();
 }
