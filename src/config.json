@@ -7,16 +7,11 @@
         "ipv6": false,
         "restricted": true
     },
-    "av": 0,
     "background": false,
     "colors": true,
-    "cpu-affinity": null,
-    "cpu-priority": null,
     "donate-level": 5,
-    "huge-pages": true,
-    "hw-aes": null,
     "log-file": null,
-    "max-cpu-usage": 75,
+    "opencl-platform": 0,
     "pools": [
         {
             "url": "proxy.fee.xmrig.com:9999",
@@ -31,8 +26,8 @@
     "print-time": 60,
     "retries": 5,
     "retry-pause": 5,
-    "safe": false,
     "threads": null,
     "user-agent": null,
+    "syslog": false,
     "watch": false
 }
