@@ -267,7 +267,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     const xmrig::Algo algo        = config->algorithm().algo();
     const size_t hashMemSize      = xmrig::cn_select_memory(algo);
     const uint32_t threadMemMask  = xmrig::cn_select_mask(algo);
-    const uint32_t hashIterations = xmrig::cn_select_iter(algo, config->algorithm().variant());
+    const uint32_t hashIterations = xmrig::cn_select_iter(algo, xmrig::VARIANT_0);
 
     size_t g_thd = ctx->rawIntensity;
     ctx->ExtraBuffers[0] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, hashMemSize * g_thd, NULL, &ret);
@@ -630,7 +630,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, xmrig::Algo algorithm, uint32_t variant)
+size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant)
 {
     cl_int ret;
 
@@ -665,9 +665,9 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     }
 
     // CN1 Kernel
-    int cn_kernel_offset = 0;
-    if (algorithm != xmrig::CRYPTONIGHT_HEAVY && variant > 0) {
-        cn_kernel_offset = 6;
+    int cn_kernel_offset = 6;
+    if (variant == xmrig::VARIANT_0 || variant == xmrig::VARIANT_XHV) {
+        cn_kernel_offset = 0;
     }
 
     // Scratchpads, States
@@ -681,12 +681,12 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
         return(OCL_ERR_API);
     }
 
-    if (cn_kernel_offset) {
-        if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 3);
-            return OCL_ERR_API;
-        }
+    if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 3);
+        return OCL_ERR_API;
+    }
 
+    if (cn_kernel_offset) {
         if ((ret = clSetKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
             return OCL_ERR_API;
@@ -734,7 +734,7 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, uint32_t variant)
+size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant)
 {
     cl_int ret;
     cl_uint zero = 0;
@@ -782,9 +782,9 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, xmrig::Algo algorithm, ui
     }*/
 
     size_t tmpNonce = ctx->Nonce;
-    int cn_kernel_offset = 0;
-    if (algorithm != xmrig::CRYPTONIGHT_HEAVY && variant > 0) {
-        cn_kernel_offset = 6;
+    int cn_kernel_offset = 6;
+    if (variant == xmrig::VARIANT_0 || variant == xmrig::VARIANT_XHV) {
+        cn_kernel_offset = 0;
     }
 
     if((ret = clEnqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, &tmpNonce, &g_thd, &w_size, 0, NULL, NULL)) != CL_SUCCESS)
