@@ -267,7 +267,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     const xmrig::Algo algo        = config->algorithm().algo();
     const size_t hashMemSize      = xmrig::cn_select_memory(algo);
     const uint32_t threadMemMask  = xmrig::cn_select_mask(algo);
-    const uint32_t hashIterations = xmrig::cn_select_iter(algo);
+    const uint32_t hashIterations = xmrig::cn_select_iter(algo, config->algorithm().variant());
 
     size_t g_thd = ctx->rawIntensity;
     ctx->ExtraBuffers[0] = clCreateBuffer(opencl_ctx, CL_MEM_READ_WRITE, hashMemSize * g_thd, NULL, &ret);

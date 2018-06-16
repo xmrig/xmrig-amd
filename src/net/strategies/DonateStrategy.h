@@ -29,10 +29,10 @@
 #include <vector>
 
 
+#include "common/net/Pool.h"
 #include "common/interfaces/IClientListener.h"
 #include "common/interfaces/IStrategy.h"
 #include "common/interfaces/IStrategyListener.h"
-#include "common/net/Pool.h"
 
 
 class Client;
