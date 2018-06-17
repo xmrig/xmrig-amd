@@ -54,7 +54,7 @@ public:
 
     void getJSON(rapidjson::Document &doc) const override;
 
-    inline bool isOclCache() const                       { return true; }
+    inline bool isOclCache() const                       { return m_cache; }
     inline bool isShouldSave() const                     { return m_shouldSave; }
     inline const std::vector<IThread *> &threads() const { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
@@ -63,6 +63,7 @@ public:
 
 protected:
     bool finalize() override;
+    bool parseBoolean(int key, bool enable) override;
     bool parseString(int key, const char *arg) override;
     bool parseUint64(int key, uint64_t arg) override;
     void parseJSON(const rapidjson::Document &doc) override;
@@ -71,6 +72,7 @@ private:
     void parseThread(const rapidjson::Value &object);
 
     bool m_autoConf;
+    bool m_cache;
     bool m_shouldSave;
     int m_platformIndex;
     OclCLI m_oclCLI;
