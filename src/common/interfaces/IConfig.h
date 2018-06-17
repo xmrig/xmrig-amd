@@ -84,6 +84,7 @@ public:
         OclDevices        = 1402,
         OclLaunch         = 1403,
         OclCache          = 1404,
+        OclPrint          = 1405,
 
         // xmrig-proxy
         AccessLogFileKey  = 'A',

@@ -26,6 +26,7 @@
 #include <inttypes.h>
 
 
+#include "amd/OclGPU.h"
 #include "common/config/ConfigLoader.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
@@ -180,6 +181,10 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case OclCache: /* --no-cache */
         return parseBoolean(key, false);
+
+    case OclPrint: /* --print-platforms */
+        printPlatforms();
+        return false;
 
     default:
         break;

@@ -127,6 +127,7 @@ static struct option const options[] = {
     { "opencl-launch",     1, nullptr, xmrig::IConfig::OclLaunch         },
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform       },
     { "no-cache",          0, nullptr, xmrig::IConfig::OclCache          },
+    { "print-platforms",   0, nullptr, xmrig::IConfig::OclPrint          },
     { 0, 0, 0, 0 }
 };
 
