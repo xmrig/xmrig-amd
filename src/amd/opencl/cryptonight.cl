@@ -624,10 +624,8 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
     if(gIdx < Threads)
 #   endif
     {
-        const int iterations = variant == VARIANT_MSR ? ITERATIONS / 2 : ITERATIONS;
-
         #pragma unroll 8
-        for(int i = 0; i < iterations; ++i)
+        for(int i = 0; i < ITERATIONS; ++i)
         {
             ulong c[2];
 
@@ -713,10 +711,8 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
         ulong idx0 = a[0];
         ulong mask = MASK;
 
-        const int iterations = ITERATIONS;
-
         #pragma unroll 8
-        for(int i = 0; i < iterations; ++i)
+        for(int i = 0; i < ITERATIONS; ++i)
         {
             ulong c[2];
 

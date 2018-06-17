@@ -52,7 +52,7 @@ bool OclCache::load()
 
     char options[512] = { 0 };
     snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d",
-             xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
+             xmrig::cn_select_iter(algo, m_config->algorithm().variant()),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
              m_ctx->stridedIndex,
