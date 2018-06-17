@@ -1,3 +1,11 @@
+# v2.7.1-beta
+- **Added OpenCL cache support**.
+  - Added config option `cache` and command line option `--no-cache` to allow disable cache.
+- **Added support for new cryptonight-heavy variant xhv** (`cn-heavy/xhv`) for upcoming Haven Protocol fork.
+- **Added support for new cryptonight variant msr** (`cn/msr`) also known as `cryptonight-fast` for upcoming Masari fork.
+ - [#126](https://github.com/xmrig/xmrig-amd/issues/126) Fixed regression, command line option `--print-platforms` was broken.
+ - [#127](https://github.com/xmrig/xmrig-amd/issues/127) Fixed regression, miner was not exit if OpenCL errors happen.
+
 # v2.7.0-beta
 - **Added support for cryptonight-lite variant ipbc** (`cn-lite/ipbc`) for BitTube also was known as IPBC.
 - **Added support for cryptonight variant xtl** (`cn/xtl`) for Stellite.
