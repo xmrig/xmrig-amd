@@ -22,11 +22,22 @@
  */
 
 
-#include <windows.h>
+#include <direct.h>
 #include <Shlobj.h>
+#include <windows.h>
 
 
 #include "amd/OclCache.h"
+
+
+void OclCache::createDirectory() const
+{
+    std::string path = prefix() + "/xmrig";
+    _mkdir(path.c_str());
+
+    path += "/.cache";
+    _mkdir(path.c_str());
+}
 
 
 std::string OclCache::prefix()

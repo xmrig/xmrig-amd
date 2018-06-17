@@ -21,10 +21,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <pwd.h>
 #include <unistd.h>
 
 
 #include "amd/OclCache.h"
+
+
+void OclCache::createDirectory() const
+{
+    std::string path = prefix() + "/.cache";
+    mkdir(path.c_str(), 0744);
+}
 
 
 std::string OclCache::prefix()

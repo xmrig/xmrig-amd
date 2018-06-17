@@ -166,7 +166,7 @@ bool OclCache::prepare(const char *options)
 #   ifdef _WIN32
     m_fileName = prefix() + "\\xmrig\\.cache\\" + hash + ".bin";
 #   else
-    m_fileName = prefix() + "/xmrig/.cache/" + hash + ".bin";
+    m_fileName = prefix() + "/.cache/" + hash + ".bin";
 #   endif
 
     return true;
@@ -178,6 +178,8 @@ bool OclCache::save(int dev_id, cl_uint num_devices) const
     if (!m_config->isOclCache()) {
         return true;
     }
+
+    createDirectory();
 
     std::vector<size_t> binary_sizes(num_devices);
     clGetProgramInfo(m_ctx->Program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t) * binary_sizes.size(), binary_sizes.data(), nullptr);

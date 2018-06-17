@@ -45,6 +45,7 @@ private:
     bool save(int dev_id, cl_uint num_devices) const;
     cl_uint numDevices() const;
     int devId(cl_uint num_devices) const;
+    void createDirectory() const;
 
     static std::string prefix();
     static void sleep(size_t sec);
