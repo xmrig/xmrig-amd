@@ -5,7 +5,6 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,29 +21,19 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef __OCLGPU_H__
-#define __OCLGPU_H__
+#include <unistd.h>
 
 
-#include <vector>
+#include "amd/OclCache.h"
 
 
-#include "amd/GpuContext.h"
-
-
-namespace xmrig {
-    class Config;
+std::string OclCache::prefix()
+{
+    return ".";
 }
 
 
-uint32_t getNumPlatforms();
-void printPlatforms();
-int getAMDPlatformIdx(xmrig::Config *config);
-std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config);
-
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config);
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant);
-size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant);
-
-#endif /* __OCLGPU_H__ */
+void OclCache::sleep(size_t sec)
+{
+    ::sleep(sec);
+}
