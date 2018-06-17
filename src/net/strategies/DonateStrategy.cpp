@@ -52,7 +52,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     uint8_t hash[200];
     char userId[65] = { 0 };
 
-    xmrig::keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
+    xmrig::keccak(user, strlen(user), hash);
     Job::toHex(hash, 32, userId);
 
     if (algo == xmrig::CRYPTONIGHT) {

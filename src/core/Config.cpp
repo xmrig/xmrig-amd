@@ -40,6 +40,7 @@
 
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
+    m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0)
 {
@@ -90,6 +91,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("api",          api, allocator);
 
     doc.AddMember("background",   isBackground(), allocator);
+    doc.AddMember("cache",        isOclCache(), allocator);
     doc.AddMember("colors",       isColors(), allocator);
     doc.AddMember("donate-level", donateLevel(), allocator);
     doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
@@ -138,6 +140,25 @@ bool xmrig::Config::finalize()
 }
 
 
+bool xmrig::Config::parseBoolean(int key, bool enable)
+{
+    if (!CommonConfig::parseBoolean(key, enable)) {
+        return false;
+    }
+
+    switch (key) {
+    case OclCache: /* cache */
+        m_cache = enable;
+        break;
+
+    default:
+        break;
+    }
+
+    return true;
+}
+
+
 bool xmrig::Config::parseString(int key, const char *arg)
 {
     if (!CommonConfig::parseString(key, arg)) {
@@ -156,6 +177,9 @@ bool xmrig::Config::parseString(int key, const char *arg)
     case OclAffinity: /* --opencl-affinity */
         m_oclCLI.parseAffinity(arg);
         break;
+
+    case OclCache: /* --no-cache */
+        return parseBoolean(key, false);
 
     default:
         break;

@@ -193,7 +193,7 @@ bool Workers::start(xmrig::Controller *controller)
         contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
     }
 
-    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != OCL_ERR_SUCCESS) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != 0) {
         return false;
     }
 

@@ -13,7 +13,9 @@ include (cmake/cpu.cmake)
 set(HEADERS
     src/amd/cryptonight.h
     src/amd/GpuContext.h
+    src/amd/OclCache.h
     src/amd/OclCLI.h
+    src/amd/OclError.h
     src/amd/OclGPU.h
     src/api/NetworkState.h
     src/App.h
@@ -87,6 +89,7 @@ else()
 endif()
 
 set(SOURCES
+    src/amd/OclCache.cpp
     src/amd/OclCLI.cpp
     src/amd/OclGPU.cpp
     src/api/NetworkState.cpp
@@ -114,9 +117,9 @@ set(SOURCES
     src/Summary.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
+    src/workers/OclThread.cpp
     src/workers/OclWorker.cpp
     src/workers/Workers.cpp
-    src/workers/OclThread.cpp
     src/xmrig.cpp
    )
 
@@ -130,6 +133,7 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
+        src/amd/OclCache_win.cpp
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Cpu_win.cpp
@@ -143,12 +147,14 @@ if (WIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (APPLE)
     set(SOURCES_OS
+        src/amd/OclCache_unix.cpp
         src/App_unix.cpp
         src/common/Platform_mac.cpp
         src/Cpu_mac.cpp
         )
 else()
     set(SOURCES_OS
+        src/amd/OclCache_unix.cpp
         src/App_unix.cpp
         src/common/Platform_unix.cpp
         src/Cpu_unix.cpp

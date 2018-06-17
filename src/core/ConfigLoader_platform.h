@@ -59,14 +59,14 @@ Options:\n\
   -u, --user=USERNAME      username for mining server\n\
   -p, --pass=PASSWORD      password for mining server\n\
       --rig-id=ID          rig identifier for pool-side statistics (needs pool support)\n\
-  -t, --threads=N          number of miner threads\n\
-  -v, --av=N               algorithm variation, 0 auto select\n\
   -k, --keepalive          send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N          number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N      time to pause between retries (default: 5)\n\
-      --cpu-affinity       set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
-      --cpu-priority       set process priority (0 idle, 2 normal to 5 highest)\n\
-      --no-huge-pages      disable huge pages support\n\
+      --opencl-devices=N   list of OpenCL devices to use.\n\
+      --opencl-launch=IxW  list of launch config, intensity and worksize\n\
+      --opencl-affinity=N  affine GPU threads to a CPU\n\
+      --opencl-platform=N  OpenCL platform index\n\
+      --print-platforms    print available OpenCL platforms and exit\n\
       --no-color           disable colored output\n\
       --variant            algorithm PoW variant\n\
       --donate-level=N     donate level, default 5%% (5 minutes in 100 minutes)\n\
@@ -79,8 +79,6 @@ Options:\n\
   -S, --syslog             use system log for output messages\n"
 # endif
 "\
-      --max-cpu-usage=N    maximum CPU usage for automatic threads mode (default 75)\n\
-      --safe               safe adjust threads and av settings for current CPU\n\
       --nicehash           enable nicehash/xmrig-proxy support\n\
       --print-time=N       print hashrate report every N seconds\n\
       --api-port=N         port for the miner API\n\
@@ -128,6 +126,7 @@ static struct option const options[] = {
     { "opencl-devices",    1, nullptr, xmrig::IConfig::OclDevices        },
     { "opencl-launch",     1, nullptr, xmrig::IConfig::OclLaunch         },
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform       },
+    { "no-cache",          0, nullptr, xmrig::IConfig::OclCache          },
     { 0, 0, 0, 0 }
 };
 
@@ -145,6 +144,7 @@ static struct option const config_options[] = {
     { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey      },
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey   },
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
+    { "cache",             0, nullptr, xmrig::IConfig::OclCache       },
     { 0, 0, 0, 0 }
 };
 
