@@ -84,7 +84,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
-        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
 
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_1>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_1>,
