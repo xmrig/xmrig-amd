@@ -124,7 +124,11 @@ int App::exec()
 #   endif
 
     m_controller->config()->oclInit();
-    Workers::start(m_controller);
+
+    if (!Workers::start(m_controller)) {
+        LOG_ERR("Failed to start threads");
+        return 1;
+    }
 
     m_controller->network()->connect();
 

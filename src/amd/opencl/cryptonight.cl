@@ -90,6 +90,14 @@ XMRIG_INCLUDE_BLAKE256
 XMRIG_INCLUDE_GROESTL256
 
 
+#define VARIANT_0    0  // Original CryptoNight or CryptoNight-Heavy
+#define VARIANT_1    1  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
+#define VARIANT_IPBC 2  // Modified CryptoNight Lite variant 1 with XOR (IPBC/TUBE only)
+#define VARIANT_XTL  3  // Modified CryptoNight variant 1 (Stellite only)
+#define VARIANT_MSR  4  // Modified CryptoNight variant 1 (Masari only)
+#define VARIANT_XHV  5  // Modified CryptoNight-Heavy (Haven Protocol only)
+
+
 static const __constant ulong keccakf_rndc[24] =
 {
     0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
@@ -552,7 +560,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
 #define VARIANT1_1(p) \
         uint table  = 0x75310U; \
-        uint offset = variant == 3 ? 27 : 26; \
+        uint offset = variant == VARIANT_XTL ? 27 : 26; \
         uint index  = (((p).s2 >> offset) & 12) | (((p).s2 >> 23) & 2); \
         (p).s2 ^= ((table >> index) & 0x30U) << 24
 
@@ -635,7 +643,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
 
             uint2 tweak1_2_0 = tweak1_2;
-            if (variant == 2) {
+            if (variant == VARIANT_IPBC) {
                 tweak1_2_0 ^= ((uint2 *)&(a[0]))[0];
             }
 
@@ -652,7 +660,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 }
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads)
+__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -703,10 +711,8 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
         ulong idx0 = a[0];
         ulong mask = MASK;
 
-        const int iterations = ITERATIONS;
-
         #pragma unroll 8
-        for(int i = 0; i < iterations; ++i)
+        for(int i = 0; i < ITERATIONS; ++i)
         {
             ulong c[2];
 
@@ -735,7 +741,12 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
             int d = ((__global int*)(Scratchpad + (IDX((idx0 & mask) >> 4))))[2];
             long q = n / (d | 0x5);
             *((__global long*)(Scratchpad + (IDX((idx0 & mask) >> 4)))) = n ^ q;
-            idx0 = d ^ q;
+
+            if (variant == VARIANT_XHV) {
+                idx0 = (~d) ^ q;
+            } else {
+                idx0 = d ^ q;
+            }
         }
 #       endif
         }

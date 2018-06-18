@@ -60,7 +60,6 @@ private:
 
     const size_t m_id;
     const size_t m_threads;
-    const xmrig::Algo m_algorithm;
     GpuContext *m_ctx;
     Job m_job;
     Job m_pausedJob;

@@ -42,7 +42,7 @@ static inline float randomf(float min, float max) {
 }
 
 
-DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IStrategyListener *listener) :
+DonateStrategy::DonateStrategy(int level, const char *user, const xmrig::Algorithm &algorithm, IStrategyListener *listener) :
     m_active(false),
     m_donateTime(level * 60 * 1000),
     m_idleTime((100 - level) * 60 * 1000),
@@ -52,15 +52,20 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     uint8_t hash[200];
     char userId[65] = { 0 };
 
-    xmrig::keccak(reinterpret_cast<const uint8_t *>(user), strlen(user), hash);
+    xmrig::keccak(user, strlen(user), hash);
     Job::toHex(hash, 32, userId);
 
-    if (algo == xmrig::CRYPTONIGHT) {
-        m_pools.push_back(Pool(kDonatePool1, 6666, userId, nullptr, false, true));
-        m_pools.push_back(Pool(kDonatePool1, 80,   userId, nullptr, false, true));
-        m_pools.push_back(Pool(kDonatePool2, 5555, "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD", "emergency", false, false));
+    if (algorithm.algo() == xmrig::CRYPTONIGHT) {
+        if (algorithm.variant() == xmrig::VARIANT_MSR) {
+            m_pools.push_back(Pool(kDonatePool1, 7783, userId, nullptr, false, true));
+        }
+        else {
+            m_pools.push_back(Pool(kDonatePool1, 6666, userId, nullptr, false, true));
+            m_pools.push_back(Pool(kDonatePool1, 80,   userId, nullptr, false, true));
+            m_pools.push_back(Pool(kDonatePool2, 5555, "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD", "emergency", false, false));
+        }
     }
-    else if (algo == xmrig::CRYPTONIGHT_HEAVY) {
+    else if (algorithm.algo() == xmrig::CRYPTONIGHT_HEAVY) {
         m_pools.push_back(Pool(kDonatePool1, 8888, userId, nullptr, false, true));
     }
     else {
@@ -68,7 +73,7 @@ DonateStrategy::DonateStrategy(int level, const char *user, xmrig::Algo algo, IS
     }
 
     for (Pool &pool : m_pools) {
-        pool.adjust(algo);
+        pool.adjust(algorithm);
     }
 
     if (m_pools.size() > 1) {

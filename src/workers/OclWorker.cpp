@@ -38,7 +38,6 @@
 OclWorker::OclWorker(Handle *handle) :
     m_id(handle->threadId()),
     m_threads(handle->totalWays()),
-    m_algorithm(handle->config()->algorithm()),
     m_ctx(handle->ctx()),
     m_hashCount(0),
     m_timestamp(0),
@@ -75,7 +74,7 @@ void OclWorker::start()
         while (!Workers::isOutdated(m_sequence)) {
             memset(results, 0, sizeof(cl_uint) * (0x100));
 
-            XMRRunJob(m_ctx, results, m_algorithm, m_job.variant());
+            XMRRunJob(m_ctx, results, m_job.variant());
 
             for (size_t i = 0; i < results[0xFF]; i++) {
                 *m_job.nonce() = results[i];
@@ -149,7 +148,7 @@ void OclWorker::setJob()
 {
     memcpy(m_blob, m_job.blob(), sizeof(m_blob));
 
-    XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_algorithm, m_job.variant());
+    XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.variant());
 }
 
 
