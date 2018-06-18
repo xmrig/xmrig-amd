@@ -1,8 +1,8 @@
 # v2.7.1-beta
 - **Added OpenCL cache support**.
   - Added config option `cache` and command line option `--no-cache` to allow disable cache.
-- **Added support for new cryptonight-heavy variant xhv** (`cn-heavy/xhv`) for upcoming Haven Protocol fork.
-- [#128](https://github.com/xmrig/xmrig-amd/issues/128) **Added support for new cryptonight variant msr** (`cn/msr`) also known as `cryptonight-fast` for upcoming Masari fork.
+- **Added support for new cryptonight-heavy variant xhv** (`cn-heavy/xhv`) for Haven Protocol fork.
+- [#128](https://github.com/xmrig/xmrig-amd/issues/128) **Added support for new cryptonight variant msr** (`cn/msr`) also known as `cryptonight-fast` for Masari fork.
 - [#126](https://github.com/xmrig/xmrig-amd/issues/126) Fixed regression, command line option `--print-platforms` was broken.
 - [#127](https://github.com/xmrig/xmrig-amd/issues/127) Fixed regression, miner was not exit if OpenCL errors happen.
 
