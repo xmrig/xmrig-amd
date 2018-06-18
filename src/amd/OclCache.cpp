@@ -33,6 +33,7 @@
 #include "common/crypto/keccak.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
+#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 
 
@@ -159,6 +160,10 @@ bool OclCache::prepare(const char *options)
     std::string key(m_sourceCode);
     key += options;
     key += reinterpret_cast<const char *>(state);
+
+    if (!Cpu::isX64()) {
+        key += "x86";
+    }
 
     xmrig::keccak(key.c_str(), key.size(), state);
     base32_encode(state, 32, reinterpret_cast<uint8_t *>(hash), sizeof hash);
