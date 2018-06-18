@@ -1,5 +1,5 @@
 # v2.7.1-beta
-- **Added OpenCL cache support**.
+- [#130](https://github.com/xmrig/xmrig-amd/issues/130) **Added OpenCL cache support**.
   - Added config option `cache` and command line option `--no-cache` to allow disable cache.
 - **Added support for new cryptonight-heavy variant xhv** (`cn-heavy/xhv`) for Haven Protocol fork.
 - [#128](https://github.com/xmrig/xmrig-amd/issues/128) **Added support for new cryptonight variant msr** (`cn/msr`) also known as `cryptonight-fast` for Masari fork.
