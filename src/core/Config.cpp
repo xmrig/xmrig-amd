@@ -186,6 +186,9 @@ bool xmrig::Config::parseString(int key, const char *arg)
         printPlatforms();
         return false;
 
+    case OclPlatform: /* --opencl-platform */
+        return parseUint64(key, strtol(arg, nullptr, 10));
+
     default:
         break;
     }
