@@ -33,7 +33,8 @@
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <cstring>
+#include <string>
 #include <sys/resource.h>
 #include <unistd.h>
 #include <uv.h>

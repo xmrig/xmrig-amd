@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 #include "common/crypto/Algorithm.h"
 
 
@@ -216,4 +215,25 @@ const char *xmrig::Algorithm::name(bool shortName) const
     }
 
     return "invalid";
+}
+
+const char* xmrig::Algorithm::getVariantName(Variant variant)
+{
+    if (variant == VARIANT_AUTO) {
+        return "auto";
+    }
+
+    return variants[variant];
+}
+
+std::list<std::string> xmrig::Algorithm::getSupportedPowVariants()
+{
+    std::list<std::string> supportedPowVariants;
+
+    for (size_t i = 0; i < ARRAY_SIZE(variants); i++)
+    {
+        supportedPowVariants.emplace_back(variants[i]);
+    }
+
+    return supportedPowVariants;
 }

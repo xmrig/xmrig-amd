@@ -27,7 +27,8 @@
 
 
 #include <vector>
-
+#include <string>
+#include <list>
 
 #include "common/xmrig.h"
 
@@ -70,6 +71,10 @@ public:
     void parseVariant(const char *variant);
     void parseVariant(int variant);
     void setAlgo(Algo algo);
+
+    static const char* getVariantName(Variant variant);
+    static std::list<std::string> getSupportedPowVariants();
+
 
 #   ifdef XMRIG_PROXY_PROJECT
     void parseXmrStakAlgorithm(const char *algo);

@@ -1,10 +1,11 @@
-/* XMRig
+/* XMRigCC
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
+ * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,43 +22,10 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __NETWORKSTATE_H__
-#define __NETWORKSTATE_H__
+#include "CCServer.h"
 
 
-#include <array>
-#include <vector>
-#include <common/xmrig.h>
-
-
-class SubmitResult;
-
-
-class NetworkState
-{
-public:
-    NetworkState();
-
-    int connectionTime() const;
-    uint32_t avgTime() const;
-    uint32_t latency() const;
-    void add(const SubmitResult &result, const char *error);
-    void setPool(const char *host, int port, const char *ip);
-    void stop();
-
-    char pool[256];
-    std::array<uint64_t, 10> topDiff { { } };
-    uint32_t diff;
-    uint64_t accepted;
-    uint64_t failures;
-    uint64_t rejected;
-    uint64_t total;
-    xmrig::Variant powVariant;
-
-private:
-    bool m_active;
-    std::vector<uint16_t> m_latency;
-    uint64_t m_connectionTime;
-};
-
-#endif /* __NETWORKSTATE_H__ */
+int main(int argc, char** argv) {
+    CCServer ccServer(argc, argv);
+    return ccServer.start();
+}

@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
-project(xmrig-amd)
+project(xmrigMiner-amd)
 
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
+option(WITH_CC_CLIENT "CC Client" ON)
+option(WITH_CC_SERVER "CC Server" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
+
+set(MINER_EXECUTABLE_NAME "xmrigMiner-amd" CACHE STRING "Miner executable file name")
+set(DAEMON_EXECUTABLE_NAME "xmrigDaemon-amd" CACHE STRING "Daemon executable file name")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -179,6 +184,8 @@ add_definitions(/DUNICODE)
 #add_definitions(/DAPP_DEBUG)
 add_definitions(/DXMRIG_AMD_PROJECT)
 add_definitions(/DXMRIG_NO_LIBCPUID)
+add_definitions(/DXMRIG_NO_TLS)
+add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -237,6 +244,43 @@ else()
     add_definitions(/DXMRIG_NO_API)
 endif()
 
+if (WITH_CC_SERVER)
+    find_package(MHD)
+
+    if (MHD_FOUND)
+        include_directories(${MHD_INCLUDE_DIRS})
+    else()
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+    endif()
+
+    set(SOURCES_CC_SERVER
+            src/cc/CCServer.cpp
+            src/cc/Service.cpp
+            src/cc/Summary.cpp
+            src/cc/Httpd.cpp
+            src/cc/XMRigCC.cpp
+            )
+endif()
+
+if (WITH_CC_CLIENT)
+    set(SOURCES_CC_CLIENT
+            src/cc/CCClient.cpp)
+endif()
+
+if (WITH_CC_SERVER OR WITH_CC_CLIENT)
+    set(SOURCES_CC_COMMON
+            src/cc/ControlCommand.cpp
+            src/cc/ClientStatus.cpp)
+else()
+    add_definitions(/DXMRIG_NO_CC)
+endif()
+
+
+if (WITH_CC_SERVER OR WITH_CC_CLIENT)
+    add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
+endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
+
+
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
@@ -245,5 +289,19 @@ if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
+
+
+add_executable(xmrigDaemon-amd src/cc/XMRigd.cpp res/app.rc)
+set_target_properties(xmrigDaemon-amd PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
+
+
+if (WITH_CC_SERVER AND MHD_FOUND)
+    add_executable(xmrigCCServer ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_SERVER} res/app.rc)
+    target_link_libraries(xmrigCCServer
+            xmrig_cc_common  ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
+
+    set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
+endif()

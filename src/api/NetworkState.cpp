@@ -38,6 +38,7 @@ NetworkState::NetworkState() :
     failures(0),
     rejected(0),
     total(0),
+    powVariant(xmrig::VARIANT_AUTO),
     m_active(false)
 {
     memset(pool, 0, sizeof(pool));

@@ -24,18 +24,39 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.7.1-beta"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
+#ifdef XMRIG_CC_SERVER
+#define APP_ID        "XMRigCC"
+#define APP_NAME      "XMRigCC"
+#define APP_DESC      "XMRigCC Command'n'Control Server"
+#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
+# else
+#define APP_ID        "XMRigCC-AMD"
+#define APP_NAME      "XMRigCC-AMD"
+#define APP_DESC      "XMRigCC-AMD OpenCL miner"
+#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
+#endif
+#define APP_VERSION   "1.6.5 (based on XMRig)"
+#define APP_DOMAIN    ""
+#define APP_SITE      "https://github.com/Bendr0id/xmrigCC-amd"
 #define APP_KIND      "amd"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  7
-#define APP_VER_PATCH  1
+#define APP_VER_MAJOR  1
+#define APP_VER_MINOR  6
+#define APP_VER_PATCH  5
+
+#ifndef NDEBUG
+#ifndef XMRIG_NO_TLS
+#define BUILD_TYPE   "DEBUG with TLS"
+#else
+#define BUILD_TYPE   "DEBUG"
+#endif
+#else
+#ifndef XMRIG_NO_TLS
+		#define BUILD_TYPE   "RELEASE with TLS"
+	#else
+		#define BUILD_TYPE   "RELEASE"
+	#endif
+#endif
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)
@@ -51,6 +72,32 @@
 #   else
 #       define MSVC_VERSION 0
 #   endif
+#include <string>
+#else
+#if defined(__FreeBSD__) || defined(__APPLE__)
+#include <string>
+#else
+#include <string.h>
 #endif
+#endif
+
+class Version
+{
+public:
+    inline static std::string string()
+    {
+        std::string version = std::to_string(APP_VER_MAJOR) + std::string(".") + std::to_string(APP_VER_MINOR) +
+                              std::string(".") + std::to_string(APP_VER_PATCH);
+
+        return version;
+    }
+
+    inline static int code()
+    {
+        std::string version = std::to_string(APP_VER_MAJOR) + std::to_string(APP_VER_MINOR) + std::to_string(APP_VER_PATCH);
+
+        return std::stoi(version);
+    }
+};
 
 #endif /* __VERSION_H__ */
