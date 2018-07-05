@@ -43,22 +43,37 @@ public:
     CommonConfig();
     ~CommonConfig();
 
-    inline bool isApiIPv6() const                  { return m_apiIPv6; }
-    inline bool isApiRestricted() const            { return m_apiRestricted; }
-    inline bool isBackground() const               { return m_background; }
-    inline bool isColors() const                   { return m_colors; }
-    inline bool isDryRun() const                   { return m_dryRun; }
-    inline bool isSyslog() const                   { return m_syslog; }
-    inline const char *apiToken() const            { return m_apiToken.data(); }
-    inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
-    inline const char *logFile() const             { return m_logFile.data(); }
-    inline const char *userAgent() const           { return m_userAgent.data(); }
+    inline bool isApiIPv6() const                   { return m_apiIPv6; }
+    inline bool isApiRestricted() const             { return m_apiRestricted; }
+    inline bool isBackground() const                { return m_background; }
+    inline bool isColors() const                    { return m_colors; }
+    inline bool isDryRun() const                    { return m_dryRun; }
+    inline bool isSyslog() const                    { return m_syslog; }
+    inline bool ccUseTls() const                    { return m_ccUseTls; }
+    inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
+    inline const char *apiToken() const             { return m_apiToken.data(); }
+    inline const char *apiWorkerId() const          { return m_apiWorkerId.data(); }
+    inline const char *logFile() const              { return m_logFile.data(); }
+    inline const char *userAgent() const            { return m_userAgent.data(); }
+    inline const char *ccHost() const               { return m_ccHost.data(); }
+    inline const char *ccToken() const              { return m_ccToken.data(); }
+    inline const char *ccWorkerId() const           { return m_ccWorkerId.data(); }
+    inline const char *ccAdminUser() const          { return m_ccAdminUser.data(); }
+    inline const char *ccAdminPass() const          { return m_ccAdminPass.data(); }
+    inline const char *ccClientConfigFolder() const { return m_ccClientConfigFolder.data(); }
+    inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard.isNull() ? "index.html" : m_ccCustomDashboard.data(); }
+    inline const char *ccKeyFile() const            { return m_ccKeyFile.isNull() ? "server.key" : m_ccKeyFile.data(); }
+    inline const char *ccCertFile() const           { return m_ccCertFile.isNull() ? "server.pem" : m_ccCertFile.data(); }
+
     inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
     inline int donateLevel() const                 { return m_donateLevel; }
     inline int printTime() const                   { return m_printTime; }
     inline int retries() const                     { return m_retries; }
     inline int retryPause() const                  { return m_retryPause; }
+    inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
+    inline int ccPort() const                       { return m_ccPort; }
+    inline size_t ccRemoteLoggingMaxRows() const    { return m_ccRemoteLoggingMaxRows; }
     inline void setColors(bool colors)             { m_colors = colors; }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
@@ -89,11 +104,17 @@ protected:
     bool m_dryRun;
     bool m_syslog;
     bool m_watch;
+    bool m_daemonized;
+    bool m_ccUseTls;
+    bool m_ccUseRemoteLogging;
     int m_apiPort;
     int m_donateLevel;
     int m_printTime;
     int m_retries;
     int m_retryPause;
+    int m_ccUpdateInterval;
+    int m_ccPort;
+    size_t m_ccRemoteLoggingMaxRows;
     State m_state;
     std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;
@@ -102,6 +123,15 @@ protected:
     xmrig::c_str m_fileName;
     xmrig::c_str m_logFile;
     xmrig::c_str m_userAgent;
+    xmrig::c_str m_ccHost;
+    xmrig::c_str m_ccToken;
+    xmrig::c_str m_ccWorkerId;
+    xmrig::c_str m_ccAdminUser;
+    xmrig::c_str m_ccAdminPass;
+    xmrig::c_str m_ccClientConfigFolder;
+    xmrig::c_str m_ccCustomDashboard;
+    xmrig::c_str m_ccKeyFile;
+    xmrig::c_str m_ccCertFile;
 
 private:
     bool parseInt(int key, int arg);

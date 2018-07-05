@@ -62,11 +62,9 @@ CCClient::CCClient(xmrig::Controller* controller, uv_async_t* async)
 
     m_self = this;
 
-    xmrig::Config* config = m_controller->config();
-
     std::string clientId;
-    if (m_options->ccWorkerId()) {
-        clientId = m_options->ccWorkerId();
+    if (m_controller->config()->ccWorkerId()) {
+        clientId = m_controller->config()->ccWorkerId();
     } else {
         char hostname[128];
         memset(hostname, 0, sizeof(hostname));
@@ -77,7 +75,7 @@ CCClient::CCClient(xmrig::Controller* controller, uv_async_t* async)
     m_clientStatus.setClientId(clientId);
 
     if (m_controller->config() != nullptr) {
-        m_clientStatus.setCurrentAlgoName(config->algorithm().name()));
+        m_clientStatus.setCurrentAlgoName(m_controller->config()->algorithm().name());
     }
 
     m_clientStatus.setHugepages("");
@@ -92,12 +90,12 @@ CCClient::CCClient(xmrig::Controller* controller, uv_async_t* async)
     m_clientStatus.setCpuX64(Cpu::isX64());
     m_clientStatus.setCpuL2(Cpu::l2());
     m_clientStatus.setCpuL3(Cpu::l3());
-    m_clientStatus.setCurrentThreads(static_cast<int>(config->threads().size()));
+    m_clientStatus.setCurrentThreads(static_cast<int>(m_controller->config()->threads().size()));
 
     m_startTime = std::chrono::system_clock::now();
 
-    if (m_options->ccToken() != nullptr) {
-        m_authorization = std::string("Bearer ") + m_self->m_options->ccToken();
+    if (m_controller->config()->ccToken() != nullptr) {
+        m_authorization = std::string("Bearer ") + m_self->m_controller->config()->ccToken();
     }
 
     uv_thread_create(&m_thread, CCClient::onThreadStarted, this);
@@ -149,10 +147,10 @@ void CCClient::publishClientStatusReport()
     auto res = performRequest(requestUrl, requestBuffer, "POST");
     if (!res) {
         LOG_ERR("[CC-Client] error: unable to performRequest POST -> http://%s:%d%s",
-                m_self->m_options->ccHost(), m_self->m_options->ccPort(), requestUrl.c_str());
+                m_self->m_controller->config()->ccHost(), m_self->m_controller->config()->ccPort(), requestUrl.c_str());
     } else if (res->status != 200) {
-        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_options->ccHost(),
-                m_self->m_options->ccPort(), requestUrl.c_str());
+        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_controller->config()->ccHost(),
+                m_self->m_controller->config()->ccPort(), requestUrl.c_str());
     } else {
         ControlCommand controlCommand;
         if (controlCommand.parseFromJsonString(res->body)) {
@@ -192,14 +190,14 @@ void CCClient::updateConfig()
     auto res = performRequest(requestUrl, requestBuffer, "GET");
     if (!res) {
         LOG_ERR("[CC-Client] error: unable to performRequest GET -> http://%s:%d%s",
-                m_self->m_options->ccHost(), m_self->m_options->ccPort(), requestUrl.c_str());
+                m_self->m_controller->config()->ccHost(), m_self->m_controller->config()->ccPort(), requestUrl.c_str());
     } else if (res->status != 200) {
-        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_options->ccHost(),
-                m_self->m_options->ccPort(), requestUrl.c_str());
+        LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_controller->config()->ccHost(),
+                m_self->m_controller->config()->ccPort(), requestUrl.c_str());
     } else {
         rapidjson::Document document;
         if (!document.Parse(res->body.c_str()).HasParseError()) {
-            std::ofstream clientConfigFile(m_self->m_options->configFile());
+            std::ofstream clientConfigFile(m_self->m_controller->config()->fileName());
             if (clientConfigFile) {
                 rapidjson::StringBuffer buffer(0, 65536);
                 rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
@@ -211,7 +209,7 @@ void CCClient::updateConfig()
 
                 LOG_WARN("[CC-Client] Config updated. -> trigger restart");
             } else {
-                LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_self->m_options->configFile());
+                LOG_ERR("[CC-Client] Not able to store client config to file %s.", m_self->m_controller->config()->fileName());
             }
         } else {
             LOG_ERR("[CC-Client] Not able to store client config. received client config is broken!");
@@ -224,7 +222,7 @@ void CCClient::publishConfig()
     std::string requestUrl = "/client/setClientConfig?clientId=" + m_self->m_clientStatus.getClientId();
 
     std::stringstream data;
-    std::ifstream clientConfig(m_self->m_options->configFile());
+    std::ifstream clientConfig(m_self->m_controller->config()->fileName());
 
     if (clientConfig) {
         data << clientConfig.rdbuf();
@@ -244,16 +242,16 @@ void CCClient::publishConfig()
             auto res = performRequest(requestUrl, buffer.GetString(), "POST");
             if (!res) {
                 LOG_ERR("[CC-Client] error: unable to performRequest POST -> http://%s:%d%s",
-                        m_self->m_options->ccHost(), m_self->m_options->ccPort(), requestUrl.c_str());
+                        m_self->m_controller->config()->ccHost(), m_self->m_controller->config()->ccPort(), requestUrl.c_str());
             } else if (res->status != 200) {
-                LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_options->ccHost(),
-                        m_self->m_options->ccPort(), requestUrl.c_str());
+                LOG_ERR("[CC-Client] error: \"%d\" -> http://%s:%d%s", res->status, m_self->m_controller->config()->ccHost(),
+                        m_self->m_controller->config()->ccPort(), requestUrl.c_str());
             }
         } else {
-            LOG_ERR("Not able to send config. Client config %s is broken!", m_self->m_options->configFile());
+            LOG_ERR("Not able to send config. Client config %s is broken!", m_self->m_controller->config()->fileName());
         }
     } else {
-        LOG_ERR("Not able to load client config %s. Please make sure it exists!", m_self->m_options->configFile());
+        LOG_ERR("Not able to load client config %s. Please make sure it exists!", m_self->m_controller->config()->fileName());
     }
 }
 
@@ -264,11 +262,11 @@ std::shared_ptr<httplib::Response> CCClient::performRequest(const std::string& r
     std::shared_ptr<httplib::Client> cli;
 
 #   ifndef XMRIG_NO_TLS
-    if (m_self->m_options->ccUseTls()) {
-        cli = std::make_shared<httplib::SSLClient>(m_self->m_options->ccHost(), m_self->m_options->ccPort(), 10);
+    if (m_self->m_controller->config()->ccUseTls()) {
+        cli = std::make_shared<httplib::SSLClient>(m_self->m_controller->config()->ccHost(), m_self->m_controller->config()->ccPort(), 10);
     } else {
 #   endif
-        cli = std::make_shared<httplib::Client>(m_self->m_options->ccHost(), m_self->m_options->ccPort(), 10);
+        cli = std::make_shared<httplib::Client>(m_self->m_controller->config()->ccHost(), m_self->m_controller->config()->ccPort(), 10);
 #   ifndef XMRIG_NO_TLS
     }
 #   endif
@@ -315,8 +313,8 @@ void CCClient::onThreadStarted(void* handle)
 
         uv_timer_init(&m_self->m_client_loop, &m_self->m_timer);
         uv_timer_start(&m_self->m_timer, CCClient::onReport,
-                       static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000),
-                       static_cast<uint64_t>(m_self->m_options->ccUpdateInterval() * 1000));
+                       static_cast<uint64_t>(m_self->m_controller->config()->ccUpdateInterval() * 1000),
+                       static_cast<uint64_t>(m_self->m_controller->config()->ccUpdateInterval() * 1000));
 
         m_self->publishConfig();
 

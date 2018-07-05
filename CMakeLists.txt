@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 2.8)
-project(xmrigMiner-amd)
+project(xmrigMinerAMD)
 
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD    "HTTP REST API" ON)
 option(WITH_CC_CLIENT "CC Client" ON)
-option(WITH_CC_SERVER "CC Server" ON)
+option(WITH_TLS       "TLS support" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
-set(MINER_EXECUTABLE_NAME "xmrigMiner-amd" CACHE STRING "Miner executable file name")
-set(DAEMON_EXECUTABLE_NAME "xmrigDaemon-amd" CACHE STRING "Daemon executable file name")
+set(MINER_EXECUTABLE_NAME "xmrigMinerAMD" CACHE STRING "Miner executable file name")
+set(DAEMON_EXECUTABLE_NAME "xmrigDaemonAMD" CACHE STRING "Daemon executable file name")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -99,24 +99,14 @@ set(SOURCES
     src/amd/OclGPU.cpp
     src/api/NetworkState.cpp
     src/App.cpp
-    src/common/config/CommonConfig.cpp
-    src/common/config/ConfigLoader.cpp
-    src/common/config/ConfigWatcher.cpp
-    src/common/Console.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
-    src/common/log/ConsoleLog.cpp
-    src/common/log/FileLog.cpp
-    src/common/log/Log.cpp
     src/common/net/Client.cpp
     src/common/net/Job.cpp
     src/common/net/Pool.cpp
     src/common/net/strategies/FailoverStrategy.cpp
     src/common/net/strategies/SinglePoolStrategy.cpp
     src/common/net/SubmitResult.cpp
-    src/common/Platform.cpp
-    src/core/Config.cpp
-    src/core/Controller.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
@@ -127,6 +117,20 @@ set(SOURCES
     src/workers/Workers.cpp
     src/xmrig.cpp
    )
+
+set(SOURCES_COMMON
+        src/common/Console.cpp
+        src/common/config/CommonConfig.cpp
+        src/common/config/ConfigLoader.cpp
+        src/common/config/ConfigWatcher.cpp
+        src/common/log/ConsoleLog.cpp
+        src/common/log/FileLog.cpp
+        src/common/log/Log.cpp
+        src/common/Platform.cpp
+        src/core/Config.cpp
+        src/core/Controller.cpp
+    )
+
 
 set(SOURCES_CRYPTO
     src/crypto/c_groestl.c
@@ -184,7 +188,6 @@ add_definitions(/DUNICODE)
 #add_definitions(/DAPP_DEBUG)
 add_definitions(/DXMRIG_AMD_PROJECT)
 add_definitions(/DXMRIG_NO_LIBCPUID)
-add_definitions(/DXMRIG_NO_TLS)
 add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -244,22 +247,19 @@ else()
     add_definitions(/DXMRIG_NO_API)
 endif()
 
-if (WITH_CC_SERVER)
-    find_package(MHD)
+if (WITH_TLS)
+    find_package(OpenSSL)
 
-    if (MHD_FOUND)
-        include_directories(${MHD_INCLUDE_DIRS})
+    add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
+
+    if (OPENSSL_FOUND)
+        include_directories(${OPENSSL_INCLUDE_DIR})
+        #set(SOURCES_SSL_TLS src/net/BoostTlsConnection.cpp)
     else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+        message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
     endif()
-
-    set(SOURCES_CC_SERVER
-            src/cc/CCServer.cpp
-            src/cc/Service.cpp
-            src/cc/Summary.cpp
-            src/cc/Httpd.cpp
-            src/cc/XMRigCC.cpp
-            )
+else()
+    add_definitions(/DXMRIG_NO_TLS)
 endif()
 
 if (WITH_CC_CLIENT)
@@ -267,7 +267,7 @@ if (WITH_CC_CLIENT)
             src/cc/CCClient.cpp)
 endif()
 
-if (WITH_CC_SERVER OR WITH_CC_CLIENT)
+if (WITH_CC_CLIENT)
     set(SOURCES_CC_COMMON
             src/cc/ControlCommand.cpp
             src/cc/ClientStatus.cpp)
@@ -275,33 +275,27 @@ else()
     add_definitions(/DXMRIG_NO_CC)
 endif()
 
-
-if (WITH_CC_SERVER OR WITH_CC_CLIENT)
-    add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
-endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
-
-
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
+
+if (WITH_TLS)
+    #add_library(xmrig_tls STATIC ${SOURCES_SSL_TLS})
+endif (WITH_TLS)
 
 if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES_CC_COMMON} ${SOURCES} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
 
+if (WITH_TLS)
+    #target_link_libraries(${PROJECT_NAME} xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+    target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+endif (WITH_TLS)
 
-add_executable(xmrigDaemon-amd src/cc/XMRigd.cpp res/app.rc)
-set_target_properties(xmrigDaemon-amd PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
 
-
-if (WITH_CC_SERVER AND MHD_FOUND)
-    add_executable(xmrigCCServer ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_SERVER} res/app.rc)
-    target_link_libraries(xmrigCCServer
-            xmrig_cc_common  ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
-
-    set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
-endif()
+add_executable(xmrigDaemonAMD src/cc/XMRigd.cpp res/app.rc)
+set_target_properties(xmrigDaemonAMD PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})

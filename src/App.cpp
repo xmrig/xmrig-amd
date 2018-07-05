@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 #include <uv.h>
+#include <cc/CCClient.h>
+#include <cc/ControlCommand.h>
 
 
 #include "api/Api.h"
@@ -51,6 +53,7 @@ App *App::m_self = nullptr;
 
 
 App::App(int argc, char **argv) :
+    m_restart(false),
     m_console(nullptr),
     m_httpd(nullptr)
 {
@@ -80,6 +83,12 @@ App::~App()
 
 #   ifndef XMRIG_NO_HTTPD
     delete m_httpd;
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    if (m_ccclient) {
+      delete m_ccclient;
+    }
 #   endif
 }
 
@@ -123,6 +132,20 @@ int App::exec()
     m_httpd->start();
 #   endif
 
+#   ifndef XMRIG_NO_CC
+    if (m_controller->config()->ccHost() && m_controller->config()->ccPort() > 0) {
+        uv_async_init(uv_default_loop(), &m_async, App::onCommandReceived);
+
+        m_ccclient = new CCClient(m_controller, &m_async);
+
+        if (!m_controller->config()->pools().front().isValid()) {
+            LOG_WARN("No pool URL supplied, but CC server configured. Trying.");
+        }
+    } else {
+        LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
+    }
+#   endif
+
     m_controller->config()->oclInit();
 
     if (!Workers::start(m_controller)) {
@@ -135,7 +158,7 @@ int App::exec()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    return r;
+    return m_restart ? EINTR : r;
 }
 
 
@@ -165,7 +188,7 @@ void App::onConsoleCommand(char command)
 
     case 3:
         LOG_WARN("Ctrl+C received, exiting");
-        close();
+        shutdown();
         break;
 
     default:
@@ -173,13 +196,24 @@ void App::onConsoleCommand(char command)
     }
 }
 
-
-void App::close()
+void App::stop(bool restart)
 {
+    m_restart = restart;
+
     m_controller->network()->stop();
     Workers::stop();
 
     uv_stop(uv_default_loop());
+}
+
+void App::restart()
+{
+    m_self->stop(true);
+}
+
+void App::shutdown()
+{
+    m_self->stop(false);
 }
 
 
@@ -204,5 +238,28 @@ void App::onSignal(uv_signal_t *handle, int signum)
     }
 
     uv_signal_stop(handle);
-    m_self->close();
+    m_self->shutdown();
+}
+
+
+void App::onCommandReceived(uv_async_t* async)
+{
+    auto command = reinterpret_cast<ControlCommand::Command &> (async->data);
+    switch (command) {
+        case ControlCommand::START:
+            Workers::setEnabled(true);
+            break;
+        case ControlCommand::STOP:
+            Workers::setEnabled(false);
+            break;
+        case ControlCommand::UPDATE_CONFIG:;
+        case ControlCommand::RESTART:
+            App::restart();
+            break;
+        case ControlCommand::SHUTDOWN:
+            App::shutdown();
+            break;
+        case ControlCommand::PUBLISH_CONFIG:;
+            break;
+    }
 }

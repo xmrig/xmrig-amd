@@ -8,7 +8,15 @@
  *
  *
  *   This program is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
+ *   it under the terms of the GNU General Public License as published by m_controller = new xmrig::Controller();
+    if (m_controller->init(argc, argv) != 0) {
+        return;
+    }
+
+    if (!m_controller->config()->isBackground()) {
+        m_console = new Console(this);
+    }
+b
  *   the Free Software Foundation, either version 3 of the License, or
  *   (at your option) any later version.
  *

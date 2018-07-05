@@ -52,12 +52,18 @@ xmrig::CommonConfig::CommonConfig() :
 #   else
     m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
 #   endif
+    m_daemonized(false),
+    m_ccUseTls(false),
+    m_ccUseRemoteLogging(true),
 
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
     m_retries(5),
     m_retryPause(5),
+    m_ccUpdateInterval(10),
+    m_ccPort(0),
+    m_ccRemoteLoggingMaxRows(25),
     m_state(NoneState)
 {
     m_pools.push_back(Pool());

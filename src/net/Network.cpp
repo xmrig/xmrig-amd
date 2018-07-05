@@ -28,6 +28,7 @@
 #include <inttypes.h>
 #include <memory>
 #include <time.h>
+#include <cc/CCClient.h>
 
 
 #include "api/Api.h"
@@ -170,6 +171,7 @@ void Network::setJob(Client *client, const Job &job, bool donate)
                         : "new job from %s:%d diff %d algo %s",
              client->host(), client->port(), job.diff(), job.algorithm().shortName());
 
+    m_state.powVariant = job.variant();
     m_state.diff = job.diff();
     Workers::setJob(job, donate);
 }
@@ -187,6 +189,10 @@ void Network::tick()
 
 #   ifndef XMRIG_NO_API
     Api::tick(m_state);
+#   endif
+
+#   ifndef XMRIG_NO_CC
+    CCClient::updateNetworkState(m_state);
 #   endif
 }
 

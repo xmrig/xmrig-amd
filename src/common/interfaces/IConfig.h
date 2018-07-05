@@ -96,6 +96,8 @@ public:
         PoolCoinKey       = 'C',
         ReuseTimeoutKey   = 1106,
         WorkersKey        = 1103,
+
+        // xmrig-cc
     };
 
     virtual ~IConfig() {}
