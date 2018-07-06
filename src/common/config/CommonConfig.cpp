@@ -356,3 +356,29 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
 
     return true;
 }
+
+
+bool xmrig::CommonConfig::parseCCUrl(const char* url)
+{
+    assert(url != nullptr);
+
+    const char *base = url;
+    if (!strlen(base) || *base == '/') {
+        return false;
+    }
+
+    const char *port = strchr(base, ':');
+    if (!port) {
+        m_ccHost = base;
+        return true;
+    }
+
+    const size_t size = port++ - base + 1;
+    auto *host        = new char[size]();
+    memcpy(host, base, size - 1);
+
+    m_ccHost = host;
+    m_ccPort = static_cast<uint16_t>(strtol(port, nullptr, 10));
+
+    return true;
+}

@@ -107,6 +107,13 @@ bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const rapidjson::
         }
     }
 
+    const rapidjson::Value &cc = doc["cc-client"];
+    if (api.IsObject()) {
+        for (size_t i = 0; i < ARRAY_SIZE(cc_client_options); i++) {
+            parseJSON(config, &cc_client_options[i], cc);
+        }
+    }
+
     config->parseJSON(doc);
 
     return config->finalize();

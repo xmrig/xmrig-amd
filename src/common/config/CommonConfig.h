@@ -58,12 +58,6 @@ public:
     inline const char *ccHost() const               { return m_ccHost.data(); }
     inline const char *ccToken() const              { return m_ccToken.data(); }
     inline const char *ccWorkerId() const           { return m_ccWorkerId.data(); }
-    inline const char *ccAdminUser() const          { return m_ccAdminUser.data(); }
-    inline const char *ccAdminPass() const          { return m_ccAdminPass.data(); }
-    inline const char *ccClientConfigFolder() const { return m_ccClientConfigFolder.data(); }
-    inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard.isNull() ? "index.html" : m_ccCustomDashboard.data(); }
-    inline const char *ccKeyFile() const            { return m_ccKeyFile.isNull() ? "server.key" : m_ccKeyFile.data(); }
-    inline const char *ccCertFile() const           { return m_ccCertFile.isNull() ? "server.pem" : m_ccCertFile.data(); }
 
     inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
@@ -71,9 +65,9 @@ public:
     inline int printTime() const                   { return m_printTime; }
     inline int retries() const                     { return m_retries; }
     inline int retryPause() const                  { return m_retryPause; }
-    inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
-    inline int ccPort() const                       { return m_ccPort; }
-    inline size_t ccRemoteLoggingMaxRows() const    { return m_ccRemoteLoggingMaxRows; }
+    inline int ccUpdateInterval() const            { return m_ccUpdateInterval; }
+    inline int ccPort() const                      { return m_ccPort; }
+    inline size_t ccRemoteLoggingMaxRows() const   { return m_ccRemoteLoggingMaxRows; }
     inline void setColors(bool colors)             { m_colors = colors; }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
@@ -127,12 +121,6 @@ protected:
     xmrig::c_str m_ccHost;
     xmrig::c_str m_ccToken;
     xmrig::c_str m_ccWorkerId;
-    xmrig::c_str m_ccAdminUser;
-    xmrig::c_str m_ccAdminPass;
-    xmrig::c_str m_ccClientConfigFolder;
-    xmrig::c_str m_ccCustomDashboard;
-    xmrig::c_str m_ccKeyFile;
-    xmrig::c_str m_ccCertFile;
 
 private:
     bool parseInt(int key, int arg);

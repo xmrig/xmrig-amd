@@ -120,7 +120,9 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("watch",      m_watch, allocator);
 
     Value cc(kObjectType);
-    cc.AddMember("url",          ccHost(), allocator);
+
+    std::string url = std::string(ccHost()) + ":" + std::to_string(ccPort());
+    cc.AddMember("url",          StringRef(url.c_str()), allocator);
     cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
@@ -223,32 +225,6 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     return true;
 }
 
-bool xmrig::Config::parseCCUrl(const char* url)
-{
-    free(m_ccHost);
-
-    const char *port = strchr(url, ':');
-    if (!port) {
-        m_ccHost = strdup(url);
-        m_ccPort = kDefaultCCPort;
-    } else {
-        const size_t size = port++ - url + 1;
-        m_ccHost = static_cast<char*>(malloc(size));
-        memcpy(m_ccHost, url, size - 1);
-        m_ccHost[size - 1] = '\0';
-
-        m_ccPort = (uint16_t) strtol(port, nullptr, 10);
-
-        if (m_ccPort < 0 || m_ccPort > 65536) {
-            m_ccPort = kDefaultCCPort;
-            return false;
-        }
-    }
-
-    return true;
-}
-
-
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
     const rapidjson::Value &threads = doc["threads"];
@@ -265,7 +241,6 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
         }
     }
 }
-
 
 void xmrig::Config::parseThread(const rapidjson::Value &object)
 {

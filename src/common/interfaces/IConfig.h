@@ -98,6 +98,14 @@ public:
         WorkersKey        = 1103,
 
         // xmrig-cc
+        CCUrlKey                = 6000,
+        CCAccessTokenKey        = 6001,
+        CCWorkerIdKey           = 6002,
+        CCUpdateIntervalKey     = 6003,
+        CCUseTlsKey             = 6004,
+        CCUseRemoteLoggingKey   = 6005,
+        CCUseRemoteMaxRowKey    = 6006,
+        DaemonizedKey           = 6007
     };
 
     virtual ~IConfig() {}
