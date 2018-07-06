@@ -107,6 +107,7 @@ public:
     virtual bool parseBoolean(int key, bool enable)        = 0;
     virtual bool parseString(int key, const char *arg)     = 0;
     virtual bool parseUint64(int key, uint64_t arg)        = 0;
+    virtual bool parseCCUrl(const char* url)               = 0;
     virtual bool save()                                    = 0;
     virtual const Algorithm &algorithm() const             = 0;
     virtual const char *fileName() const                   = 0;

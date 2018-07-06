@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(xmrigMinerAMD)
+project(xmrigMiner-amd)
 
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
@@ -8,8 +8,8 @@ option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_TLS       "TLS support" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 
-set(MINER_EXECUTABLE_NAME "xmrigMinerAMD" CACHE STRING "Miner executable file name")
-set(DAEMON_EXECUTABLE_NAME "xmrigDaemonAMD" CACHE STRING "Daemon executable file name")
+set(MINER_EXECUTABLE_NAME "xmrigMiner-amd" CACHE STRING "Miner executable file name")
+set(DAEMON_EXECUTABLE_NAME "xmrigDaemon-amd" CACHE STRING "Daemon executable file name")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -297,5 +297,5 @@ if (WITH_TLS)
 endif (WITH_TLS)
 
 
-add_executable(xmrigDaemonAMD src/cc/XMRigd.cpp res/app.rc)
-set_target_properties(xmrigDaemonAMD PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
+add_executable(xmrigDaemon-amd src/cc/XMRigd.cpp res/app.rc)
+set_target_properties(xmrigDaemon-amd PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})

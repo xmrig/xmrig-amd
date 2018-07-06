@@ -118,6 +118,14 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("syslog",     isSyslog(), allocator);
     doc.AddMember("watch",      m_watch, allocator);
+
+    Value cc(kObjectType);
+    cc.AddMember("url",          ccHost(), allocator);
+    cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
+    cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
+    cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
+    cc.AddMember("use-tls",   ccUseTls(), allocator);
+    doc.AddMember("cc-client",   cc, allocator);
 }
 
 
@@ -210,6 +218,31 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 
     default:
         break;
+    }
+
+    return true;
+}
+
+bool xmrig::Config::parseCCUrl(const char* url)
+{
+    free(m_ccHost);
+
+    const char *port = strchr(url, ':');
+    if (!port) {
+        m_ccHost = strdup(url);
+        m_ccPort = kDefaultCCPort;
+    } else {
+        const size_t size = port++ - url + 1;
+        m_ccHost = static_cast<char*>(malloc(size));
+        memcpy(m_ccHost, url, size - 1);
+        m_ccHost[size - 1] = '\0';
+
+        m_ccPort = (uint16_t) strtol(port, nullptr, 10);
+
+        if (m_ccPort < 0 || m_ccPort > 65536) {
+            m_ccPort = kDefaultCCPort;
+            return false;
+        }
     }
 
     return true;
