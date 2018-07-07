@@ -23,6 +23,7 @@
 
 #include <cmath>
 #include <thread>
+#include <cc/CCClient.h>
 
 
 #include "amd/OclGPU.h"
@@ -335,6 +336,10 @@ void Workers::onTick(uv_timer_t *handle)
     if ((m_ticks++ & 0xF) == 0)  {
         m_hashrate->updateHighest();
     }
+
+#   ifndef XMRIG_NO_CC
+    CCClient::updateHashrate(m_hashrate);
+#   endif
 }
 
 
