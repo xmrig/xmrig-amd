@@ -145,7 +145,7 @@ static struct option const options[] = {
     { "cc-update-interval-s", 1, nullptr, xmrig::IConfig::CCUpdateIntervalKey },
     { "cc-use-tls",        0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "cc-use-remote-logging",      0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
-    { "cc-remote-logging-max-rows", 1, nullptr, xmrig::IConfig::CCUseRemoteMaxRowKey },
+    { "cc-remote-logging-max-rows", 1, nullptr, xmrig::IConfig::CCRemoteLoggingMaxRowKey },
     { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey },
     { 0, 0, 0, 0 }
 };
@@ -165,6 +165,7 @@ static struct option const config_options[] = {
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey   },
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
     { "cache",             0, nullptr, xmrig::IConfig::OclCache       },
+    { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey  },
     { 0, 0, 0, 0 }
 };
 
@@ -199,7 +200,7 @@ static struct option const cc_client_options[] = {
     { "update-interval-s",          1, nullptr, xmrig::IConfig::CCUpdateIntervalKey },
     { "use-tls",                    0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "use-remote-logging",         0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
-    { "remote-logging-max-rows",    1, nullptr, xmrig::IConfig::CCUseRemoteMaxRowKey },
+    { "remote-logging-max-rows",    1, nullptr, xmrig::IConfig::CCRemoteLoggingMaxRowKey },
     { 0, 0, 0, 0 }
 };
 

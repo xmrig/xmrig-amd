@@ -55,7 +55,8 @@ App *App::m_self = nullptr;
 App::App(int argc, char **argv) :
     m_restart(false),
     m_console(nullptr),
-    m_httpd(nullptr)
+    m_httpd(nullptr),
+    m_ccclient(nullptr)
 {
     m_self = this;
 

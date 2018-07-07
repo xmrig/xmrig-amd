@@ -71,6 +71,7 @@ public:
     inline void setColors(bool colors)             { m_colors = colors; }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
+    inline bool isDaemonized() const override          { return m_daemonized; }
     inline const Algorithm &algorithm() const override { return m_algorithm; }
     inline const char *fileName() const override       { return m_fileName.data(); }
 

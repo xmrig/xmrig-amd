@@ -136,6 +136,21 @@ static void print_api(xmrig::Config *config)
 #endif
 
 
+#ifndef XMRIG_NO_CC
+static void print_cc(xmrig::Config *config)
+{
+    if (config->ccHost() == nullptr) {
+        return;
+    }
+
+    Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mCC Server:   \x1B[01;36m%s:%d %s" : " * CC Server:   %s:%d %s",
+                   config->ccHost(),
+                   config->ccPort(),
+                   config->ccUseTls() ? "(TLS)" : "");
+}
+#endif
+
+
 static void print_commands(xmrig::Config *config)
 {
     if (config->isColors()) {
@@ -159,6 +174,11 @@ void Summary::print(xmrig::Controller *controller)
 #   ifndef XMRIG_NO_API
     print_api(controller->config());
 #   endif
+
+#   ifndef XMRIG_NO_CC
+    print_cc(controller->config());
+#   endif
+
 
     print_commands(controller->config());
 }

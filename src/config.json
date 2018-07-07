@@ -32,6 +32,7 @@
     "watch": false,
     "cc-client": {
         "url": "localhost:3344",
+        "use-tls" : false,
         "access-token": "mySecret",
         "worker-id": null,
         "update-interval-s": 10

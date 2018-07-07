@@ -118,7 +118,10 @@ int xmrig::Controller::init(int argc, char **argv)
     }
 #   endif
 
-    d_ptr->network = new Network(this);
+    if (!d_ptr->config->pools().empty()) {
+        d_ptr->network = new Network(this);
+    }
+
     return 0;
 }
 
