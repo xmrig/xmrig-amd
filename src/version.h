@@ -27,7 +27,7 @@
 #define APP_ID        "xmrig"
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.7.2-beta"
+#define APP_VERSION   "2.7.3-dev"
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
@@ -35,7 +35,7 @@
 
 #define APP_VER_MAJOR  2
 #define APP_VER_MINOR  7
-#define APP_VER_PATCH  2
+#define APP_VER_PATCH  3
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)
