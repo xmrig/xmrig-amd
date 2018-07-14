@@ -17,6 +17,7 @@ set(HEADERS
     src/amd/OclCLI.h
     src/amd/OclError.h
     src/amd/OclGPU.h
+    src/amd/OclLib.h
     src/api/NetworkState.h
     src/App.h
     src/common/config/CommonConfig.h
@@ -92,6 +93,7 @@ set(SOURCES
     src/amd/OclCache.cpp
     src/amd/OclCLI.cpp
     src/amd/OclGPU.cpp
+    src/amd/OclLib.cpp
     src/api/NetworkState.cpp
     src/App.cpp
     src/common/config/CommonConfig.cpp
@@ -185,6 +187,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
+
+add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
 include(cmake/OpenCL.cmake)
 
 if (XMRIG_ARM)

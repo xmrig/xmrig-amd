@@ -25,6 +25,7 @@
 #include <assert.h>
 
 
+#include "amd/OclLib.h"
 #include "common/config/ConfigLoader.h"
 #include "common/interfaces/IControllerListener.h"
 #include "common/log/ConsoleLog.h"
@@ -81,6 +82,12 @@ xmrig::Controller::~Controller()
 bool xmrig::Controller::isReady() const
 {
     return d_ptr->config && d_ptr->network;
+}
+
+
+bool xmrig::Controller::oclInit()
+{
+    return OclLib::init("OpenCL") && config()->oclInit();
 }
 
 

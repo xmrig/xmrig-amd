@@ -47,6 +47,7 @@ public:
     ~Controller();
 
     bool isReady() const;
+    bool oclInit();
     Config *config() const;
     int init(int argc, char **argv);
     Network *network() const;

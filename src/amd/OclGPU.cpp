@@ -36,6 +36,7 @@
 #include "amd/OclCache.h"
 #include "amd/OclError.h"
 #include "amd/OclGPU.h"
+#include "amd/OclLib.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "crypto/CryptoNight_constants.h"
@@ -54,7 +55,7 @@ inline static const char *err_to_str(cl_int ret)
 inline static int getDeviceMaxComputeUnits(cl_device_id id)
 {
     int count = 0;
-    clGetDeviceInfo(id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(int), &count, nullptr);
+    OclLib::getDeviceInfo(id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(int), &count);
 
     return count;
 }
@@ -62,11 +63,11 @@ inline static int getDeviceMaxComputeUnits(cl_device_id id)
 
 inline static void getDeviceName(cl_device_id id, char *buf, size_t size)
 {
-    if (clGetDeviceInfo(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf, nullptr) == CL_SUCCESS) {
+    if (OclLib::getDeviceInfoSilent(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf) == CL_SUCCESS) {
         return;
     }
 
-    clGetDeviceInfo(id, CL_DEVICE_NAME, size, buf, nullptr);
+    OclLib::getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
 }
 
 
@@ -88,8 +89,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     size_t MaximumWorkSize;
     cl_int ret;
 
-    if ((ret = clGetDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &MaximumWorkSize, NULL)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when querying a device's max worksize using clGetDeviceInfo.", err_to_str(ret));
+    if (OclLib::getDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &MaximumWorkSize) != CL_SUCCESS) {
         return OCL_ERR_API;
     }
 
@@ -220,7 +220,7 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
     char buf[256] = { 0 };
 
     for (cl_uint i = 0; i < num_devices; i++) {
-        clGetDeviceInfo(device_list[i], CL_DEVICE_VENDOR, sizeof(buf), buf, nullptr);
+        OclLib::getDeviceInfo(device_list[i], CL_DEVICE_VENDOR, sizeof(buf), buf);
         if (strstr(buf, "Advanced Micro Devices") == nullptr) {
             continue;
         }
@@ -231,8 +231,8 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
         ctx.computeUnits = getDeviceMaxComputeUnits(ctx.DeviceID);
 
         size_t maxMem;
-        clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem), nullptr);
-        clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &(ctx.freeMem), nullptr);
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem));
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &(ctx.freeMem));
         // if environment variable GPU_SINGLE_ALLOC_PERCENT is not set we can not allocate the full memory
         ctx.freeMem = std::min(ctx.freeMem, maxMem);
 
@@ -240,7 +240,7 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 
         LOG_INFO(config->isColors() ? "\x1B[01;32mfound\x1B[0m OpenCL GPU: \x1B[01;37m%s\x1B[0m, cu: \x1B[01;37m%d" : "found OpenCL GPU: %s, cu:", buf, ctx.computeUnits);
 
-        clGetDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf, nullptr);
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf);
         ctx.name = buf;
 
         ctxVec.push_back(ctx);

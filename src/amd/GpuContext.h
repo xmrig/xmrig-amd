@@ -25,11 +25,7 @@
 #define __GPUCONTEXT_H__
 
 
-#if defined(__APPLE__)
-#   include <OpenCL/cl.h>
-#else
-#   include <CL/cl.h>
-#endif
+#include "3rdparty/CL/cl.h"
 
 
 #include <stdint.h>
