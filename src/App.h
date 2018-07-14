@@ -27,7 +27,7 @@
 
 #include <uv.h>
 
-
+#include "cc/CCClient.h"
 #include "common/interfaces/IConsoleListener.h"
 
 
@@ -49,15 +49,20 @@ public:
   ~App();
 
   int exec();
+  static void restart();
+  static void shutdown();
 
 protected:
   void onConsoleCommand(char command) override;
 
 private:
   void background();
-  void close();
+  void stop(bool restart);
 
   static void onSignal(uv_signal_t *handle, int signum);
+  static void onCommandReceived(uv_async_t* handle);
+
+  bool m_restart;
 
   static App *m_self;
 
@@ -67,6 +72,8 @@ private:
   uv_signal_t m_sigINT;
   uv_signal_t m_sigTERM;
   xmrig::Controller *m_controller;
+  CCClient *m_ccclient;
+  uv_async_t m_async;
 };
 
 

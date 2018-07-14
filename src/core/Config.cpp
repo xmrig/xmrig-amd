@@ -118,6 +118,16 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("syslog",     isSyslog(), allocator);
     doc.AddMember("watch",      m_watch, allocator);
+
+    Value cc(kObjectType);
+
+    std::string url = std::string(ccHost()) + ":" + std::to_string(ccPort());
+    cc.AddMember("url",          StringRef(url.c_str()), allocator);
+    cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
+    cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
+    cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
+    cc.AddMember("use-tls",   ccUseTls(), allocator);
+    doc.AddMember("cc-client",   cc, allocator);
 }
 
 
@@ -215,7 +225,6 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     return true;
 }
 
-
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
     const rapidjson::Value &threads = doc["threads"];
@@ -232,7 +241,6 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
         }
     }
 }
-
 
 void xmrig::Config::parseThread(const rapidjson::Value &object)
 {

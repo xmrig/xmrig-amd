@@ -22,11 +22,12 @@
  */
 
 
+#include <string>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <uv.h>
+#include <version.h>
 
 
 #include "common/config/CommonConfig.h"
@@ -52,12 +53,18 @@ xmrig::CommonConfig::CommonConfig() :
 #   else
     m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
 #   endif
+    m_daemonized(false),
+    m_ccUseTls(false),
+    m_ccUseRemoteLogging(false),
 
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
     m_printTime(60),
     m_retries(5),
     m_retryPause(5),
+    m_ccUpdateInterval(10),
+    m_ccPort(0),
+    m_ccRemoteLoggingMaxRows(25),
     m_state(NoneState)
 {
     m_pools.push_back(Pool());
@@ -132,7 +139,7 @@ bool xmrig::CommonConfig::finalize()
 
     m_pools.clear();
 
-    if (m_activePools.empty()) {
+    if (m_activePools.empty() && m_ccHost.isNull() && m_ccPort == 0) {
         m_state = ErrorState;
         return false;
     }
@@ -181,6 +188,18 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 
     case IConfig::DryRunKey: /* --dry-run */
         m_dryRun = enable;
+        break;
+
+    case DaemonizedKey: /* --daemonized */
+        m_daemonized = enable;
+        break;
+
+    case CCUseTlsKey: /* --cc-use-tls */
+        m_ccUseTls = enable;
+        break;
+
+    case CCUseRemoteLoggingKey: /* --cc-use-remote-logging */
+        m_ccUseRemoteLogging = enable;
         break;
 
     default:
@@ -255,10 +274,23 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_userAgent = arg;
         break;
 
+    case CCUrlKey:
+        parseCCUrl(arg);
+        break;
+
+    case CCAccessTokenKey:
+        m_ccToken = arg;
+        break;
+
+    case CCWorkerIdKey:
+        m_ccWorkerId = arg;
+        break;
+
     case RetriesKey:     /* --retries */
     case RetryPauseKey:  /* --retry-pause */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --cpu-priority */
+    case CCRemoteLoggingMaxRowKey: /* --cc-remote-logging-max-rows */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     case BackgroundKey: /* --background */
@@ -267,6 +299,9 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case NicehashKey:   /* --nicehash */
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
+    case CCUseTlsKey:       /* --cc-use-tls-run */
+    case CCUseRemoteLoggingKey:     /* --cc-use-remote-logging */
+    case DaemonizedKey:     /* --daemonized */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -344,9 +379,50 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
         }
         break;
 
+    case CCRemoteLoggingMaxRowKey: /* --cc-remote-logging-max-rows */
+        if (arg < 1) {
+            m_ccUseRemoteLogging = false;
+        }
+        else {
+            m_ccRemoteLoggingMaxRows = static_cast<size_t>(arg);
+        }
+        break;
+
+    case CCUpdateIntervalKey: /* --cc-update-interval-s */
+        if (arg > 0) {
+            m_ccUpdateInterval = arg;
+        }
+        break;
+
     default:
         break;
     }
+
+    return true;
+}
+
+
+bool xmrig::CommonConfig::parseCCUrl(const char* url)
+{
+    assert(url != nullptr);
+
+    const char *base = url;
+    if (!strlen(base) || *base == '/') {
+        return false;
+    }
+
+    const char *port = strchr(base, ':');
+    if (!port) {
+        m_ccHost = base;
+        return true;
+    }
+
+    const size_t size = port++ - base + 1;
+    auto *host        = new char[size]();
+    memcpy(host, base, size - 1);
+
+    m_ccHost = host;
+    m_ccPort = static_cast<uint16_t>(strtol(port, nullptr, 10));
 
     return true;
 }

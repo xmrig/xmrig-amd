@@ -26,8 +26,8 @@
 
 
 #include "common/log/SysLog.h"
+#include <string>
 #include "version.h"
-
 
 SysLog::SysLog()
 {

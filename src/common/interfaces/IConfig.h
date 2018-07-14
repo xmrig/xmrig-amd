@@ -96,15 +96,27 @@ public:
         PoolCoinKey       = 'C',
         ReuseTimeoutKey   = 1106,
         WorkersKey        = 1103,
+
+        // xmrig-cc
+        CCUrlKey                    = 6000,
+        CCAccessTokenKey            = 6001,
+        CCWorkerIdKey               = 6002,
+        CCUpdateIntervalKey         = 6003,
+        CCUseTlsKey                 = 6004,
+        CCUseRemoteLoggingKey       = 6005,
+        CCRemoteLoggingMaxRowKey    = 6006,
+        DaemonizedKey               = 6007
     };
 
     virtual ~IConfig() {}
 
     virtual bool finalize()                                = 0;
     virtual bool isWatch() const                           = 0;
+    virtual bool isDaemonized() const                      = 0;
     virtual bool parseBoolean(int key, bool enable)        = 0;
     virtual bool parseString(int key, const char *arg)     = 0;
     virtual bool parseUint64(int key, uint64_t arg)        = 0;
+    virtual bool parseCCUrl(const char* url)               = 0;
     virtual bool save()                                    = 0;
     virtual const Algorithm &algorithm() const             = 0;
     virtual const char *fileName() const                   = 0;

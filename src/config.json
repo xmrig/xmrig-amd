@@ -14,7 +14,7 @@
     "opencl-platform": 0,
     "pools": [
         {
-            "url": "proxy.fee.xmrig.com:9999",
+            "url": "donate2.graef.in:80",
             "user": "YOUR_WALLET",
             "pass": "x",
             "rig-id": null,
@@ -29,5 +29,12 @@
     "threads": null,
     "user-agent": null,
     "syslog": false,
-    "watch": false
+    "watch": false,
+    "cc-client": {
+        "url": "localhost:3344",
+        "use-tls" : false,
+        "access-token": "mySecret",
+        "worker-id": null,
+        "update-interval-s": 10
+    }
 }

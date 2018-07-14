@@ -85,7 +85,18 @@ Options:\n\
       --api-access-token=T access token for API\n\
       --api-worker-id=ID   custom worker-id for API\n\
       --api-ipv6           enable IPv6 support for API\n\
-      --api-no-restricted  enable full remote access (only if API token set)\n\
+      --api-no-restricted  enable full remote access (only if API token set)\n"
+# ifndef XMRIG_NO_CC
+"\
+      --cc-url=URL                      url (host:port) of the CC Server\n\
+      --cc-use-tls                      enable tls encryption for CC communication\n\
+      --cc-access-token=T               access token for CC Server\n\
+      --cc-worker-id=ID                 custom worker-id for CC Server\n\
+      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
+      --cc-use-remote-logging           enable remote logging on CC Server\n\
+      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n"
+# endif
+"\
   -h, --help               display this help and exit\n\
   -V, --version            output version information and exit\n\
 ";
@@ -128,6 +139,14 @@ static struct option const options[] = {
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform       },
     { "no-cache",          0, nullptr, xmrig::IConfig::OclCache          },
     { "print-platforms",   0, nullptr, xmrig::IConfig::OclPrint          },
+    { "cc-url",            1, nullptr, xmrig::IConfig::CCUrlKey },
+    { "cc-access-token",   1, nullptr, xmrig::IConfig::CCAccessTokenKey },
+    { "cc-worker-id",      1, nullptr, xmrig::IConfig::CCWorkerIdKey },
+    { "cc-update-interval-s", 1, nullptr, xmrig::IConfig::CCUpdateIntervalKey },
+    { "cc-use-tls",        0, nullptr, xmrig::IConfig::CCUseTlsKey },
+    { "cc-use-remote-logging",      0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
+    { "cc-remote-logging-max-rows", 1, nullptr, xmrig::IConfig::CCRemoteLoggingMaxRowKey },
+    { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey },
     { 0, 0, 0, 0 }
 };
 
@@ -146,6 +165,7 @@ static struct option const config_options[] = {
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey   },
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
     { "cache",             0, nullptr, xmrig::IConfig::OclCache       },
+    { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey  },
     { 0, 0, 0, 0 }
 };
 
@@ -169,6 +189,18 @@ static struct option const api_options[] = {
     { "worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
     { "ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "restricted",    0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
+    { 0, 0, 0, 0 }
+};
+
+
+static struct option const cc_client_options[] = {
+    { "url",                        1, nullptr, xmrig::IConfig::CCUrlKey },
+    { "access-token",               1, nullptr, xmrig::IConfig::CCAccessTokenKey },
+    { "worker-id",                  1, nullptr, xmrig::IConfig::CCWorkerIdKey },
+    { "update-interval-s",          1, nullptr, xmrig::IConfig::CCUpdateIntervalKey },
+    { "use-tls",                    0, nullptr, xmrig::IConfig::CCUseTlsKey },
+    { "use-remote-logging",         0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
+    { "remote-logging-max-rows",    1, nullptr, xmrig::IConfig::CCRemoteLoggingMaxRowKey },
     { 0, 0, 0, 0 }
 };
 

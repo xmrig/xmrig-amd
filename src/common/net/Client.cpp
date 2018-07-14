@@ -497,6 +497,13 @@ void Client::login()
         params.AddMember("algo", algo, allocator);
     }
 
+    rapidjson::Value supportedPowVariantsList(rapidjson::kArrayType);
+    for (auto& supportedPowVariant : xmrig::Algorithm::getSupportedPowVariants()) {
+        supportedPowVariantsList.PushBack(rapidjson::StringRef(supportedPowVariant.c_str()), allocator);
+    }
+
+    params.AddMember("supported-variants", supportedPowVariantsList, allocator);
+
     doc.AddMember("params", params, allocator);
 
     send(doc);

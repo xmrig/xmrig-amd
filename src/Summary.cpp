@@ -67,9 +67,9 @@ static void print_versions(xmrig::Config *config)
     const char *ocl = "0.0";
 #   endif
 
-    Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" libuv/%s OpenCL/%s%s")
-                                      : " * %-13s%s/%s libuv/%s OpenCL/%s%s",
-                   "VERSIONS", APP_NAME, APP_VERSION, uv_version_string(), ocl, buf);
+    Log::i()->text(config->isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" libuv/%s OpenCL/%s%s") CYAN_BOLD(" (%s)")
+                                      : " * %-13s%s/%s libuv/%s OpenCL/%s%s (%s)",
+                   "VERSIONS", APP_NAME, APP_VERSION, uv_version_string(), ocl, buf, BUILD_TYPE);
 }
 
 
@@ -136,6 +136,21 @@ static void print_api(xmrig::Config *config)
 #endif
 
 
+#ifndef XMRIG_NO_CC
+static void print_cc(xmrig::Config *config)
+{
+    if (config->ccHost() == nullptr) {
+        return;
+    }
+
+    Log::i()->text(config->isColors() ? "\x1B[01;32m * \x1B[01;37mCC Server:   \x1B[01;36m%s:%d %s" : " * CC Server:   %s:%d %s",
+                   config->ccHost(),
+                   config->ccPort(),
+                   config->ccUseTls() ? "(TLS)" : "");
+}
+#endif
+
+
 static void print_commands(xmrig::Config *config)
 {
     if (config->isColors()) {
@@ -159,6 +174,11 @@ void Summary::print(xmrig::Controller *controller)
 #   ifndef XMRIG_NO_API
     print_api(controller->config());
 #   endif
+
+#   ifndef XMRIG_NO_CC
+    print_cc(controller->config());
+#   endif
+
 
     print_commands(controller->config());
 }

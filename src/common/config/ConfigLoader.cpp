@@ -107,6 +107,13 @@ bool xmrig::ConfigLoader::loadFromJSON(xmrig::IConfig *config, const rapidjson::
         }
     }
 
+    const rapidjson::Value &cc = doc["cc-client"];
+    if (api.IsObject()) {
+        for (size_t i = 0; i < ARRAY_SIZE(cc_client_options); i++) {
+            parseJSON(config, &cc_client_options[i], cc);
+        }
+    }
+
     config->parseJSON(doc);
 
     return config->finalize();
@@ -155,6 +162,14 @@ xmrig::IConfig *xmrig::ConfigLoader::load(int argc, char **argv, IConfigCreator 
             return nullptr;
         }
     }
+
+#ifndef XMRIG_NO_CC
+    if (!config->isDaemonized()) {
+        fprintf(stderr, "\"" APP_ID "\" is compiled with CC support, please start the daemon instead.\n");
+        delete config;
+        return nullptr;
+    }
+#endif
 
     if (optind < argc) {
         fprintf(stderr, "%s: unsupported non-option argument '%s'\n", argv[0], argv[optind]);
@@ -244,7 +259,7 @@ bool xmrig::ConfigLoader::parseArg(xmrig::IConfig *config, int key, const char *
         break;
 
     default:
-        return config->parseString(key, arg);;
+        return config->parseString(key, arg);
     }
 
     return true;
