@@ -1,3 +1,6 @@
+# v2.7.2-beta
+- [#132](https://github.com/xmrig/xmrig-amd/issues/132) Fixed regression, command line option `--opencl-platform` was broken.
+
 # v2.7.1-beta
 - [#130](https://github.com/xmrig/xmrig-amd/issues/130) **Added OpenCL cache support**.
   - Added config option `cache` and command line option `--no-cache` to allow disable cache.
