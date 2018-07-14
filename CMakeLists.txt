@@ -153,7 +153,7 @@ if (WIN32)
     endif()
 
     add_definitions(/DWIN32)
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv crypt32)
 elseif (APPLE)
     set(SOURCES_OS
         src/amd/OclCache_unix.cpp
