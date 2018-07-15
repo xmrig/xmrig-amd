@@ -184,8 +184,9 @@ bool xmrig::Config::parseString(int key, const char *arg)
         return parseBoolean(key, false);
 
     case OclPrint: /* --print-platforms */
-        OclLib::init("OpenCL");
-        printPlatforms();
+        if (OclLib::init("OpenCL")) {
+            printPlatforms();
+        }
         return false;
 
     case OclPlatform: /* --opencl-platform */
