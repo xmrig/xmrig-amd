@@ -189,7 +189,7 @@ find_package(UV REQUIRED)
 include(cmake/flags.cmake)
 
 add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
-include(cmake/OpenCL.cmake)
+add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
 if (XMRIG_ARM)
     set(SOURCES_CPUID src/Cpu_arm.cpp)
@@ -250,4 +250,4 @@ if (BUILD_STATIC)
 endif()
 
 add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})

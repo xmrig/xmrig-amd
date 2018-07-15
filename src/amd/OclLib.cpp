@@ -32,21 +32,47 @@
 
 static uv_lib_t oclLib;
 
-static const char *kErrorTemplate           = "Error %s when calling %s.";
+static const char *kErrorTemplate                    = "Error %s when calling %s.";
 
-static const char *kBuildProgram            = "clBuildProgram";
-static const char *kCreateProgramWithBinary = "clCreateProgramWithBinary";
-static const char *kCreateProgramWithSource = "clCreateProgramWithSource";
-static const char *kGetDeviceInfo           = "clGetDeviceInfo";
-static const char *kGetProgramBuildInfo     = "clGetProgramBuildInfo";
-static const char *kGetProgramInfo          = "clGetProgramInfo";
+static const char *kBuildProgram                     = "clBuildProgram";
+static const char *kCreateBuffer                     = "clCreateBuffer";
+static const char *kCreateCommandQueue               = "clCreateCommandQueue";
+static const char *kCreateCommandQueueWithProperties = "clCreateCommandQueueWithProperties";
+static const char *kCreateContext                    = "clCreateContext";
+static const char *kCreateKernel                     = "clCreateKernel";
+static const char *kCreateProgramWithBinary          = "clCreateProgramWithBinary";
+static const char *kCreateProgramWithSource          = "clCreateProgramWithSource";
+static const char *kEnqueueNDRangeKernel             = "clEnqueueNDRangeKernel";
+static const char *kEnqueueReadBuffer                = "clEnqueueReadBuffer";
+static const char *kEnqueueWriteBuffer               = "clEnqueueWriteBuffer";
+static const char *kFinish                           = "clFinish";
+static const char *kGetDeviceIDs                     = "clGetDeviceIDs";
+static const char *kGetDeviceInfo                    = "clGetDeviceInfo";
+static const char *kGetPlatformIDs                   = "clGetPlatformIDs";
+static const char *kGetPlatformInfo                  = "clGetPlatformInfo";
+static const char *kGetProgramBuildInfo              = "clGetProgramBuildInfo";
+static const char *kGetProgramInfo                   = "clGetProgramInfo";
+static const char *kSetKernelArg                     = "clSetKernelArg";
 
-static cl_int (*pBuildProgram)(cl_program, cl_uint, const cl_device_id *, const char *, void (CL_CALLBACK *pfn_notify)(cl_program, void *), void *)  = nullptr;
-static cl_int (*pGetDeviceInfo)(cl_device_id, cl_device_info, size_t, void *, size_t *)                                                              = nullptr;
-static cl_int (*pGetProgramBuildInfo)(cl_program, cl_device_id, cl_program_build_info, size_t, void *, size_t *)                                     = nullptr;
-static cl_int (*pGetProgramInfo)(cl_program, cl_program_info, size_t, void *, size_t *)                                                              = nullptr;
-static cl_program (*pCreateProgramWithBinary)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *) = nullptr;
-static cl_program (*pCreateProgramWithSource)(cl_context, cl_uint, const char **, const size_t *, cl_int *)                                          = nullptr;
+static cl_command_queue (*pCreateCommandQueueWithProperties)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *)                                                                   = nullptr;
+static cl_command_queue (*pCreateCommandQueue)(cl_context, cl_device_id, cl_command_queue_properties, cl_int *)                                                                                 = nullptr;
+static cl_context (*pCreateContext)(const cl_context_properties *, cl_uint, const cl_device_id *, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *, cl_int *) = nullptr;
+static cl_int (*pBuildProgram)(cl_program, cl_uint, const cl_device_id *, const char *, void (CL_CALLBACK *pfn_notify)(cl_program, void *), void *)                                             = nullptr;
+static cl_int (*pEnqueueNDRangeKernel)(cl_command_queue, cl_kernel, cl_uint, const size_t *, const size_t *, const size_t *, cl_uint, const cl_event *, cl_event *)                             = nullptr;
+static cl_int (*pEnqueueReadBuffer)(cl_command_queue, cl_mem, cl_bool, size_t, size_t, void *, cl_uint, const cl_event *, cl_event *)                                                           = nullptr;
+static cl_int (*pEnqueueWriteBuffer)(cl_command_queue, cl_mem, cl_bool, size_t, size_t, const void *, cl_uint, const cl_event *, cl_event *)                                                    = nullptr;
+static cl_int (*pFinish)(cl_command_queue)                                                                                                                                                      = nullptr;
+static cl_int (*pGetDeviceIDs)(cl_platform_id, cl_device_type, cl_uint, cl_device_id *, cl_uint *)                                                                                              = nullptr;
+static cl_int (*pGetDeviceInfo)(cl_device_id, cl_device_info, size_t, void *, size_t *)                                                                                                         = nullptr;
+static cl_int (*pGetPlatformIDs)(cl_uint, cl_platform_id *, cl_uint *)                                                                                                                          = nullptr;
+static cl_int (*pGetPlatformInfo)(cl_platform_id, cl_platform_info, size_t, void *, size_t *)                                                                                                   = nullptr;
+static cl_int (*pGetProgramBuildInfo)(cl_program, cl_device_id, cl_program_build_info, size_t, void *, size_t *)                                                                                = nullptr;
+static cl_int (*pGetProgramInfo)(cl_program, cl_program_info, size_t, void *, size_t *)                                                                                                         = nullptr;
+static cl_int (*pSetKernelArg)(cl_kernel, cl_uint, size_t, const void *)                                                                                                                        = nullptr;
+static cl_kernel (*pCreateKernel)(cl_program, const char *, cl_int *)                                                                                                                           = nullptr;
+static cl_mem (*pCreateBuffer)(cl_context, cl_mem_flags, size_t, void *, cl_int *)                                                                                                              = nullptr;
+static cl_program (*pCreateProgramWithBinary)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *)                                            = nullptr;
+static cl_program (*pCreateProgramWithSource)(cl_context, cl_uint, const char **, const size_t *, cl_int *)                                                                                     = nullptr;
 
 
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
@@ -65,14 +91,62 @@ bool OclLib::init(const char *fileName)
 
 bool OclLib::load()
 {
+    DLSYM(CreateCommandQueue);
+    DLSYM(CreateContext);
     DLSYM(BuildProgram);
+    DLSYM(EnqueueNDRangeKernel);
+    DLSYM(EnqueueReadBuffer);
+    DLSYM(EnqueueWriteBuffer);
+    DLSYM(Finish);
+    DLSYM(GetDeviceIDs);
     DLSYM(GetDeviceInfo);
+    DLSYM(GetPlatformInfo);
+    DLSYM(GetPlatformIDs);
     DLSYM(GetProgramBuildInfo);
     DLSYM(GetProgramInfo);
+    DLSYM(SetKernelArg);
+    DLSYM(CreateKernel);
+    DLSYM(CreateBuffer);
     DLSYM(CreateProgramWithBinary);
     DLSYM(CreateProgramWithSource);
 
+    uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
+
     return true;
+}
+
+
+cl_command_queue OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret)
+{
+    cl_command_queue result;
+
+    if (pCreateCommandQueueWithProperties) {
+        const cl_queue_properties commandQueueProperties[] = { 0, 0, 0 };
+        result = pCreateCommandQueueWithProperties(context, device, commandQueueProperties, errcode_ret);
+    }
+    else {
+        const cl_command_queue_properties commandQueueProperties = { 0 };
+        result = pCreateCommandQueue(context, device, commandQueueProperties, errcode_ret);
+    }
+
+    if (*errcode_ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateCommandQueueWithProperties);
+    }
+
+    return result;
+}
+
+
+cl_context OclLib::createContext(const cl_context_properties *properties, cl_uint num_devices, const cl_device_id *devices, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *user_data, cl_int *errcode_ret)
+{
+    assert(pCreateContext != nullptr);
+
+    auto result = pCreateContext(properties, num_devices, devices, pfn_notify, user_data, errcode_ret);
+    if (*errcode_ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateContext);
+    }
+
+    return result;
 }
 
 
@@ -89,24 +163,77 @@ cl_int OclLib::buildProgram(cl_program program, cl_uint num_devices, const cl_de
 }
 
 
-cl_int OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+cl_int OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event)
 {
-    assert(pGetDeviceInfo != nullptr);
+    assert(pEnqueueNDRangeKernel != nullptr);
 
-    const cl_int ret = pGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
+    return pEnqueueNDRangeKernel(command_queue, kernel, work_dim, global_work_offset, global_work_size, local_work_size, num_events_in_wait_list, event_wait_list, event);
+}
+
+
+cl_int OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event)
+{
+    assert(pEnqueueReadBuffer != nullptr);
+
+    const cl_int ret = pEnqueueReadBuffer(command_queue, buffer, blocking_read, offset, size, ptr, num_events_in_wait_list, event_wait_list, event);
     if (ret != CL_SUCCESS) {
-        LOG_ERR(kErrorTemplate, OclError::toString(ret), kGetDeviceInfo);
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kEnqueueReadBuffer);
     }
 
     return ret;
 }
 
 
-cl_int OclLib::getDeviceInfoSilent(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+cl_int OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event)
+{
+    assert(pEnqueueWriteBuffer != nullptr);
+
+    return pEnqueueWriteBuffer(command_queue, buffer, blocking_write, offset, size, ptr, num_events_in_wait_list, event_wait_list, event);
+}
+
+
+cl_int OclLib::finish(cl_command_queue command_queue)
+{
+    assert(pFinish != nullptr);
+
+    return pFinish(command_queue);
+}
+
+
+cl_int OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id *devices, cl_uint *num_devices)
+{
+    assert(pGetDeviceIDs != nullptr);
+
+    return pGetDeviceIDs(platform, device_type, num_entries, devices, num_devices);
+}
+
+
+cl_int OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
 {
     assert(pGetDeviceInfo != nullptr);
 
-    return pGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
+    const cl_int ret = pGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
+    if (ret != CL_SUCCESS && param_name != 0x4038) {
+        LOG_ERR("Error %s when calling %s, param 0x%04x", OclError::toString(ret), kGetDeviceInfo, param_name);
+    }
+
+    return ret;
+}
+
+
+cl_int OclLib::getPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms)
+{
+    assert(pGetPlatformIDs != nullptr);
+
+    return pGetPlatformIDs(num_entries, platforms, num_platforms);
+}
+
+
+cl_int OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+{
+    assert(pGetPlatformInfo != nullptr);
+
+    return pGetPlatformInfo(platform, param_name, param_value_size, param_value, param_value_size_ret);
 }
 
 
@@ -133,6 +260,35 @@ cl_int OclLib::getProgramInfo(cl_program program, cl_program_info param_name, si
     }
 
     return ret;
+}
+
+
+cl_int OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value)
+{
+    assert(pSetKernelArg != nullptr);
+
+    return pSetKernelArg(kernel, arg_index, arg_size, arg_value);
+}
+
+
+cl_kernel OclLib::createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret)
+{
+    assert(pCreateKernel != nullptr);
+
+    auto result = pCreateKernel(program, kernel_name, errcode_ret);
+    if (*errcode_ret != CL_SUCCESS) {
+        LOG_ERR("Error %s when calling clCreateKernel for kernel %s.", OclError::toString(*errcode_ret), kernel_name);
+    }
+
+    return result;
+}
+
+
+cl_mem OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret)
+{
+    assert(pCreateBuffer != nullptr);
+
+    return pCreateBuffer(context, flags, size, host_ptr, errcode_ret);
 }
 
 
