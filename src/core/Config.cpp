@@ -44,7 +44,8 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
     m_cache(true),
     m_shouldSave(false),
-    m_platformIndex(0)
+    m_platformIndex(0),
+    m_loader("OpenCL")
 {
 }
 
@@ -98,6 +99,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("donate-level", donateLevel(), allocator);
     doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("opencl-platform", platformIndex(), allocator);
+    doc.AddMember("opencl-loader",   StringRef(loader()), allocator);
 
     Value pools(kArrayType);
 
@@ -184,13 +186,17 @@ bool xmrig::Config::parseString(int key, const char *arg)
         return parseBoolean(key, false);
 
     case OclPrint: /* --print-platforms */
-        if (OclLib::init("OpenCL")) {
+        if (OclLib::init(loader())) {
             printPlatforms();
         }
         return false;
 
     case OclPlatform: /* --opencl-platform */
         return parseUint64(key, strtol(arg, nullptr, 10));
+
+    case OclLoader: /* --opencl-loader */
+        m_loader = arg;
+        break;
 
     default:
         break;

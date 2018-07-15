@@ -87,7 +87,7 @@ bool xmrig::Controller::isReady() const
 
 bool xmrig::Controller::oclInit()
 {
-    return OclLib::init("OpenCL") && config()->oclInit();
+    return OclLib::init(config()->loader()) && config()->oclInit();
 }
 
 
