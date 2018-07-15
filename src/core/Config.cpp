@@ -27,6 +27,7 @@
 
 
 #include "amd/OclGPU.h"
+#include "amd/OclLib.h"
 #include "common/config/ConfigLoader.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
@@ -183,6 +184,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
         return parseBoolean(key, false);
 
     case OclPrint: /* --print-platforms */
+        OclLib::init("OpenCL");
         printPlatforms();
         return false;
 
