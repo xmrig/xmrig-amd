@@ -55,6 +55,7 @@ public:
     inline const char *apiWorkerId() const          { return m_apiWorkerId.data(); }
     inline const char *logFile() const              { return m_logFile.data(); }
     inline const char *userAgent() const            { return m_userAgent.data(); }
+    inline const char *ccUrl() const                { return m_ccUrl.data(); }
     inline const char *ccHost() const               { return m_ccHost.data(); }
     inline const char *ccToken() const              { return m_ccToken.data(); }
     inline const char *ccWorkerId() const           { return m_ccWorkerId.data(); }
@@ -119,6 +120,7 @@ protected:
     xmrig::c_str m_fileName;
     xmrig::c_str m_logFile;
     xmrig::c_str m_userAgent;
+    xmrig::c_str m_ccUrl;
     xmrig::c_str m_ccHost;
     xmrig::c_str m_ccToken;
     xmrig::c_str m_ccWorkerId;

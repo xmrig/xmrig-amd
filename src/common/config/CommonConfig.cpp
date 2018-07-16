@@ -275,6 +275,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         break;
 
     case CCUrlKey:
+        m_ccUrl = arg;
         parseCCUrl(arg);
         break;
 

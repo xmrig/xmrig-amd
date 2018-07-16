@@ -121,8 +121,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     Value cc(kObjectType);
 
-    std::string url = std::string(ccHost()) + ":" + std::to_string(ccPort());
-    cc.AddMember("url",          StringRef(url.c_str()), allocator);
+    cc.AddMember("url",          StringRef(ccUrl()), allocator);
     cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
