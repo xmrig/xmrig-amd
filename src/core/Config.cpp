@@ -45,7 +45,11 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0),
-    m_loader("OpenCL")
+#   ifdef _WIN32
+    m_loader("OpenCL.dll")
+#   else
+    m_loader("libOpenCL.so")
+#   endif
 {
 }
 
