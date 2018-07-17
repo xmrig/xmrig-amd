@@ -1,3 +1,8 @@
+# v2.7.3-beta
+- [#145](https://github.com/xmrig/xmrig-amd/issues/145) Added runtime linking with OpenCL ICD, **AMD APP SDK not required anymore**.
+- Added option `opencl-loader` for custom path to OpenCL ICD.
+- Vega APU (AMD Ryzen with embedded GPU) now excluded from autoconfig, reason: slow and cause BSOD.
+
 # v2.7.2-beta
 - [#132](https://github.com/xmrig/xmrig-amd/issues/132) Fixed regression, command line option `--opencl-platform` was broken.
 
