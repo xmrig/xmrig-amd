@@ -1,6 +1,8 @@
-# XMRigCC 
+# XMRigCC-amd (OpenCL)
 
 :warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
+
+:bulb: **This is the AMD GPU version of XMRigCC, if you're looking for the CPU variant [click here](https://github.com/Bendr0id/xmrigCC/).**
 
 
 [![GitHub release](https://img.shields.io/github/release/bendr0id/xmrigCC-amd/all.svg)](https://github.com/bendr0id/xmrigCC-amd/releases)
@@ -11,7 +13,7 @@
 ![XMRigCC Logo](https://i.imgur.com/7mi0WCe.png)
 
 
-### About XMRigCC-amd
+### About XMRigCC-amd (OpenCL)
 
 XMRigCC-amd is a fork of [XMRig-amd](https://github.com/xmrig/xmrig-amd) which adds the ability to remote control your XMRig-amd instances via a Webfrontend and REST api.
 This fork is based on XMRig-amd and adds a "Command and Control" (C&amp;C) server, a daemon to reload the miner on config changes and modifications in XMRig-amd to send the current status to the C&amp;C Server.
