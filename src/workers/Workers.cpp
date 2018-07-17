@@ -290,6 +290,10 @@ void Workers::onResult(uv_async_t *handle)
     uv_queue_work(uv_default_loop(), &baton->request,
         [](uv_work_t* req) {
             JobBaton *baton = static_cast<JobBaton*>(req->data);
+            if (baton->jobs.empty()) {
+                return;
+            }
+
             cryptonight_ctx *ctx = CryptoNight::createCtx(baton->jobs[0].algorithm().algo());
 
             for (const Job &job : baton->jobs) {
@@ -313,7 +317,7 @@ void Workers::onResult(uv_async_t *handle)
             }
 
             if (baton->errors > 0 && !baton->jobs.empty()) {
-                LOG_ERR("GPU #%d COMPUTE ERROR", baton->jobs[0].threadId());
+                LOG_ERR("THREAD #%d COMPUTE ERROR", baton->jobs[0].threadId());
             }
 
             delete baton;
