@@ -29,7 +29,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 
 **XMRigCC Daemon(miner)**
 
-![Screenshot of XMRig Daemon (miner)](https://i.imgur.com/gYq1QSP.png)
+![Screenshot of XMRig Daemon (miner)](https://imgur.com/a/3kDbspd.png)
 
 **XMRigCC Server**
 
