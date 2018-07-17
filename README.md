@@ -22,7 +22,7 @@ The modified version can also handle commands like "update config", "start/stop 
 GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
 
 
-:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
+:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/bendr0id/xmrigCC-amd/issues) if auto configuration suggest wrong values.
 
 **[Find Help/Howto](https://github.com/Bendr0id/xmrigCC/wiki/)**
 
