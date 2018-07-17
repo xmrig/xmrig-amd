@@ -56,6 +56,7 @@ public:
 
     inline bool isOclCache() const                       { return m_cache; }
     inline bool isShouldSave() const                     { return m_shouldSave; }
+    inline const char *loader() const                    { return m_loader.data(); }
     inline const std::vector<IThread *> &threads() const { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
 
@@ -77,6 +78,7 @@ private:
     int m_platformIndex;
     OclCLI m_oclCLI;
     std::vector<IThread *> m_threads;
+    xmrig::c_str m_loader;
 };
 
 

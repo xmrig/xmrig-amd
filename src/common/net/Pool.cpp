@@ -352,6 +352,10 @@ void Pool::adjustVariant(const xmrig::Variant variantHint)
         return;
     }
 
+    if (m_algorithm.variant() != VARIANT_AUTO) {
+        return;
+    }
+
     if (m_algorithm.algo() == CRYPTONIGHT_HEAVY)  {
         m_algorithm.setVariant(VARIANT_0);
     }

@@ -123,9 +123,7 @@ int App::exec()
     m_httpd->start();
 #   endif
 
-    m_controller->config()->oclInit();
-
-    if (!Workers::start(m_controller)) {
+    if (!m_controller->oclInit() || !Workers::start(m_controller)) {
         LOG_ERR("Failed to start threads");
         return 1;
     }
