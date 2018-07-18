@@ -33,6 +33,7 @@
 #include "base32/base32.h"
 #include "common/crypto/keccak.h"
 #include "common/log/Log.h"
+#include "common/utils/timestamp.h"
 #include "core/Config.h"
 #include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
@@ -50,7 +51,8 @@ OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char
 
 bool OclCache::load()
 {
-    const xmrig::Algo algo = m_config->algorithm().algo();
+    const xmrig::Algo algo  = m_config->algorithm().algo();
+    const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
     snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d",
@@ -71,7 +73,7 @@ bool OclCache::load()
     std::ifstream clBinFile(m_fileName, std::ofstream::in | std::ofstream::binary);
 
     if (!m_config->isOclCache() || !clBinFile.good()) {
-        LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " YELLOW("compiling...") :
+        LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " YELLOW_BOLD("compiling...") :
                                         "GPU #%zu compiling...", m_ctx->deviceIdx);
 
         cl_int ret;
@@ -114,6 +116,9 @@ bool OclCache::load()
             sleep(1);
         }
         while(status == CL_BUILD_IN_PROGRESS);
+
+        LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") ", elapsed time " WHITE_BOLD("%03.2fs") :
+                                        "GPU #%zu compilation completed, elapsed time %03.2fs", m_ctx->deviceIdx, (xmrig::currentMSecsSinceEpoch() - timeStart) / 1000.0);
 
         return save(dev_id, num_devices);
     }

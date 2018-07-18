@@ -50,6 +50,7 @@ set(HEADERS
     src/common/Platform.h
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
+    src/common/utils/timestamp.h
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
