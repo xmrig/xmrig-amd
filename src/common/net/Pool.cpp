@@ -376,21 +376,15 @@ void Pool::rebuild()
 
     m_algorithms.push_back(m_algorithm);
 
-#   ifdef XMRIG_AMD_PROJECT
-    if (m_algorithm.variant() == xmrig::VARIANT_MSR) {
-        return;
-    }
-#   endif
-
 #   ifndef XMRIG_PROXY_PROJECT
     addVariant(xmrig::VARIANT_1);
     addVariant(xmrig::VARIANT_0);
     addVariant(xmrig::VARIANT_XTL);
-    addVariant(xmrig::VARIANT_IPBC);
-#   ifndef XMRIG_AMD_PROJECT
+    addVariant(xmrig::VARIANT_TUBE);
     addVariant(xmrig::VARIANT_MSR);
-#   endif
     addVariant(xmrig::VARIANT_XHV);
+    addVariant(xmrig::VARIANT_XAO);
+    addVariant(xmrig::VARIANT_RTO);
     addVariant(xmrig::VARIANT_AUTO);
 #   endif
 }

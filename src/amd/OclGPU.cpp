@@ -83,6 +83,38 @@ inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, 
 }
 
 
+inline static int cnKernelOffset(uint32_t variant)
+{
+    switch (variant) {
+    case xmrig::VARIANT_0:
+    case xmrig::VARIANT_XHV:
+        return 1;
+
+    case xmrig::VARIANT_1:
+    case xmrig::VARIANT_XTL:
+    case xmrig::VARIANT_RTO:
+        return 7;
+        break;
+
+    case xmrig::VARIANT_MSR:
+        return 8;
+
+    case xmrig::VARIANT_XAO:
+        return 9;
+
+    case xmrig::VARIANT_TUBE:
+        return 10;
+
+    default:
+        break;
+    }
+
+    assert(false);
+
+    return 0;
+}
+
+
 size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
 {
     size_t MaximumWorkSize;
@@ -163,8 +195,8 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero"};
-    for(int i = 0; i < 8; ++i) {
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube"};
+    for (int i = 0; i < 11; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -460,32 +492,29 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     }
 
     // CN1 Kernel
-    int cn_kernel_offset = 6;
-    if (variant == xmrig::VARIANT_0 || variant == xmrig::VARIANT_XHV) {
-        cn_kernel_offset = 0;
-    }
+    const int cn_kernel_offset = cnKernelOffset(variant);
 
     // Scratchpads, States
-    if (!setKernelArgFromExtraBuffers(ctx, 1 + cn_kernel_offset, 0, 0) || !setKernelArgFromExtraBuffers(ctx, 1 + cn_kernel_offset, 1, 1)) {
+    if (!setKernelArgFromExtraBuffers(ctx, cn_kernel_offset, 0, 0) || !setKernelArgFromExtraBuffers(ctx, cn_kernel_offset, 1, 1)) {
         return OCL_ERR_API;
     }
 
     // Threads
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[1 + cn_kernel_offset], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
         return(OCL_ERR_API);
     }
 
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[1 + cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 3);
+    // variant
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
         return OCL_ERR_API;
     }
 
-    if (cn_kernel_offset) {
-        if ((ret = OclLib::setKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
-            return OCL_ERR_API;
-        }
+    // input
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 4);
+        return OCL_ERR_API;
     }
 
     // CN3 Kernel
@@ -563,22 +592,10 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant)
         return OCL_ERR_API;
     }
 
-    /*for(int i = 1; i < 3; ++i)
-    {
-        if((ret = clEnqueueNDRangeKernel(*ctx->CommandQueues, ctx->Kernels[i], 1, &ctx->Nonce, &g_thd, &w_size, 0, NULL, NULL)) != CL_SUCCESS)
-        {
-            Log(LOG_CRITICAL, "Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), i);
-            return(ERR_OCL_API);
-        }
-    }*/
-
     size_t tmpNonce = ctx->Nonce;
-    int cn_kernel_offset = 6;
-    if (variant == xmrig::VARIANT_0 || variant == xmrig::VARIANT_XHV) {
-        cn_kernel_offset = 0;
-    }
+    const int cn_kernel_offset = cnKernelOffset(variant);
 
-    if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[1 + cn_kernel_offset], 1, &tmpNonce, &g_thd, &w_size, 0, nullptr, nullptr)) != CL_SUCCESS) {
+    if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[cn_kernel_offset], 1, &tmpNonce, &g_thd, &w_size, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1);
         return OCL_ERR_API;
     }
