@@ -100,6 +100,9 @@ inline static int cnKernelOffset(uint32_t variant)
     case xmrig::VARIANT_MSR:
         return 8;
 
+    case xmrig::VARIANT_XAO:
+        return 9;
+
     default:
         break;
     }
@@ -190,8 +193,8 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr"};
-    for (int i = 0; i < 9; ++i) {
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao"};
+    for (int i = 0; i < 10; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
