@@ -1,5 +1,9 @@
 # v2.7.3-beta
 - [#145](https://github.com/xmrig/xmrig-amd/issues/145) Added runtime linking with OpenCL ICD, **AMD APP SDK not required anymore**.
+- [#140](https://github.com/xmrig/xmrig-amd/issues/140) `cryptonight-lite/ipbc` replaced to `cryptonight-heavy/tube` for **Bittube (TUBE)**.
+- [#128](https://github.com/xmrig/xmrig-amd/issues/128) Improved `cryptonight/msr` support, removed usage restrictions.
+- Added `cryptonight/rto` (cryptonight variant 1 with IPBC/TUBE mod) variant for **Arto (RTO)** coin.
+- Added `cryptonight/xao` (original cryptonight with bigger iteration count) variant for **Alloy (XAO)** coin.
 - Added option `opencl-loader` for custom path to OpenCL ICD.
 - Vega APU (AMD Ryzen with embedded GPU) now excluded from autoconfig, reason: slow and cause BSOD.
 
