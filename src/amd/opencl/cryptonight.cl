@@ -92,10 +92,16 @@ XMRIG_INCLUDE_GROESTL256
 
 #define VARIANT_0    0  // Original CryptoNight or CryptoNight-Heavy
 #define VARIANT_1    1  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-#define VARIANT_IPBC 2  // Modified CryptoNight Lite variant 1 with XOR (IPBC/TUBE only)
+#define VARIANT_TUBE 2  // Modified CryptoNight Lite variant 1 with XOR (IPBC/TUBE only)
 #define VARIANT_XTL  3  // Modified CryptoNight variant 1 (Stellite only)
 #define VARIANT_MSR  4  // Modified CryptoNight variant 1 (Masari only)
 #define VARIANT_XHV  5  // Modified CryptoNight-Heavy (Haven Protocol only)
+#define VARIANT_XAO  6  // Modified CryptoNight variant 0 (Alloy only)
+#define VARIANT_RTO  7  // Modified CryptoNight variant 1 (Arto only)
+
+#define CRYPTONIGHT       0 /* CryptoNight (Monero) */
+#define CRYPTONIGHT_LITE  1 /* CryptoNight-Lite (AEON) */
+#define CRYPTONIGHT_HEAVY 2 /* CryptoNight-Heavy (RYO) */
 
 
 static const __constant ulong keccakf_rndc[24] =
@@ -444,6 +450,7 @@ inline ulong getIdx()
 
 #define mix_and_propagate(xin) (xin)[(get_local_id(1)) % 8][get_local_id(0)] ^ (xin)[(get_local_id(1) + 1) % 8][get_local_id(0)]
 
+
 __attribute__((reqd_work_group_size(WORKSIZE, 8, 1)))
 __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, ulong Threads)
 {
@@ -454,10 +461,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
     const ulong gIdx = getIdx();
 
-    for(int i = get_local_id(1) * WORKSIZE + get_local_id(0);
-        i < 256;
-        i += WORKSIZE * 8)
-    {
+    for (int i = get_local_id(1) * WORKSIZE + get_local_id(0); i < 256; i += WORKSIZE * 8) {
         const uint tmp = AES0_C[i];
         AES0[i] = tmp;
         AES1[i] = rotate(tmp, 8U);
@@ -469,7 +473,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         states += 25 * gIdx;
@@ -483,16 +487,18 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 #       endif
 
         ((ulong8 *)State)[0] = vload8(0, input);
-        State[8] = input[8];
-        State[9] = input[9];
+        State[8]  = input[8];
+        State[9]  = input[9];
         State[10] = input[10];
 
-        ((uint *)State)[9] &= 0x00FFFFFFU;
-        ((uint *)State)[9] |= ((get_global_id(0)) & 0xFF) << 24;
+        ((uint *)State)[9]  &= 0x00FFFFFFU;
+        ((uint *)State)[9]  |= ((get_global_id(0)) & 0xFF) << 24;
         ((uint *)State)[10] &= 0xFF000000U;
         ((uint *)State)[10] |= ((get_global_id(0) >> 8));
 
-        for(int i = 11; i < 25; ++i) State[i] = 0x00UL;
+        for (int i = 11; i < 25; ++i) {
+            State[i] = 0x00UL;
+        }
 
         // Last bit of padding
         State[16] = 0x8000000000000000UL;
@@ -503,34 +509,40 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         #pragma unroll
-        for(int i = 0; i < 25; ++i) states[i] = State[i];
+        for (int i = 0; i < 25; ++i) {
+            states[i] = State[i];
+        }
 
         text = vload4(get_local_id(1) + 4, (__global uint *)(states));
 
         #pragma unroll
-        for(int i = 0; i < 4; ++i) ((ulong *)ExpandedKey1)[i] = states[i];
+        for (int i = 0; i < 4; ++i) {
+            ((ulong *)ExpandedKey1)[i] = states[i];
+        }
 
         AESExpandKey256(ExpandedKey1);
     }
 
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
-#   if (ALGO == 2) // xmrig::CRYPTONIGHT_HEAVY
+#   if (ALGO == CRYPTONIGHT_HEAVY)
     {
         __local uint4 xin[8][WORKSIZE];
 
-        /* Also left over threads performe this loop.
+        /* Also left over threads perform this loop.
          * The left over thread results will be ignored
          */
-        for(size_t i=0; i < 16; i++) {
-            #pragma unroll
+        #pragma unroll 16
+        for (size_t i = 0; i < 16; i++) {
+            #pragma unroll 10
             for (int j = 0; j < 10; ++j) {
                 text = AES_Round(AES0, AES1, AES2, AES3, text, ((uint4 *)ExpandedKey1)[j]);
             }
+
             barrier(CLK_LOCAL_MEM_FENCE);
             xin[get_local_id(1)][get_local_id(0)] = text;
             barrier(CLK_LOCAL_MEM_FENCE);
@@ -541,7 +553,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         const int iterations = MEMORY >> 7;
@@ -596,7 +608,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
     uint4 b_x;
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         states += 25 * gIdx;
@@ -621,7 +633,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         #pragma unroll 8
@@ -643,7 +655,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
 
             uint2 tweak1_2_0 = tweak1_2;
-            if (variant == VARIANT_IPBC) {
+            if (variant == VARIANT_TUBE) {
                 tweak1_2_0 ^= ((uint2 *)&(a[0]))[0];
             }
 
@@ -660,7 +672,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 }
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant)
+__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -681,7 +693,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
     uint4 b_x;
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         states += 25 * gIdx;
@@ -705,7 +717,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         ulong idx0 = a[0];
@@ -779,7 +791,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         states += 25 * gIdx;
@@ -814,7 +826,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         int iterations = MEMORY >> 7;
@@ -863,15 +875,18 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       endif
     }
 
-#   if (ALGO == 2) // xmrig::CRYPTONIGHT_HEAVY
+#   if (ALGO == CRYPTONIGHT_HEAVY)
     /* Also left over threads performe this loop.
      * The left over thread results will be ignored
      */
-    for(size_t i=0; i < 16; i++)
+    #pragma unroll 16
+    for(size_t i = 0; i < 16; i++)
     {
-        #pragma unroll
-        for(int j = 0; j < 10; ++j)
+        #pragma unroll 10
+        for (int j = 0; j < 10; ++j) {
             text = AES_Round(AES0, AES1, AES2, AES3, text, ((uint4 *)ExpandedKey2)[j]);
+        }
+
         barrier(CLK_LOCAL_MEM_FENCE);
         xin[get_local_id(1)][get_local_id(0)] = text;
         barrier(CLK_LOCAL_MEM_FENCE);
@@ -881,7 +896,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         vstore2(as_ulong2(text), get_local_id(1) + 4, states);
@@ -891,7 +906,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
 #   if (COMP_MODE == 1)
     // do not use early return here
-    if(gIdx < Threads)
+    if (gIdx < Threads)
 #   endif
     {
         if(!get_local_id(1))

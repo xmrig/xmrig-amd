@@ -164,7 +164,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     }
 
     const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero"};
-    for(int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -460,32 +460,48 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     }
 
     // CN1 Kernel
-    int cn_kernel_offset = 6;
-    if (variant == xmrig::VARIANT_0 || variant == xmrig::VARIANT_XHV) {
-        cn_kernel_offset = 0;
+    int cn_kernel_offset = 0;
+
+    switch (variant) {
+    case xmrig::VARIANT_0:
+    case xmrig::VARIANT_XHV:
+        cn_kernel_offset = 1;
+        break;
+
+    case xmrig::VARIANT_1:
+    case xmrig::VARIANT_TUBE:
+    case xmrig::VARIANT_XTL:
+    case xmrig::VARIANT_RTO:
+        cn_kernel_offset = 7;
+        break;
+
+    default:
+        break;
     }
 
+    assert(cn_kernel_offset > 0);
+
     // Scratchpads, States
-    if (!setKernelArgFromExtraBuffers(ctx, 1 + cn_kernel_offset, 0, 0) || !setKernelArgFromExtraBuffers(ctx, 1 + cn_kernel_offset, 1, 1)) {
+    if (!setKernelArgFromExtraBuffers(ctx, cn_kernel_offset, 0, 0) || !setKernelArgFromExtraBuffers(ctx, cn_kernel_offset, 1, 1)) {
         return OCL_ERR_API;
     }
 
     // Threads
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[1 + cn_kernel_offset], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
         return(OCL_ERR_API);
     }
 
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[1 + cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 3);
+    // variant
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
         return OCL_ERR_API;
     }
 
-    if (cn_kernel_offset) {
-        if ((ret = OclLib::setKernelArg(ctx->Kernels[1 + cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1 + cn_kernel_offset, 4);
-            return OCL_ERR_API;
-        }
+    // input
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 4);
+        return OCL_ERR_API;
     }
 
     // CN3 Kernel
