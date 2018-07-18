@@ -25,11 +25,7 @@
 #define __GPUCONTEXT_H__
 
 
-#if defined(__APPLE__)
-#   include <OpenCL/cl.h>
-#else
-#   include <CL/cl.h>
-#endif
+#include "3rdparty/CL/cl.h"
 
 
 #include <stdint.h>
@@ -92,7 +88,7 @@ struct GpuContext
     cl_mem OutputBuffer;
     cl_mem ExtraBuffers[6];
     cl_program Program;
-    cl_kernel Kernels[8];
+    cl_kernel Kernels[11];
     size_t freeMem;
     int computeUnits;
     std::string name;

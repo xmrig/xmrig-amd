@@ -36,7 +36,7 @@
 class Log
 {
 public:
-    static inline Log* i()                       { assert(m_self != nullptr); return m_self; }
+    static inline Log* i()                       { if (!m_self) { defaultInit(); } return m_self; }
     static inline void add(ILogBackend *backend) { i()->m_backends.push_back(backend); }
     static inline void init()                    { if (!m_self) { new Log(); } }
     static inline void release()                 { assert(m_self != nullptr); delete m_self; }
@@ -46,6 +46,7 @@ public:
 
     static const char *colorByLevel(ILogBackend::Level level, bool isColors = true);
     static const char *endl(bool isColors = true);
+    static void defaultInit();
 
 private:
     inline Log() {

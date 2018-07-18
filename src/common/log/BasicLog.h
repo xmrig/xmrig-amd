@@ -21,36 +21,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef __BASICLOG_H__
+#define __BASICLOG_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.7.3-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
-#define APP_KIND      "amd"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  7
-#define APP_VER_PATCH  3
+#include <uv.h>
 
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1910)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
 
-#endif /* __VERSION_H__ */
+#include "common/interfaces/ILogBackend.h"
+
+
+namespace xmrig {
+    class Controller;
+}
+
+
+class BasicLog : public ILogBackend
+{
+public:
+    BasicLog();
+
+    void message(Level level, const char *fmt, va_list args) override;
+    void text(const char *fmt, va_list args) override;
+
+private:
+    bool isWritable() const;
+    void print(va_list args);
+
+    char m_buf[kBufferSize];
+    char m_fmt[256];
+};
+
+#endif /* __BASICLOG_H__ */

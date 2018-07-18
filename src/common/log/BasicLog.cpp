@@ -21,36 +21,69 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.7.3-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
-#define APP_KIND      "amd"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  7
-#define APP_VER_PATCH  3
-
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1910)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
+#ifdef WIN32
+#   include <winsock2.h>
+#   include <windows.h>
 #endif
 
-#endif /* __VERSION_H__ */
+
+#include "common/log/BasicLog.h"
+#include "common/log/Log.h"
+
+
+BasicLog::BasicLog()
+{
+}
+
+
+void BasicLog::message(Level level, const char* fmt, va_list args)
+{
+    time_t now = time(nullptr);
+    tm stime;
+
+#   ifdef _WIN32
+    localtime_s(&stime, &now);
+#   else
+    localtime_r(&now, &stime);
+#   endif
+
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
+             stime.tm_year + 1900,
+             stime.tm_mon + 1,
+             stime.tm_mday,
+             stime.tm_hour,
+             stime.tm_min,
+             stime.tm_sec,
+             Log::colorByLevel(level, false),
+             fmt,
+             Log::endl(false)
+        );
+
+    print(args);
+}
+
+
+void BasicLog::text(const char* fmt, va_list args)
+{
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(false));
+
+    print(args);
+}
+
+
+void BasicLog::print(va_list args)
+{
+    if (vsnprintf(m_buf, sizeof(m_buf) - 1, m_fmt, args) <= 0) {
+        return;
+    }
+
+    fputs(m_buf, stdout);
+    fflush(stdout);
+}
