@@ -249,8 +249,10 @@ void keccakf1600_1(ulong *st)
         st[0] ^= keccakf_rndc[round];
     }
 }
+
 )==="
 R"===(
+
 void keccakf1600_2(ulong *st)
 {
     int i, round;
@@ -505,6 +507,9 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
 
+)==="
+R"===(
+
 #define VARIANT1_1(p) \
         uint table = 0x75310U; \
         uint index = (((p).s2 >> 26) & 12) | (((p).s2 >> 23) & 2); \
@@ -610,6 +615,9 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 }
 
 
+)==="
+R"===(
+
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
 {
@@ -693,6 +701,8 @@ __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, ulong 
 #   endif
 }
 
+)==="
+R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
@@ -789,6 +799,8 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
 #   endif
 }
 
+)==="
+R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
@@ -881,6 +893,8 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
 
+)==="
+R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
@@ -959,6 +973,9 @@ __kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, ulong 
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 #   endif
 }
+
+)==="
+R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 8, 1)))
 __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *Branch0, __global uint *Branch1, __global uint *Branch2, __global uint *Branch3, ulong Threads)
