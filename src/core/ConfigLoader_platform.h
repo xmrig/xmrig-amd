@@ -66,6 +66,7 @@ Options:\n\
       --opencl-launch=IxW  list of launch config, intensity and worksize\n\
       --opencl-affinity=N  affine GPU threads to a CPU\n\
       --opencl-platform=N  OpenCL platform index\n\
+      --opencl-loader=N    path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)\n\
       --print-platforms    print available OpenCL platforms and exit\n\
       --no-color           disable colored output\n\
       --variant            algorithm PoW variant\n\
@@ -147,6 +148,7 @@ static struct option const options[] = {
     { "cc-use-remote-logging",      0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
     { "cc-remote-logging-max-rows", 1, nullptr, xmrig::IConfig::CCRemoteLoggingMaxRowKey },
     { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey },
+    { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoader         },
     { 0, 0, 0, 0 }
 };
 
@@ -166,6 +168,7 @@ static struct option const config_options[] = {
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
     { "cache",             0, nullptr, xmrig::IConfig::OclCache       },
     { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey  },
+    { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoader      },
     { 0, 0, 0, 0 }
 };
 

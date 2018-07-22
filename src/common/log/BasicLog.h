@@ -21,45 +21,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#ifndef __BASICLOG_H__
+#define __BASICLOG_H__
 
 
-#include "common/interfaces/IWatcherListener.h"
+#include <uv.h>
 
 
-class Network;
-class StatsData;
+#include "common/interfaces/ILogBackend.h"
 
 
 namespace xmrig {
+    class Controller;
+}
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
-
-
-class Controller : public IWatcherListener
+class BasicLog : public ILogBackend
 {
 public:
-    Controller();
-    ~Controller();
+    BasicLog();
 
-    bool isReady() const;
-    bool oclInit();
-    Config *config() const;
-    int init(int argc, char **argv);
-    Network *network() const;
-    void addListener(IControllerListener *listener);
-
-protected:
-    void onNewConfig(IConfig *config) override;
+    void message(Level level, const char *fmt, va_list args) override;
+    void text(const char *fmt, va_list args) override;
 
 private:
-    ControllerPrivate *d_ptr;
+    bool isWritable() const;
+    void print(va_list args);
+
+    char m_buf[kBufferSize];
+    char m_fmt[256];
 };
 
-} /* namespace xmrig */
-
-#endif /* __CONTROLLER_H__ */
+#endif /* __BASICLOG_H__ */

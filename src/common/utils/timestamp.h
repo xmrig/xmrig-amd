@@ -21,45 +21,27 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#ifndef __TIMESTAMP_H__
+#define __TIMESTAMP_H__
 
 
-#include "common/interfaces/IWatcherListener.h"
-
-
-class Network;
-class StatsData;
+#include <chrono>
 
 
 namespace xmrig {
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
-
-
-class Controller : public IWatcherListener
+int64_t currentMSecsSinceEpoch()
 {
-public:
-    Controller();
-    ~Controller();
+    using namespace std::chrono;
+    if (high_resolution_clock::is_steady) {
+        return time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
+    }
 
-    bool isReady() const;
-    bool oclInit();
-    Config *config() const;
-    int init(int argc, char **argv);
-    Network *network() const;
-    void addListener(IControllerListener *listener);
+    return time_point_cast<milliseconds>(steady_clock::now()).time_since_epoch().count();
+}
 
-protected:
-    void onNewConfig(IConfig *config) override;
-
-private:
-    ControllerPrivate *d_ptr;
-};
 
 } /* namespace xmrig */
 
-#endif /* __CONTROLLER_H__ */
+#endif /* __TIMESTAMP_H__ */

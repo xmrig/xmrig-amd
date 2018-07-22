@@ -22,6 +22,7 @@ set(HEADERS
     src/amd/OclCLI.h
     src/amd/OclError.h
     src/amd/OclGPU.h
+    src/amd/OclLib.h
     src/api/NetworkState.h
     src/App.h
     src/common/config/CommonConfig.h
@@ -39,6 +40,7 @@ set(HEADERS
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
     src/common/interfaces/IWatcherListener.h
+    src/common/log/BasicLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
@@ -53,6 +55,7 @@ set(HEADERS
     src/common/Platform.h
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
+    src/common/utils/timestamp.h
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
@@ -97,6 +100,7 @@ set(SOURCES
     src/amd/OclCache.cpp
     src/amd/OclCLI.cpp
     src/amd/OclGPU.cpp
+    src/amd/OclLib.cpp
     src/api/NetworkState.cpp
     src/App.cpp
     src/common/crypto/Algorithm.cpp
@@ -169,7 +173,7 @@ else()
         src/Cpu_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt)
+    set(EXTRA_LIBS pthread rt dl)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -195,7 +199,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
-include(cmake/OpenCL.cmake)
+
+add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
+add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
 if (XMRIG_ARM)
     set(SOURCES_CPUID src/Cpu_arm.cpp)

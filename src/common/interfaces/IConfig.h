@@ -85,6 +85,7 @@ public:
         OclLaunch         = 1403,
         OclCache          = 1404,
         OclPrint          = 1405,
+        OclLoader         = 1406,
 
         // xmrig-proxy
         AccessLogFileKey  = 'A',
