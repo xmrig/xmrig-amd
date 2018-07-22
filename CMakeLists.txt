@@ -130,6 +130,7 @@ set(SOURCES_COMMON
         src/common/log/ConsoleLog.cpp
         src/common/log/FileLog.cpp
         src/common/log/Log.cpp
+        src/common/log/BasicLog.cpp
         src/common/Platform.cpp
         src/core/Config.cpp
         src/core/Controller.cpp
@@ -293,13 +294,13 @@ if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES_CC_COMMON} ${SOURCES} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
-target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
+add_executable(xmrigMiner-amd ${HEADERS} ${SOURCES_CC_COMMON} ${SOURCES} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
+set_target_properties(xmrigMiner-amd PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
+target_link_libraries(xmrigMiner-amd ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
 
 if (WITH_TLS)
-    #target_link_libraries(${PROJECT_NAME} xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-    target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+    #target_link_libraries(xmrigMiner-amd xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+    target_link_libraries(xmrigMiner-amd ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif (WITH_TLS)
 
 
