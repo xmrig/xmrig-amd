@@ -128,7 +128,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     Value cc(kObjectType);
 
-    cc.AddMember("url",          StringRef(ccUrl()), allocator);
+    cc.AddMember("url",          ccUrl() ? Value(StringRef(ccUrl())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
