@@ -56,6 +56,7 @@ protected:
   void onActive(IStrategy *strategy, Client *client) override;
   void onJob(IStrategy *strategy, Client *client, const Job &job) override;
   void onJobResult(const JobResult &result) override;
+  void onComputeError(int gpuID) override;
   void onPause(IStrategy *strategy) override;
   void onResultAccepted(IStrategy *strategy, Client *client, const SubmitResult &result, const char *error) override;
 
