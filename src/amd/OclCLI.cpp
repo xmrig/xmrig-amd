@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,7 +57,7 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
 }
 
 
-void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config)
+void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, const xmrig::Algorithm& algorithm, xmrig::Config *config)
 {
     *platformIndex = getAMDPlatformIdx(config);
     if (*platformIndex == -1) {
@@ -71,7 +72,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex
     }
 
     constexpr size_t byteToMiB = 1024u * 1024u;
-    const size_t hashMemSize   = xmrig::cn_select_memory(config->algorithm().algo());
+    const size_t hashMemSize   = xmrig::cn_select_memory(algorithm.algo());
 
     for (GpuContext &ctx : devices) {
         // Vega APU slow and can cause BSOD, skip from autoconfig.
@@ -96,7 +97,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex
             maxThreads = 2024u;
         }
 
-        if (config->algorithm().algo() == xmrig::CRYPTONIGHT_LITE) {
+        if (algorithm.algo() == xmrig::CRYPTONIGHT_LITE) {
             maxThreads *= 2u;
         }
 
