@@ -63,6 +63,7 @@ set(HEADERS
     src/net/strategies/DonateStrategy.h
     src/Summary.h
     src/version.h
+    src/workers/Benchmark.h
     src/workers/Handle.h
     src/workers/Hashrate.h
     src/workers/OclThread.h
@@ -120,6 +121,7 @@ set(SOURCES
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
+    src/workers/Benchmark.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
     src/workers/OclThread.cpp
