@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -53,6 +54,11 @@ static const char *kGetPlatformInfo                  = "clGetPlatformInfo";
 static const char *kGetProgramBuildInfo              = "clGetProgramBuildInfo";
 static const char *kGetProgramInfo                   = "clGetProgramInfo";
 static const char *kSetKernelArg                     = "clSetKernelArg";
+static const char *kReleaseContext                   = "clReleaseContext";
+static const char *kReleaseProgram                   = "clReleaseProgram";
+static const char *kReleaseCommandQueue              = "clReleaseCommandQueue";
+static const char *kReleaseMemObject                 = "clReleaseMemObject";
+static const char *kReleaseKernel                    = "clReleaseKernel";
 
 typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *);
 typedef cl_command_queue (CL_API_CALL *createCommandQueue_t)(cl_context, cl_device_id, cl_command_queue_properties, cl_int *);
@@ -73,6 +79,11 @@ typedef cl_kernel (CL_API_CALL *createKernel_t)(cl_program, const char *, cl_int
 typedef cl_mem (CL_API_CALL *createBuffer_t)(cl_context, cl_mem_flags, size_t, void *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithBinary_t)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithSource_t)(cl_context, cl_uint, const char **, const size_t *, cl_int *);
+typedef cl_int (CL_API_CALL *releaseContext_t)(cl_context);
+typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
+typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
+typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
+typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
 
 static createCommandQueueWithProperties_t pCreateCommandQueueWithProperties = nullptr;
 static createCommandQueue_t pCreateCommandQueue                             = nullptr;
@@ -93,6 +104,11 @@ static createKernel_t pCreateKernel                                         = nu
 static createBuffer_t pCreateBuffer                                         = nullptr;
 static createProgramWithBinary_t pCreateProgramWithBinary                   = nullptr;
 static createProgramWithSource_t pCreateProgramWithSource                   = nullptr;
+static releaseContext_t pReleaseContext                                     = nullptr;
+static releaseProgram_t pReleaseProgram                                     = nullptr;
+static releaseCommandQueue_t pReleaseCommandQueue                           = nullptr;
+static releaseMemObject_t pReleaseMemObject                                 = nullptr;
+static releaseKernel_t pReleaseKernel                                       = nullptr;
 
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
 
@@ -128,6 +144,11 @@ bool OclLib::load()
     DLSYM(CreateBuffer);
     DLSYM(CreateProgramWithBinary);
     DLSYM(CreateProgramWithSource);
+    DLSYM(ReleaseContext);
+    DLSYM(ReleaseProgram);
+    DLSYM(ReleaseCommandQueue);
+    DLSYM(ReleaseMemObject);
+    DLSYM(ReleaseKernel);
 
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
 
@@ -334,4 +355,43 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
     }
 
     return result;
+}
+
+cl_int OclLib::releaseContext(cl_context context)
+{
+    assert(pReleaseContext != nullptr);
+
+    return pReleaseContext(context);
+}
+
+
+cl_int OclLib::releaseProgram(cl_program program)
+{
+    assert(pReleaseProgram != nullptr);
+
+    return pReleaseProgram(program);
+}
+
+
+cl_int OclLib::releaseCommandQueue(cl_command_queue command_queue)
+{
+    assert(pReleaseCommandQueue != nullptr);
+
+    return pReleaseCommandQueue(command_queue);
+}
+
+
+cl_int OclLib::releaseMemObject(cl_mem memobj)
+{
+    assert(pReleaseMemObject != nullptr);
+
+    return pReleaseMemObject(memobj);
+}
+
+
+cl_int OclLib::releaseKernel(cl_kernel kernel)
+{
+    assert(pReleaseKernel != nullptr);
+
+    return pReleaseKernel(kernel);
 }
