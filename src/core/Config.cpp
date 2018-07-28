@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,6 +41,12 @@
 #include "workers/OclThread.h"
 
 
+// for usage in Client::login to get_algo_perf
+namespace xmrig {
+    Config* pconfig = nullptr;
+};
+
+
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
     m_cache(true),
@@ -51,6 +58,11 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_loader("libOpenCL.so")
 #   endif
 {
+    // not defined algo performance is considered to be 0
+    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+        m_algo_perf[pa] = 0;
+    }
 }
 
 
@@ -63,10 +75,13 @@ bool xmrig::Config::oclInit()
 {
     LOG_WARN("compiling code and initializing GPUs. This will take a while...");
 
-    if (m_threads.empty() && !m_oclCLI.setup(m_threads)) {
-        m_autoConf   = true;
-        m_shouldSave = true;
-        m_oclCLI.autoConf(m_threads, &m_platformIndex, this);
+    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+        if (m_threads[pa].empty() && !m_oclCLI.setup(m_threads[pa])) {
+            m_autoConf   = true;
+            m_shouldSave = true;
+            m_oclCLI.autoConf(m_threads[pa], &m_platformIndex, xmrig::Algorithm(pa), this);
+        }
     }
 
     return true;
@@ -116,11 +131,27 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("retries",       retries(), allocator);
     doc.AddMember("retry-pause",   retryPause(), allocator);
 
-    Value threads(kArrayType);
-    for (const IThread *thread : m_threads) {
-        threads.PushBack(thread->toConfig(doc), allocator);
+    // save extended "threads" based on m_threads
+    Value threads(kObjectType);
+    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+        Value key(xmrig::Algorithm::perfAlgoName(pa), allocator);
+        Value threads2(kArrayType);
+        for (const IThread *thread : m_threads[pa]) {
+            threads2.PushBack(thread->toConfig(doc), allocator);
+        }
+        threads.AddMember(key, threads2, allocator);
     }
     doc.AddMember("threads", threads, allocator);
+
+    // save "algo-perf" based on m_algo_perf
+    Value algo_perf(kObjectType);
+    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+        Value key(xmrig::Algorithm::perfAlgoName(pa), allocator);
+        algo_perf.AddMember(key, Value(m_algo_perf[pa]), allocator);
+    }
+    doc.AddMember("algo-perf", algo_perf, allocator);
 
     doc.AddMember("user-agent", userAgent() ? Value(StringRef(userAgent())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("syslog",     isSyslog(), allocator);
@@ -228,26 +259,52 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     return true;
 }
 
+// parse specific perf algo (or generic) threads config
+void xmrig::Config::parseThreadsJSON(const rapidjson::Value &threads, const xmrig::PerfAlgo pa)
+{
+    for (const rapidjson::Value &value : threads.GetArray()) {
+        if (!value.IsObject()) {
+            continue;
+        }
+
+        if (value.HasMember("intensity")) {
+            parseThread(value, pa);
+        }
+    }
+}
 
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
     const rapidjson::Value &threads = doc["threads"];
 
     if (threads.IsArray()) {
-        for (const rapidjson::Value &value : threads.GetArray()) {
-            if (!value.IsObject()) {
-                continue;
+        // parse generic (old) threads
+        parseThreadsJSON(threads, m_algorithm.perf_algo());
+    } else if (threads.IsObject()) {
+        // parse new specific perf algo threads
+        for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+            const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+            const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(pa)];
+            if (threads2.IsArray()) {
+                parseThreadsJSON(threads2, pa);
             }
+        }
+    }
 
-            if (value.HasMember("intensity")) {
-                parseThread(value);
+    const rapidjson::Value &algo_perf = doc["algo-perf"];
+    if (algo_perf.IsObject()) {
+        for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
+            const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
+            const rapidjson::Value &key = algo_perf[xmrig::Algorithm::perfAlgoName(pa)];
+            if (key.IsDouble()) {
+                m_algo_perf[pa] = key.GetDouble();
             }
         }
     }
 }
 
 
-void xmrig::Config::parseThread(const rapidjson::Value &object)
+void xmrig::Config::parseThread(const rapidjson::Value &object, const xmrig::PerfAlgo pa)
 {
-    m_threads.push_back(new OclThread(object));
+    m_threads[pa].push_back(new OclThread(object));
 }
