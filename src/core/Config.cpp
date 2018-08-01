@@ -61,7 +61,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     // not defined algo performance is considered to be 0
     for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
         const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
-        m_algo_perf[pa] = 0;
+        m_algo_perf[pa] = 0.0f;
     }
 }
 
@@ -301,6 +301,8 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             }
         }
     }
+
+    if (m_algo_perf[xmrig::PA_CN] == 0.0f) m_shouldSave = true;
 }
 
 
