@@ -51,6 +51,7 @@ public:
     inline bool isSyslog() const                    { return m_syslog; }
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
+    inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
     inline const char *apiToken() const             { return m_apiToken.data(); }
     inline const char *apiWorkerId() const          { return m_apiWorkerId.data(); }
     inline const char *logFile() const              { return m_logFile.data(); }
@@ -68,7 +69,6 @@ public:
     inline int retryPause() const                  { return m_retryPause; }
     inline int ccUpdateInterval() const            { return m_ccUpdateInterval; }
     inline int ccPort() const                      { return m_ccPort; }
-    inline size_t ccRemoteLoggingMaxRows() const   { return m_ccRemoteLoggingMaxRows; }
     inline void setColors(bool colors)             { m_colors = colors; }
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
@@ -104,6 +104,7 @@ protected:
     bool m_daemonized;
     bool m_ccUseTls;
     bool m_ccUseRemoteLogging;
+    bool m_ccUploadConfigOnStartup;
     int m_apiPort;
     int m_donateLevel;
     int m_printTime;
@@ -111,7 +112,6 @@ protected:
     int m_retryPause;
     int m_ccUpdateInterval;
     int m_ccPort;
-    size_t m_ccRemoteLoggingMaxRows;
     State m_state;
     std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;

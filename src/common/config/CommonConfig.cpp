@@ -55,7 +55,8 @@ xmrig::CommonConfig::CommonConfig() :
 #   endif
     m_daemonized(false),
     m_ccUseTls(false),
-    m_ccUseRemoteLogging(false),
+    m_ccUseRemoteLogging(true),
+    m_ccUploadConfigOnStartup(true),
 
     m_apiPort(0),
     m_donateLevel(kDefaultDonateLevel),
@@ -64,7 +65,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_retryPause(5),
     m_ccUpdateInterval(10),
     m_ccPort(0),
-    m_ccRemoteLoggingMaxRows(25),
     m_state(NoneState)
 {
     m_pools.push_back(Pool());
@@ -202,6 +202,10 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_ccUseRemoteLogging = enable;
         break;
 
+    case CCUploadConfigOnStartupKey: /* --cc-upload-config-on-startup */
+        m_ccUploadConfigOnStartup = enable;
+        break;
+
     default:
         break;
     }
@@ -291,7 +295,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case RetryPauseKey:  /* --retry-pause */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --cpu-priority */
-    case CCRemoteLoggingMaxRowKey: /* --cc-remote-logging-max-rows */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     case BackgroundKey: /* --background */
@@ -300,9 +303,10 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case NicehashKey:   /* --nicehash */
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
-    case CCUseTlsKey:       /* --cc-use-tls-run */
-    case CCUseRemoteLoggingKey:     /* --cc-use-remote-logging */
-    case DaemonizedKey:     /* --daemonized */
+    case CCUseTlsKey:                   /* --cc-use-tls-run */
+    case CCUseRemoteLoggingKey:         /* --cc-use-remote-logging */
+    case CCUploadConfigOnStartupKey:    /* --cc-upload-config-on-startup */
+    case DaemonizedKey:                 /* --daemonized */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -377,15 +381,6 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     case PrintTimeKey: /* --print-time */
         if (arg >= 0 && arg <= 3600) {
             m_printTime = arg;
-        }
-        break;
-
-    case CCRemoteLoggingMaxRowKey: /* --cc-remote-logging-max-rows */
-        if (arg < 1) {
-            m_ccUseRemoteLogging = false;
-        }
-        else {
-            m_ccRemoteLoggingMaxRows = static_cast<size_t>(arg);
         }
         break;
 

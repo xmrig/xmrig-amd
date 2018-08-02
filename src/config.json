@@ -35,6 +35,8 @@
         "use-tls" : false,
         "access-token": "mySecret",
         "worker-id": null,
-        "update-interval-s": 10
+        "update-interval-s": 10,
+        "use-remote-logging" : true,
+        "upload-config-on-startup" : true
     }
 }

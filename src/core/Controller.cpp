@@ -23,6 +23,7 @@
 
 
 #include <assert.h>
+#include <common/log/RemoteLog.h>
 
 
 #include "amd/OclLib.h"
@@ -117,6 +118,11 @@ int xmrig::Controller::init(int argc, char **argv)
 
     if (config()->logFile()) {
         Log::add(new FileLog(this, config()->logFile()));
+    }
+
+    if (config()->ccUseRemoteLogging()) {
+        // 20 lines per second should be enough
+        Log::add(new RemoteLog(static_cast<size_t>(config()->ccUpdateInterval() * 20)));
     }
 
 #   ifdef HAVE_SYSLOG_H

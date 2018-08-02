@@ -28,7 +28,7 @@
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
 #include <version.h>
-//#include <log/RemoteLog.h>
+#include <common/log/RemoteLog.h>
 #include <api/NetworkState.h>
 #include <common/Platform.h>
 #include <core/Config.h>
@@ -303,7 +303,7 @@ void CCClient::refreshUptime()
 
 void CCClient::refreshLog()
 {
-    //m_self->m_clientStatus.setLog(RemoteLog::getRows());
+    m_self->m_clientStatus.setLog(RemoteLog::getRows());
 }
 
 void CCClient::onThreadStarted(void* handle)
@@ -316,7 +316,9 @@ void CCClient::onThreadStarted(void* handle)
                        static_cast<uint64_t>(m_self->m_controller->config()->ccUpdateInterval() * 1000),
                        static_cast<uint64_t>(m_self->m_controller->config()->ccUpdateInterval() * 1000));
 
-        m_self->publishConfig();
+        if (m_self->m_controller->config()->ccUploadConfigOnStartup()) {
+            m_self->publishConfig();
+        }
 
         uv_run(&m_self->m_client_loop, UV_RUN_DEFAULT);
     }
