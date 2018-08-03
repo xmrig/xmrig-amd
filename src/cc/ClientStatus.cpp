@@ -37,11 +37,13 @@ ClientStatus::ClientStatus()
       m_isHugepagesEnabled(false),
       m_isCpuX64(false),
       m_hasCpuAES(false),
-      m_hashFactor(1),
       m_hashrateShort(0),
       m_hashrateMedium(0),
       m_hashrateLong(0),
       m_hashrateHighest(0),
+      m_hashFactor(1),
+      m_totalPages(0),
+      m_totalHugepages(0),
       m_currentThreads(0),
       m_cpuSockets(0),
       m_cpuCores(0),
@@ -148,6 +150,11 @@ void ClientStatus::setLog(const std::string& log)
     m_log = log;
 }
 
+void ClientStatus::clearLog()
+{
+    m_log.clear();
+}
+
 bool ClientStatus::hasHugepages() const
 {
     return m_hasHugepages;
@@ -166,16 +173,6 @@ bool ClientStatus::isHugepagesEnabled() const
 void ClientStatus::setHugepagesEnabled(bool hugepagesEnabled)
 {
     m_isHugepagesEnabled = hugepagesEnabled;
-}
-
-int ClientStatus::getHashFactor() const
-{
-    return m_hashFactor;
-}
-
-void ClientStatus::setHashFactor(int hashFactor)
-{
-    m_hashFactor = hashFactor;
 }
 
 bool ClientStatus::isCpuX64() const
@@ -236,6 +233,36 @@ void ClientStatus::setHashrateHighest(double hashrateHighest)
 double ClientStatus::getHashrateHighest() const
 {
     return m_hashrateHighest;
+}
+
+int ClientStatus::getHashFactor() const
+{
+    return m_hashFactor;
+}
+
+void ClientStatus::setHashFactor(int hashFactor)
+{
+    m_hashFactor = hashFactor;
+}
+
+int ClientStatus::getTotalPages() const
+{
+    return m_totalPages;
+}
+
+void ClientStatus::setTotalPages(int totalPages)
+{
+    m_totalPages = totalPages;
+}
+
+int ClientStatus::getTotalHugepages() const
+{
+    return m_totalHugepages;
+}
+
+void ClientStatus::setTotalHugepages(int totalHugepages)
+{
+    m_totalHugepages = totalHugepages;
 }
 
 int ClientStatus::getCurrentThreads() const
@@ -404,10 +431,6 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_isHugepagesEnabled = clientStatus["hugepages_enabled"].GetBool();
         }
 
-        if (clientStatus.HasMember("hash_factor")) {
-            m_hashFactor = clientStatus["hash_factor"].GetInt();
-        }
-
         if (clientStatus.HasMember("cpu_is_x64")) {
             m_isCpuX64 = clientStatus["cpu_is_x64"].GetBool();
         }
@@ -430,6 +453,18 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
 
         if (clientStatus.HasMember("hashrate_highest")) {
             m_hashrateHighest = clientStatus["hashrate_highest"].GetDouble();
+        }
+
+        if (clientStatus.HasMember("hash_factor")) {
+            m_hashFactor = clientStatus["hash_factor"].GetInt();
+        }
+
+        if (clientStatus.HasMember("total_pages")) {
+            m_totalPages = clientStatus["total_pages"].GetInt();
+        }
+
+        if (clientStatus.HasMember("total_hugepages")) {
+            m_totalHugepages = clientStatus["total_hugepages"].GetInt();
         }
 
         if (clientStatus.HasMember("current_threads")) {
@@ -503,7 +538,6 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
 
     clientStatus.AddMember("hugepages_available", m_hasHugepages, allocator);
     clientStatus.AddMember("hugepages_enabled", m_isHugepagesEnabled, allocator);
-    clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
     clientStatus.AddMember("cpu_is_x64", m_isCpuX64, allocator);
     clientStatus.AddMember("cpu_has_aes", m_hasCpuAES, allocator);
 
@@ -512,6 +546,9 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("hashrate_long", m_hashrateLong, allocator);
     clientStatus.AddMember("hashrate_highest", m_hashrateHighest, allocator);
 
+    clientStatus.AddMember("hash_factor", m_hashFactor, allocator);
+    clientStatus.AddMember("total_pages", m_totalPages, allocator);
+    clientStatus.AddMember("total_hugepages", m_totalHugepages, allocator);
     clientStatus.AddMember("current_threads", m_currentThreads, allocator);
     clientStatus.AddMember("cpu_sockets", m_cpuSockets, allocator);
     clientStatus.AddMember("cpu_cores", m_cpuCores, allocator);
@@ -552,4 +589,3 @@ std::string ClientStatus::toJsonString()
 
     return strdup(buffer.GetString());
 }
-

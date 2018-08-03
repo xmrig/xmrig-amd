@@ -82,16 +82,14 @@ public:
     void setVersion(const std::string& version);
 
     std::string getLog() const;
-    void setLog(const std::string& version);
+    void setLog(const std::string& log);
+    void clearLog();
 
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);
 
     bool isHugepagesEnabled() const;
     void setHugepagesEnabled(bool hugepagesEnabled);
-
-    int getHashFactor() const;
-    void setHashFactor(int hashFactor);
 
     bool isCpuX64() const;
     void setCpuX64(bool isCpuX64);
@@ -110,6 +108,15 @@ public:
 
     void setHashrateHighest(double hashrateHighest);
     double getHashrateHighest() const;
+
+    int getHashFactor() const;
+    void setHashFactor(int hashFactor);
+
+    int getTotalPages() const;
+    void setTotalPages(int totalPages);
+
+    int getTotalHugepages() const;
+    void setTotalHugepages(int totalHugepages);
 
     int getCurrentThreads() const;
     void setCurrentThreads(int currentThreads);
@@ -174,12 +181,14 @@ private:
     bool m_isCpuX64;
     bool m_hasCpuAES;
 
-    int m_hashFactor;
     double m_hashrateShort;
     double m_hashrateMedium;
     double m_hashrateLong;
     double m_hashrateHighest;
 
+    int m_hashFactor;
+    int m_totalPages;
+    int m_totalHugepages;
     int m_currentThreads;
     int m_cpuSockets;
     int m_cpuCores;
