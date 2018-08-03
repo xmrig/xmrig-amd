@@ -85,6 +85,7 @@ public:
         OclLaunch         = 1403,
         OclCache          = 1404,
         OclPrint          = 1405,
+        OclLoader         = 1406,
 
         // xmrig-proxy
         AccessLogFileKey  = 'A',
@@ -104,7 +105,7 @@ public:
         CCUpdateIntervalKey         = 6003,
         CCUseTlsKey                 = 6004,
         CCUseRemoteLoggingKey       = 6005,
-        CCRemoteLoggingMaxRowKey    = 6006,
+        CCUploadConfigOnStartupKey  = 6006,
         DaemonizedKey               = 6007
     };
 

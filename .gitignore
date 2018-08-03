@@ -1,3 +1,9 @@
 /build
 /CMakeLists.txt.user
 /build2
+/.idea
+/CMakeFiles
+/cmake-build-*
+CMakeCache.txt
+cmake_install.cmake
+Makefile

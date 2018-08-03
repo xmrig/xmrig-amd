@@ -23,8 +23,10 @@
 
 
 #include <assert.h>
+#include <common/log/RemoteLog.h>
 
 
+#include "amd/OclLib.h"
 #include "common/config/ConfigLoader.h"
 #include "common/interfaces/IControllerListener.h"
 #include "common/log/ConsoleLog.h"
@@ -84,6 +86,12 @@ bool xmrig::Controller::isReady() const
 }
 
 
+bool xmrig::Controller::oclInit()
+{
+    return OclLib::init(config()->loader()) && config()->oclInit();
+}
+
+
 xmrig::Config *xmrig::Controller::config() const
 {
     assert(d_ptr->config != nullptr);
@@ -110,6 +118,11 @@ int xmrig::Controller::init(int argc, char **argv)
 
     if (config()->logFile()) {
         Log::add(new FileLog(this, config()->logFile()));
+    }
+
+    if (config()->ccUseRemoteLogging()) {
+        // 20 lines per second should be enough
+        Log::add(new RemoteLog(static_cast<size_t>(config()->ccUpdateInterval() * 20)));
     }
 
 #   ifdef HAVE_SYSLOG_H

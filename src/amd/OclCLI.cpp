@@ -74,12 +74,15 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex
     const size_t hashMemSize   = xmrig::cn_select_memory(config->algorithm().algo());
 
     for (GpuContext &ctx : devices) {
+        // Vega APU slow and can cause BSOD, skip from autoconfig.
+        if (ctx.name.compare("gfx902") == 0) {
+            continue;
+        }
+
         size_t maxThreads = 1000u;
         if (
             ctx.name.compare("gfx901") == 0 ||
             ctx.name.compare("gfx904") == 0 ||
-            // APU
-            ctx.name.compare("gfx902") == 0 ||
             // UNKNOWN
             ctx.name.compare("gfx900") == 0 ||
             ctx.name.compare("gfx903") == 0 ||

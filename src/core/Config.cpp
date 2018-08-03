@@ -27,6 +27,7 @@
 
 
 #include "amd/OclGPU.h"
+#include "amd/OclLib.h"
 #include "common/config/ConfigLoader.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
@@ -43,7 +44,12 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
     m_cache(true),
     m_shouldSave(false),
-    m_platformIndex(0)
+    m_platformIndex(0),
+#   ifdef _WIN32
+    m_loader("OpenCL.dll")
+#   else
+    m_loader("libOpenCL.so")
+#   endif
 {
 }
 
@@ -97,6 +103,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("donate-level", donateLevel(), allocator);
     doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("opencl-platform", platformIndex(), allocator);
+    doc.AddMember("opencl-loader",   StringRef(loader()), allocator);
 
     Value pools(kArrayType);
 
@@ -121,8 +128,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     Value cc(kObjectType);
 
-    std::string url = std::string(ccHost()) + ":" + std::to_string(ccPort());
-    cc.AddMember("url",          StringRef(url.c_str()), allocator);
+    cc.AddMember("url",          ccUrl() ? Value(StringRef(ccUrl())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
@@ -193,11 +199,17 @@ bool xmrig::Config::parseString(int key, const char *arg)
         return parseBoolean(key, false);
 
     case OclPrint: /* --print-platforms */
-        printPlatforms();
+        if (OclLib::init(loader())) {
+            printPlatforms();
+        }
         return false;
 
     case OclPlatform: /* --opencl-platform */
         return parseUint64(key, strtol(arg, nullptr, 10));
+
+    case OclLoader: /* --opencl-loader */
+        m_loader = arg;
+        break;
 
     default:
         break;

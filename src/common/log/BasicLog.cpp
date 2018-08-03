@@ -21,45 +21,69 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#ifdef WIN32
+#   include <winsock2.h>
+#   include <windows.h>
+#endif
 
 
-#include "common/interfaces/IWatcherListener.h"
+#include "common/log/BasicLog.h"
+#include "common/log/Log.h"
 
 
-class Network;
-class StatsData;
-
-
-namespace xmrig {
-
-
-class Config;
-class ControllerPrivate;
-class IControllerListener;
-
-
-class Controller : public IWatcherListener
+BasicLog::BasicLog()
 {
-public:
-    Controller();
-    ~Controller();
+}
 
-    bool isReady() const;
-    bool oclInit();
-    Config *config() const;
-    int init(int argc, char **argv);
-    Network *network() const;
-    void addListener(IControllerListener *listener);
 
-protected:
-    void onNewConfig(IConfig *config) override;
+void BasicLog::message(Level level, const char* fmt, va_list args)
+{
+    time_t now = time(nullptr);
+    tm stime;
 
-private:
-    ControllerPrivate *d_ptr;
-};
+#   ifdef _WIN32
+    localtime_s(&stime, &now);
+#   else
+    localtime_r(&now, &stime);
+#   endif
 
-} /* namespace xmrig */
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "[%d-%02d-%02d %02d:%02d:%02d]%s %s%s",
+             stime.tm_year + 1900,
+             stime.tm_mon + 1,
+             stime.tm_mday,
+             stime.tm_hour,
+             stime.tm_min,
+             stime.tm_sec,
+             Log::colorByLevel(level, false),
+             fmt,
+             Log::endl(false)
+        );
 
-#endif /* __CONTROLLER_H__ */
+    print(args);
+}
+
+
+void BasicLog::text(const char* fmt, va_list args)
+{
+    snprintf(m_fmt, sizeof(m_fmt) - 1, "%s%s", fmt, Log::endl(false));
+
+    print(args);
+}
+
+
+void BasicLog::print(va_list args)
+{
+    if (vsnprintf(m_buf, sizeof(m_buf) - 1, m_fmt, args) <= 0) {
+        return;
+    }
+
+    fputs(m_buf, stdout);
+    fflush(stdout);
+}

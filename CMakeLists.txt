@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
-project(xmrigMiner-amd)
+project(xmrig)
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
-option(WITH_HTTPD    "HTTP REST API" ON)
+option(WITH_HTTPD    "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_TLS       "TLS support" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
@@ -22,6 +26,7 @@ set(HEADERS
     src/amd/OclCLI.h
     src/amd/OclError.h
     src/amd/OclGPU.h
+    src/amd/OclLib.h
     src/api/NetworkState.h
     src/App.h
     src/common/config/CommonConfig.h
@@ -39,6 +44,8 @@ set(HEADERS
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
     src/common/interfaces/IWatcherListener.h
+    src/common/log/BasicLog.h
+    src/common/log/RemoteLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
@@ -53,6 +60,7 @@ set(HEADERS
     src/common/Platform.h
     src/common/utils/c_str.h
     src/common/utils/mm_malloc.h
+    src/common/utils/timestamp.h
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
@@ -97,6 +105,7 @@ set(SOURCES
     src/amd/OclCache.cpp
     src/amd/OclCLI.cpp
     src/amd/OclGPU.cpp
+    src/amd/OclLib.cpp
     src/api/NetworkState.cpp
     src/App.cpp
     src/common/crypto/Algorithm.cpp
@@ -124,8 +133,10 @@ set(SOURCES_COMMON
         src/common/config/ConfigLoader.cpp
         src/common/config/ConfigWatcher.cpp
         src/common/log/ConsoleLog.cpp
+        src/common/log/RemoteLog.cpp
         src/common/log/FileLog.cpp
         src/common/log/Log.cpp
+        src/common/log/BasicLog.cpp
         src/common/Platform.cpp
         src/core/Config.cpp
         src/core/Controller.cpp
@@ -169,7 +180,7 @@ else()
         src/Cpu_unix.cpp
         )
 
-    set(EXTRA_LIBS pthread rt)
+    set(EXTRA_LIBS pthread rt dl)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
@@ -195,7 +206,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
-include(cmake/OpenCL.cmake)
+
+add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
+add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
 if (XMRIG_ARM)
     set(SOURCES_CPUID src/Cpu_arm.cpp)
@@ -287,13 +300,13 @@ if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES_CC_COMMON} ${SOURCES} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
-target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
+add_executable(xmrigMiner-amd ${HEADERS} ${SOURCES_CC_COMMON} ${SOURCES} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
+set_target_properties(xmrigMiner-amd PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
+target_link_libraries(xmrigMiner-amd ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
 
 if (WITH_TLS)
-    #target_link_libraries(${PROJECT_NAME} xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-    target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+    #target_link_libraries(xmrigMiner-amd xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+    target_link_libraries(xmrigMiner-amd ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif (WITH_TLS)
 
 
