@@ -48,7 +48,6 @@ xmrig::CommonConfig::CommonConfig() :
     m_dryRun(false),
     m_calibrateAlgo(false),
     m_calibrateAlgoTime(60),
-    m_saveConfig(false),
     m_syslog(false),
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -191,10 +190,6 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_calibrateAlgo = enable;
         break;
 
-    case IConfig::SaveConfigKey: /* --save-config */
-        m_saveConfig = enable;
-        break;
-
     default:
         break;
     }
@@ -280,7 +275,6 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
     case CalibrateAlgoKey: /* --calibrate-algo */
-    case SaveConfigKey: /* --save-config */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -295,6 +289,9 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
             return true;
         }
 #       endif
+        return parseUint64(key, strtol(arg, nullptr, 10));
+
+    case CalibrateAlgoTimeKey: /* --calibrate-algo-time */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     default:

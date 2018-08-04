@@ -90,7 +90,6 @@ Options:\n\
       --api-worker-id=ID   custom worker-id for API\n\
       --api-ipv6           enable IPv6 support for API\n\
       --api-no-restricted  enable full remote access (only if API token set)\n\
-      --save-config        save config file including generated configuration\n\
   -h, --help               display this help and exit\n\
   -V, --version            output version information and exit\n\
 ";
@@ -110,9 +109,8 @@ static struct option const options[] = {
     { "config",            1, nullptr, xmrig::IConfig::ConfigKey         },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
-    { "calibrate-algo",    0, nullptr, xmrig::IConfig::CalibrateAlgoKey  },
+    { "calibrate-algo",      0, nullptr, xmrig::IConfig::CalibrateAlgoKey      },
     { "calibrate-algo-time", 1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
-    { "save-config",       0, nullptr, xmrig::IConfig::SaveConfigKey     },
     { "help",              0, nullptr, xmrig::IConfig::HelpKey           },
     { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey        },
@@ -147,6 +145,8 @@ static struct option const config_options[] = {
     { "colors",            0, nullptr, xmrig::IConfig::ColorKey       },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey      },
+    { "calibrate-algo",      0, nullptr, xmrig::IConfig::CalibrateAlgoKey      },
+    { "calibrate-algo-time", 1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey     },
     { "print-time",        1, nullptr, xmrig::IConfig::PrintTimeKey   },
     { "retries",           1, nullptr, xmrig::IConfig::RetriesKey     },
