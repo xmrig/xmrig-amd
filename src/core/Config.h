@@ -59,8 +59,8 @@ public:
     inline bool isShouldSave() const                     { return m_shouldSave; }
     inline const char *loader() const                    { return m_loader.data(); }
     // access to m_threads taking into accoun that it is now separated for each perf algo
-    inline const std::vector<IThread *> &threads(const xmrig::Algo algo = ALGO_INVALID) const {
-        return m_threads[algo == ALGO_INVALID ? m_algorithm.algo() : algo];
+    inline const std::vector<IThread *> &threads(const xmrig::Algo algo = INVALID_ALGO) const {
+        return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo];
     }
     inline int platformIndex() const                     { return m_platformIndex; }
 
