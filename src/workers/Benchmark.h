@@ -36,7 +36,7 @@ class Benchmark : public IJobResultListener {
     uint64_t m_hash_count; // number of hashes calculated for current perf algo
     uint64_t m_time_start; // time of measurements start for current perf algo (in ms)
     xmrig::Controller* m_controller; // to get access to config and network
-    const xmrig::Algorithm m_algorithm_orig; // previous algorithm to restore after benchmarking
+    xmrig::Algorithm m_algorithm_orig; // previous algorithm to restore after benchmarking
 
     uint64_t get_now() const; // get current time in ms
 
