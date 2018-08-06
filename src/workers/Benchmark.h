@@ -36,6 +36,7 @@ class Benchmark : public IJobResultListener {
     uint64_t m_hash_count; // number of hashes calculated for current perf algo
     uint64_t m_time_start; // time of measurements start for current perf algo (in ms)
     xmrig::Controller* m_controller; // to get access to config and network
+    const xmrig::Algorithm m_algorithm_orig; // previous algorithm to restore after benchmarking
 
     uint64_t get_now() const; // get current time in ms
 
@@ -46,6 +47,7 @@ class Benchmark : public IJobResultListener {
         virtual ~Benchmark() {}
 
         void set_controller(xmrig::Controller* controller) { m_controller = controller; }
+        void set_original_algorithm(const xmrig::Algorithm& algorithm) { m_algorithm_orig = algorithm; }
         void should_save_config() { m_shouldSaveConfig = true; }
         void start_perf_bench(const xmrig::PerfAlgo); // start benchmark for specified perf algo
 };

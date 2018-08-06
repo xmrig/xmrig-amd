@@ -81,6 +81,7 @@ void Benchmark::onJobResult(const JobResult& result) {
             m_pa = xmrig::PA_INVALID;
             if (m_shouldSaveConfig) m_controller->config()->save(); // save config with measured algo-perf
             Workers::pause(); // do not compute anything before job from the pool
+            Workers::switch_algo(m_algorithm_orig); // switch workers to the original algorithm
             m_controller->network()->connect();
         }
     }

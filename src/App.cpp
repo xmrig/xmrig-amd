@@ -138,6 +138,7 @@ int App::exec()
     // run benchmark before pool mining or not?
     if (m_controller->config()->get_algo_perf(xmrig::PA_CN) == 0.0f || m_controller->config()->isCalibrateAlgo()) {
         benchmark.set_controller(m_controller); // we need controller there to access config and network objects
+        benchmark.set_original_algorithm(m_controller->config()->algorithm());
         Workers::setListener(&benchmark); // register benchmark as job reault listener to compute hashrates there
         // write text before first benchmark round
         Log::i()->text(m_controller->config()->isColors()
