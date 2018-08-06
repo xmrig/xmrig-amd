@@ -29,6 +29,7 @@
 #include "common/xmrig.h"
 #include "interfaces/IJobResultListener.h"
 #include "core/Controller.h"
+#include "common/crypto/Algorithm.h"
 
 class Benchmark : public IJobResultListener {
     bool m_shouldSaveConfig; // should save config after all benchmark rounds
