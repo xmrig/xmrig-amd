@@ -132,6 +132,9 @@ int App::exec()
         return 1;
     }
 
+    // save config here to have option to store automatically generated "threads"
+    if (m_controller->config()->isShouldSave()) m_controller->config()->save();
+
     // run benchmark before pool mining or not?
     if (m_controller->config()->get_algo_perf(xmrig::PA_CN) == 0.0f || m_controller->config()->isCalibrateAlgo()) {
         benchmark.set_controller(m_controller); // we need controller there to access config and network objects
@@ -142,10 +145,10 @@ int App::exec()
             : " >>>>> STARTING ALGO PERFORMANCE CALIBRATION (with %i seconds round)",
             m_controller->config()->calibrateAlgoTime()
         );
-        benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN); // start benchmarking from first PerfAlgo in the list
+        // start benchmarking from first PerfAlgo in the list
+        if (m_controller->config()->get_algo_perf(xmrig::PA_CN) == 0.0f) benchmark.should_save_config();
+        benchmark.start_perf_bench(xmrig::PerfAlgo::PA_CN);
     } else {
-        // save config here to have option to store automatically generated "threads"
-        if (m_controller->config()->isShouldSave()) m_controller->config()->save();
         m_controller->network()->connect();
     }
 

@@ -75,12 +75,12 @@ bool xmrig::Config::oclInit()
 {
     LOG_WARN("compiling code and initializing GPUs. This will take a while...");
 
-    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
-        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
-        if (m_threads[pa].empty() && !m_oclCLI.setup(m_threads[pa])) {
+    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
+        const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
+        if (m_threads[algo].empty() && !m_oclCLI.setup(m_threads[algo])) {
             m_autoConf   = true;
             m_shouldSave = true;
-            m_oclCLI.autoConf(m_threads[pa], &m_platformIndex, xmrig::Algorithm(pa), this);
+            m_oclCLI.autoConf(m_threads[algo], &m_platformIndex, xmrig::Algorithm(algo), this);
         }
     }
 
@@ -133,11 +133,11 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 
     // save extended "threads" based on m_threads
     Value threads(kObjectType);
-    for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
-        const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
-        Value key(xmrig::Algorithm::perfAlgoName(pa), allocator);
+    for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
+        const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
+        Value key(xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo()), allocator);
         Value threads2(kArrayType);
-        for (const IThread *thread : m_threads[pa]) {
+        for (const IThread *thread : m_threads[algo]) {
             threads2.PushBack(thread->toConfig(doc), allocator);
         }
         threads.AddMember(key, threads2, allocator);
@@ -263,7 +263,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 }
 
 // parse specific perf algo (or generic) threads config
-void xmrig::Config::parseThreadsJSON(const rapidjson::Value &threads, const xmrig::PerfAlgo pa)
+void xmrig::Config::parseThreadsJSON(const rapidjson::Value &threads, const xmrig::Algo algo)
 {
     for (const rapidjson::Value &value : threads.GetArray()) {
         if (!value.IsObject()) {
@@ -271,7 +271,7 @@ void xmrig::Config::parseThreadsJSON(const rapidjson::Value &threads, const xmri
         }
 
         if (value.HasMember("intensity")) {
-            parseThread(value, pa);
+            parseThread(value, algo);
         }
     }
 }
@@ -282,14 +282,14 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 
     if (threads.IsArray()) {
         // parse generic (old) threads
-        parseThreadsJSON(threads, m_algorithm.perf_algo());
+        parseThreadsJSON(threads, m_algorithm.algo());
     } else if (threads.IsObject()) {
         // parse new specific perf algo threads
-        for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
-            const xmrig::PerfAlgo pa = static_cast<xmrig::PerfAlgo>(a);
-            const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(pa)];
+        for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
+            const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
+            const rapidjson::Value &threads2 = threads[xmrig::Algorithm::perfAlgoName(xmrig::Algorithm(algo).perf_algo())];
             if (threads2.IsArray()) {
-                parseThreadsJSON(threads2, pa);
+                parseThreadsJSON(threads2, algo);
             }
         }
     }
@@ -304,12 +304,10 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             }
         }
     }
-
-    if (m_algo_perf[xmrig::PA_CN] == 0.0f) m_shouldSave = true;
 }
 
 
-void xmrig::Config::parseThread(const rapidjson::Value &object, const xmrig::PerfAlgo pa)
+void xmrig::Config::parseThread(const rapidjson::Value &object, const xmrig::Algo algo)
 {
-    m_threads[pa].push_back(new OclThread(object));
+    m_threads[algo].push_back(new OclThread(object));
 }

@@ -243,7 +243,7 @@ bool Workers::switch_algo(const xmrig::Algorithm& algorithm)
     m_sequence = 1;
     m_paused   = 1;
 
-    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.perf_algo());
+    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.algo());
     m_controller->config()->set_algorithm(algorithm);
 
     Log::i()->text(m_controller->config()->isColors()

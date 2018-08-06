@@ -59,8 +59,8 @@ public:
     inline bool isShouldSave() const                     { return m_shouldSave; }
     inline const char *loader() const                    { return m_loader.data(); }
     // access to m_threads taking into accoun that it is now separated for each perf algo
-    inline const std::vector<IThread *> &threads(const xmrig::PerfAlgo pa = PA_INVALID) const {
-        return m_threads[pa == PA_INVALID ? m_algorithm.perf_algo() : pa];
+    inline const std::vector<IThread *> &threads(const xmrig::Algo algo = ALGO_INVALID) const {
+        return m_threads[algo == ALGO_INVALID ? m_algorithm.algo() : algo];
     }
     inline int platformIndex() const                     { return m_platformIndex; }
 
@@ -77,10 +77,10 @@ protected:
     bool parseUint64(int key, uint64_t arg) override;
     void parseJSON(const rapidjson::Document &doc) override;
     // parse specific perf algo (or generic) threads config
-    void parseThreadsJSON(const rapidjson::Value &threads, xmrig::PerfAlgo);
+    void parseThreadsJSON(const rapidjson::Value &threads, xmrig::Algo);
 
 private:
-    void parseThread(const rapidjson::Value &object, const xmrig::PerfAlgo);
+    void parseThread(const rapidjson::Value &object, const xmrig::Algo);
 
     bool m_autoConf;
     bool m_cache;
@@ -88,7 +88,7 @@ private:
     int m_platformIndex;
     OclCLI m_oclCLI;
     // threads config for each perf algo
-    std::vector<IThread *> m_threads[xmrig::PerfAlgo::PA_MAX];
+    std::vector<IThread *> m_threads[xmrig::Algo::ALGO_MAX];
     // perf algo hashrate results
     float m_algo_perf[xmrig::PerfAlgo::PA_MAX];
     xmrig::c_str m_loader;
