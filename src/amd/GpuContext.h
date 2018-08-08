@@ -74,7 +74,7 @@ struct GpuContext
         Nonce(0)
     {}
 
-    void release() { // stops all opencl kernels and releases all opencl resources (in destructor and copy constructor)
+    void release() { // stops all opencl kernels and releases all opencl resources
         if (CommandQueues) {
             OclLib::finish(CommandQueues);
             OclLib::releaseCommandQueue(CommandQueues);
@@ -84,34 +84,6 @@ struct GpuContext
         for (int i = 0; i < 6; ++ i)  if (ExtraBuffers[i]) OclLib::releaseMemObject(ExtraBuffers[i]);
         for (int i = 0; i < 11; ++ i) if (Kernels[i]) OclLib::releaseKernel(Kernels[i]);
         if (Program) OclLib::releaseProgram(Program);
-    }
-
-    ~GpuContext() { release(); }
-
-    GpuContext& operator=(const GpuContext& other) { // copy contructor we need to override default one to properly release OpenCL stuff
-        release();
-
-        deviceIdx = other.deviceIdx;
-        rawIntensity = other.rawIntensity;
-        workSize = other.workSize;
-        stridedIndex = other.stridedIndex;
-        memChunk = other.memChunk;
-        compMode = other.compMode;
-
-        DeviceID = other.DeviceID;
-        CommandQueues = other.CommandQueues;
-        InputBuffer = other.InputBuffer;
-        OutputBuffer = other.OutputBuffer;
-        for (int i = 0; i < 6; ++ i) ExtraBuffers[i] = other.ExtraBuffers[i];
-        Program = other.Program;
-        for (int i = 0; i < 11; ++ i) Kernels[i] = other.Kernels[i];
-
-        freeMem = other.freeMem;
-        computeUnits = other.computeUnits;
-        name = other.name;
-
-        Nonce = other.Nonce;
-        return *this;
     }
 
     /*Input vars*/

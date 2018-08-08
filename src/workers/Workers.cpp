@@ -231,6 +231,8 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
         delete m_workers[i];
     }
     m_workers.clear();
+
+    for (size_t i = 0; i < contexts.size(); ++i) contexts[i].release();
 }
 
 // setups workers based on specified algorithm (or its basic perf algo more specifically)
