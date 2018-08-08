@@ -1,10 +1,4 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigCC
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -33,6 +27,11 @@
 #include <3rdparty/cpp-httplib/httplib.h>
 #include <core/Controller.h>
 #include "ClientStatus.h"
+#include "version.h"
+
+#ifdef TYPE_AMD_GPU
+#include <amd/GpuContext.h>
+#endif
 
 class Hashrate;
 class NetworkState;
@@ -46,6 +45,9 @@ public:
     static void updateHashrate(const Hashrate *hashrate);
     static void updateNetworkState(const NetworkState &results);
 
+#ifdef TYPE_AMD_GPU
+    static void updateGpuInfo(const std::vector<GpuContext>& network);
+#endif
 private:
 
     void publishClientStatusReport();
@@ -75,6 +77,7 @@ private:
     uv_timer_t m_timer;
     uv_loop_t m_client_loop;
     uv_thread_t m_thread;
+
 };
 
 #endif

@@ -24,6 +24,7 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
 
+
 #ifdef XMRIG_CC_SERVER
 #define APP_ID        "XMRigCC"
 #define APP_NAME      "XMRigCC"
@@ -43,6 +44,8 @@
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  6
 #define APP_VER_PATCH  6
+
+#define TYPE_AMD_GPU
 
 #ifndef NDEBUG
 #ifndef XMRIG_NO_TLS
