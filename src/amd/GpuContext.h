@@ -38,6 +38,7 @@ struct GpuContext
         deviceIdx(0),
         rawIntensity(0),
         workSize(0),
+        maximumWorkSize(0),
         stridedIndex(1),
         memChunk(2),
         compMode(1),
@@ -58,6 +59,7 @@ struct GpuContext
         deviceIdx(index),
         rawIntensity(intensity),
         workSize(worksize),
+        maximumWorkSize(0),
         stridedIndex(stridedIndex),
         memChunk(memChunk),
         compMode(compMode ? 1 : 0),
@@ -77,6 +79,7 @@ struct GpuContext
     size_t deviceIdx;
     size_t rawIntensity;
     size_t workSize;
+    size_t maximumWorkSize;
     int stridedIndex;
     int memChunk;
     int compMode;

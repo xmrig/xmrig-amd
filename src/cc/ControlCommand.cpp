@@ -74,7 +74,7 @@ rapidjson::Value ControlCommand::toJson(rapidjson::MemoryPoolAllocator<rapidjson
     return controlCommand;
 }
 
-void ControlCommand::setCommand(Command command)
+void ControlCommand::setCommand(const Command& command)
 {
     m_command = command;
 }

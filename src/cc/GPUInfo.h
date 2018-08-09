@@ -18,8 +18,68 @@
 #ifndef XMRIG_GPUINFO_H
 #define XMRIG_GPUINFO_H
 
+#include <string>
+#include <3rdparty/rapidjson/document.h>
+
 class GPUInfo
 {
+public:
+    GPUInfo();
+    ~GPUInfo();
+
+    rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
+    bool parseFromJsonString(const std::string& json);
+    bool parseFromJson(const rapidjson::Document& document);
+
+    std::string getName() const;
+    void setName(const std::string& name);
+
+    size_t getDeviceIdx() const;
+
+    void setDeviceIdx(size_t deviceIdx);
+
+    size_t getRawIntensity() const;
+
+    void setRawIntensity(size_t rawIntensity);
+
+    size_t getWorkSize() const;
+
+    void setWorkSize(size_t workSize);
+
+    size_t getFreeMem() const;
+
+    void setFreeMem(size_t freeMem);
+
+    int getStridedIndex() const;
+
+    void setStridedIndex(int stridedIndex);
+
+    int getMemChunk() const;
+
+    void setMemChunk(int memChunk);
+
+    int getCompMode() const;
+
+    void setCompMode(int compMode);
+
+    int getComputeUnits() const;
+
+    void setComputeUnits(int computeUnits);
+
+private:
+    size_t m_deviceIdx;
+    size_t m_rawIntensity;
+    size_t m_workSize;
+    size_t m_maxWorkSize;
+    size_t m_freeMem;
+
+    int m_stridedIndex;
+    int m_memChunk;
+    int m_compMode;
+    int m_computeUnits;
+
+    std::string m_name;
+
 };
 
 

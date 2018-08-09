@@ -132,6 +132,9 @@ public:
     int getCpuL3() const;
     void setCpuL3(int cpuL3);
 
+    const std::list<GPUInfo> getGPUInfoList() const;
+    void setGPUInfoList(const std::list<GPUInfo>& gpuInfoList);
+
     uint64_t getSharesGood() const;
     void setSharesGood(uint64_t sharesGood);
 
@@ -152,7 +155,6 @@ public:
     std::string toJsonString();
     rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
     bool parseFromJson(const rapidjson::Document& document);
-
 
 private:
     const char* status_str[3] = {
@@ -192,7 +194,7 @@ private:
     int m_cpuL2;
     int m_cpuL3;
 
-    std::list<GPUInfo> m_gpuInfo;
+    std::list<GPUInfo> m_gpuInfoList;
 
     uint64_t m_sharesGood;
     uint64_t m_sharesTotal;

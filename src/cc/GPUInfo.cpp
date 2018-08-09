@@ -17,3 +17,117 @@
 
 #include "GPUInfo.h"
 
+GPUInfo::GPUInfo()
+{
+
+}
+
+GPUInfo::~GPUInfo()
+{
+
+}
+
+rapidjson::Value GPUInfo::toJson(rapidjson::MemoryPoolAllocator <rapidjson::CrtAllocator>& allocator)
+{
+
+}
+
+bool GPUInfo::parseFromJson(const rapidjson::Document& document)
+{
+
+}
+
+bool GPUInfo::parseFromJsonString(const std::string& json)
+{
+
+}
+
+size_t GPUInfo::getDeviceIdx() const
+{
+    return m_deviceIdx;
+}
+
+void GPUInfo::setDeviceIdx(size_t deviceIdx)
+{
+    m_deviceIdx = deviceIdx;
+}
+
+size_t GPUInfo::getRawIntensity() const
+{
+    return m_rawIntensity;
+}
+
+void GPUInfo::setRawIntensity(size_t rawIntensity)
+{
+    m_rawIntensity = rawIntensity;
+}
+
+size_t GPUInfo::getWorkSize() const
+{
+    return m_workSize;
+}
+
+void GPUInfo::setWorkSize(size_t workSize)
+{
+    m_workSize = workSize;
+}
+
+size_t GPUInfo::getFreeMem() const
+{
+    return m_freeMem;
+}
+
+void GPUInfo::setFreeMem(size_t freeMem)
+{
+    m_freeMem = freeMem;
+}
+
+int GPUInfo::getStridedIndex() const
+{
+    return m_stridedIndex;
+}
+
+void GPUInfo::setStridedIndex(int stridedIndex)
+{
+    m_stridedIndex = stridedIndex;
+}
+
+int GPUInfo::getMemChunk() const
+{
+    return m_memChunk;
+}
+
+void GPUInfo::setMemChunk(int memChunk)
+{
+    m_memChunk = memChunk;
+}
+
+int GPUInfo::getCompMode() const
+{
+    return m_compMode;
+}
+
+void GPUInfo::setCompMode(int compMode)
+{
+    m_compMode = compMode;
+}
+
+int GPUInfo::getComputeUnits() const
+{
+    return m_computeUnits;
+}
+
+void GPUInfo::setComputeUnits(int computeUnits)
+{
+    m_computeUnits = computeUnits;
+}
+
+std::string GPUInfo::getName() const
+{
+    return m_name;
+}
+
+void GPUInfo::setName(const std::string& name)
+{
+    m_name = name;
+}

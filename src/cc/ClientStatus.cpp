@@ -484,6 +484,11 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_cpuL3 = clientStatus["cpu_l3"].GetInt();
         }
 
+        if (document.HasMember("client_status")) {
+            rapidjson::Value::ConstObject clientStatus = document["client_status"].GetObject();
+
+        }
+
         if (clientStatus.HasMember("shares_good")) {
             m_sharesGood = clientStatus["shares_good"].GetUint64();
         }
@@ -549,6 +554,14 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("cpu_l2", m_cpuL2, allocator);
     clientStatus.AddMember("cpu_l3", m_cpuL3, allocator);
 
+    rapidjson::Value gpuInfoList(rapidjson::kArrayType);
+    for (auto& gpuInfo : m_gpuInfoList) {
+        rapidjson::Value gpuInfoEntry(rapidjson::kObjectType);
+        gpuInfoEntry.AddMember("gpuInfo", gpuInfo.toJson(allocator), allocator);
+        gpuInfoList.PushBack(gpuInfoEntry, allocator);
+    }
+    clientStatus.AddMember("gpu_info_list", gpuInfoList, allocator);
+
     clientStatus.AddMember("shares_good", m_sharesGood, allocator);
     clientStatus.AddMember("shares_total", m_sharesTotal, allocator);
     clientStatus.AddMember("hashes_total", m_hashesTotal, allocator);
@@ -556,9 +569,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     clientStatus.AddMember("avg_time", m_avgTime, allocator);
 
     clientStatus.AddMember("uptime", m_uptime, allocator);
-
     clientStatus.AddMember("last_status_update", static_cast<uint64_t >(m_lastStatusUpdate), allocator);
-
     clientStatus.AddMember("log", rapidjson::StringRef(m_log.c_str()), allocator);
 
 
@@ -581,4 +592,14 @@ std::string ClientStatus::toJsonString()
     respDocument.Accept(writer);
 
     return strdup(buffer.GetString());
+}
+
+const std::list<GPUInfo> ClientStatus::getGPUInfoList() const
+{
+    return m_gpuInfoList;
+}
+
+void ClientStatus::setGPUInfoList(const std::list<GPUInfo>& gpuInfoList)
+{
+    m_gpuInfoList = gpuInfoList;
 }

@@ -67,7 +67,7 @@ public:
     bool parseFromJson(const rapidjson::Document& document);
 
     Command getCommand() const;
-    void setCommand(Command command);
+    void setCommand(const Command& command);
 
     bool isOneTimeCommand() const;
 
