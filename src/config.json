@@ -27,6 +27,9 @@
     "retries": 5,
     "retry-pause": 5,
     "threads": null,
+    "algo-perf": null,
+    "calibrate-algo": false,
+    "calibrate-algo-time": 60,
     "user-agent": null,
     "syslog": false,
     "watch": false

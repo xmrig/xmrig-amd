@@ -468,9 +468,11 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
 #   if (ALGO == CRYPTONIGHT_HEAVY)
-    {
-        __local uint4 xin[8][WORKSIZE];
+    __local uint4 xin[8][WORKSIZE];
+#   endif
 
+#   if (ALGO == CRYPTONIGHT_HEAVY)
+    {
         /* Also left over threads perform this loop.
          * The left over thread results will be ignored
          */

@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -212,13 +213,80 @@ bool Workers::start(xmrig::Controller *controller)
         handle->start(Workers::onReady);
     }
 
-    if (controller->config()->isShouldSave()) {
-        controller->config()->save();
+    return true;
+}
+
+void Workers::soft_stop() // stop current workers leaving uv stuff intact (used in switch_algo)
+{
+    if (m_hashrate) {
+        m_hashrate->stop();
+        delete m_hashrate;
+    }
+
+    m_sequence = 0;
+    m_paused   = 0;
+
+    for (size_t i = 0; i < m_workers.size(); ++i) {
+        m_workers[i]->join();
+        delete m_workers[i];
+    }
+    m_workers.clear();
+
+    for (size_t i = 0; i < contexts.size(); ++i) contexts[i].release();
+}
+
+// setups workers based on specified algorithm (or its basic perf algo more specifically)
+bool Workers::switch_algo(const xmrig::Algorithm& algorithm)
+{
+    if (m_controller->config()->algorithm().algo() == algorithm.algo()) return true;
+
+    soft_stop();
+
+    m_sequence = 1;
+    m_paused   = 1;
+
+    const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads(algorithm.algo());
+    m_controller->config()->set_algorithm(algorithm);
+
+    Log::i()->text(m_controller->config()->isColors()
+        ? GREEN_BOLD(" >>> ") WHITE_BOLD("ALGO CHANGE: ") CYAN_BOLD("%s")
+        : " >>> ALGO CHANGE: %s",
+        algorithm.name()
+    );
+
+    size_t ways = 0;
+    for (const xmrig::IThread *thread : threads) {
+       ways += thread->multiway();
+    }
+
+    m_threadsCount = threads.size();
+    m_hashrate = new Hashrate(m_threadsCount, m_controller);
+
+    contexts.resize(m_threadsCount);
+
+    for (size_t i = 0; i < m_threadsCount; ++i) {
+        const OclThread *thread = static_cast<OclThread *>(threads[i]);
+        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
+    }
+
+    if (InitOpenCL(contexts.data(), m_threadsCount, m_controller->config()) != 0) {
+        return false;
+    }
+
+    uint32_t offset = 0;
+
+    size_t i = 0;
+    for (xmrig::IThread *thread : threads) {
+        Handle *handle = new Handle(i, thread, &contexts[i], offset, ways);
+        offset += thread->multiway();
+        i++;
+
+        m_workers.push_back(handle);
+        handle->start(Workers::onReady);
     }
 
     return true;
 }
-
 
 void Workers::stop()
 {
@@ -294,12 +362,18 @@ void Workers::onResult(uv_async_t *handle)
                 return;
             }
 
-            cryptonight_ctx *ctx = CryptoNight::createCtx(baton->jobs[0].algorithm().algo());
+            xmrig::Algo algo = baton->jobs[0].algorithm().algo();
+            cryptonight_ctx *ctx = CryptoNight::createCtx(algo);
 
             for (const Job &job : baton->jobs) {
                 JobResult result(job);
 
-                if (CryptoNight::hash(job, result, ctx)) {
+                if (job.algorithm().algo() != algo) {
+                    CryptoNight::freeCtx(ctx);
+                    ctx = CryptoNight::createCtx(algo = job.algorithm().algo());
+                }
+
+                if (job.poolId() == -100 || CryptoNight::hash(job, result, ctx)) {
                     baton->results.push_back(result);
                 }
                 else {
@@ -317,7 +391,7 @@ void Workers::onResult(uv_async_t *handle)
             }
 
             if (baton->errors > 0 && !baton->jobs.empty()) {
-                LOG_ERR("THREAD #%d COMPUTE ERROR", baton->jobs[0].threadId());
+                LOG_ERR("THREAD #%d COMPUTE ERROR(s): %i", baton->jobs[0].threadId(), baton->errors);
             }
 
             delete baton;

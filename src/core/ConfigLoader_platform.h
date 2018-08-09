@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -54,6 +55,8 @@ Options:\n\
                              cryptonight-heavy\n"
 #endif
 "\
+  --calibrate-algo         run benchmarks before mining to measure hashrates of all supported algos\n\
+  --calibrate-algo-time=N  time in seconds to run each algo benchmark round (default: 60)\n\
   -o, --url=URL            URL of mining server\n\
   -O, --userpass=U:P       username:password pair for mining server\n\
   -u, --user=USERNAME      username for mining server\n\
@@ -106,6 +109,8 @@ static struct option const options[] = {
     { "config",            1, nullptr, xmrig::IConfig::ConfigKey         },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
+    { "calibrate-algo",      0, nullptr, xmrig::IConfig::CalibrateAlgoKey      },
+    { "calibrate-algo-time", 1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
     { "help",              0, nullptr, xmrig::IConfig::HelpKey           },
     { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey        },
@@ -140,6 +145,8 @@ static struct option const config_options[] = {
     { "colors",            0, nullptr, xmrig::IConfig::ColorKey       },
     { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey },
     { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey      },
+    { "calibrate-algo",      0, nullptr, xmrig::IConfig::CalibrateAlgoKey      },
+    { "calibrate-algo-time", 1, nullptr, xmrig::IConfig::CalibrateAlgoTimeKey  },
     { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey     },
     { "print-time",        1, nullptr, xmrig::IConfig::PrintTimeKey   },
     { "retries",           1, nullptr, xmrig::IConfig::RetriesKey     },

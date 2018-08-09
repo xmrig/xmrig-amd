@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -48,6 +49,8 @@ public:
     inline bool isBackground() const               { return m_background; }
     inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
+    inline bool isCalibrateAlgo() const            { return m_calibrateAlgo; }
+    inline int  calibrateAlgoTime() const          { return m_calibrateAlgoTime; }
     inline bool isSyslog() const                   { return m_syslog; }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
@@ -63,6 +66,7 @@ public:
 
     inline bool isWatch() const override               { return m_watch && !m_fileName.isNull(); }
     inline const Algorithm &algorithm() const override { return m_algorithm; }
+    inline void set_algorithm(const Algorithm& algorithm) { m_algorithm = algorithm; }
     inline const char *fileName() const override       { return m_fileName.data(); }
 
     bool save() override;
@@ -87,6 +91,8 @@ protected:
     bool m_background;
     bool m_colors;
     bool m_dryRun;
+    bool m_calibrateAlgo;
+    int  m_calibrateAlgoTime;
     bool m_syslog;
     bool m_watch;
     int m_apiPort;

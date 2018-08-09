@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@
 
 
 #include "common/xmrig.h"
+#include "common/crypto/Algorithm.h" // need it for new xmrig::Algorithm autoConf param
 
 
 class OclThread;
@@ -46,7 +48,8 @@ public:
     OclCLI();
 
     bool setup(std::vector<xmrig::IThread *> &threads);
-    void autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config);
+    // autoConf now takes Algorithm parameter as input
+    void autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, const xmrig::Algorithm&, xmrig::Config *config);
     void parseLaunch(const char *arg);
 
     inline void parseAffinity(const char *arg) { parse(m_affinity, arg); }

@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,6 +46,8 @@ xmrig::CommonConfig::CommonConfig() :
     m_background(false),
     m_colors(true),
     m_dryRun(false),
+    m_calibrateAlgo(false),
+    m_calibrateAlgoTime(60),
     m_syslog(false),
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -183,6 +186,10 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_dryRun = enable;
         break;
 
+    case IConfig::CalibrateAlgoKey: /* --calibrate-algo */
+        m_calibrateAlgo = enable;
+        break;
+
     default:
         break;
     }
@@ -267,6 +274,7 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case NicehashKey:   /* --nicehash */
     case ApiIPv6Key:    /* --api-ipv6 */
     case DryRunKey:     /* --dry-run */
+    case CalibrateAlgoKey: /* --calibrate-algo */
         return parseBoolean(key, true);
 
     case ColorKey:         /* --no-color */
@@ -281,6 +289,9 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
             return true;
         }
 #       endif
+        return parseUint64(key, strtol(arg, nullptr, 10));
+
+    case CalibrateAlgoTimeKey: /* --calibrate-algo-time */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     default:
@@ -341,6 +352,12 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     case PrintTimeKey: /* --print-time */
         if (arg >= 0 && arg <= 3600) {
             m_printTime = arg;
+        }
+        break;
+
+    case CalibrateAlgoTimeKey: /* --calibrate-algo-time */
+        if (arg >= 5 && arg <= 3600) {
+            m_calibrateAlgoTime = arg;
         }
         break;
 
