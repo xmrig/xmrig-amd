@@ -142,6 +142,14 @@ void CCClient::updateGpuInfo(const std::vector<GpuContext>& gpuContext)
     if (m_self) {
         uv_mutex_lock(&m_mutex);
 
+        m_self->m_clientStatus.clearGPUInfoList();
+
+        for (auto gpu : gpuContext) {
+            GPUInfo gpuInfo;
+            gpuInfo.setName(gpu.name);
+
+            m_self->m_clientStatus.addGPUInfo(gpuInfo);
+        }
 
         uv_mutex_unlock(&m_mutex);
     }

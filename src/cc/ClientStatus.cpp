@@ -484,9 +484,12 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_cpuL3 = clientStatus["cpu_l3"].GetInt();
         }
 
-        if (document.HasMember("client_status")) {
-            rapidjson::Value::ConstObject clientStatus = document["client_status"].GetObject();
-
+        if (clientStatus.HasMember("gpu_info_list") && clientStatus["gpu_info_list"].IsArray()) {
+            auto gpuInfoList = clientStatus["gpu_info_list"].GetArray();
+            for (rapidjson::Value::ConstValueIterator itr = gpuInfoList.Begin(); itr != gpuInfoList.End(); ++itr) {
+                const rapidjson::Value& gpuInfo = (*itr)["gpu_info"];
+                // TODO parsing
+            }
         }
 
         if (clientStatus.HasMember("shares_good")) {
@@ -557,7 +560,7 @@ rapidjson::Value ClientStatus::toJson(rapidjson::MemoryPoolAllocator<rapidjson::
     rapidjson::Value gpuInfoList(rapidjson::kArrayType);
     for (auto& gpuInfo : m_gpuInfoList) {
         rapidjson::Value gpuInfoEntry(rapidjson::kObjectType);
-        gpuInfoEntry.AddMember("gpuInfo", gpuInfo.toJson(allocator), allocator);
+        gpuInfoEntry.AddMember("gpu_info", gpuInfo.toJson(allocator), allocator);
         gpuInfoList.PushBack(gpuInfoEntry, allocator);
     }
     clientStatus.AddMember("gpu_info_list", gpuInfoList, allocator);
@@ -594,12 +597,12 @@ std::string ClientStatus::toJsonString()
     return strdup(buffer.GetString());
 }
 
-const std::list<GPUInfo> ClientStatus::getGPUInfoList() const
+void ClientStatus::clearGPUInfoList()
 {
-    return m_gpuInfoList;
+    m_gpuInfoList.clear();
 }
 
-void ClientStatus::setGPUInfoList(const std::list<GPUInfo>& gpuInfoList)
+void ClientStatus::addGPUInfo(const GPUInfo gpuInfo)
 {
-    m_gpuInfoList = gpuInfoList;
+    m_gpuInfoList.push_back(gpuInfo);
 }

@@ -133,7 +133,8 @@ public:
     void setCpuL3(int cpuL3);
 
     const std::list<GPUInfo> getGPUInfoList() const;
-    void setGPUInfoList(const std::list<GPUInfo>& gpuInfoList);
+    void addGPUInfo(const GPUInfo gpuInfo);
+    void clearGPUInfoList();
 
     uint64_t getSharesGood() const;
     void setSharesGood(uint64_t sharesGood);
