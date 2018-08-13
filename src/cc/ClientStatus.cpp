@@ -485,10 +485,14 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
         }
 
         if (clientStatus.HasMember("gpu_info_list") && clientStatus["gpu_info_list"].IsArray()) {
+            m_gpuInfoList.clear();
+
             auto gpuInfoList = clientStatus["gpu_info_list"].GetArray();
             for (rapidjson::Value::ConstValueIterator itr = gpuInfoList.Begin(); itr != gpuInfoList.End(); ++itr) {
-                const rapidjson::Value& gpuInfo = (*itr)["gpu_info"];
-                // TODO parsing
+                GPUInfo gpuInfo;
+                gpuInfo.parseFromJson((*itr)["gpu_info"]);
+
+                m_gpuInfoList.push_back(gpuInfo);
             }
         }
 

@@ -125,6 +125,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 
     char buf[128] = { 0 };
     getDeviceName(ctx->DeviceID, buf, sizeof(buf));
+    ctx->name = buf;
     ctx->computeUnits = getDeviceMaxComputeUnits(ctx->DeviceID);
 
     LOG_INFO(config->isColors() ? "\x1B[01;37m#%d\x1B[0m, GPU \x1B[01;37m#%zu\x1B[0m \x1B[01;32m%s\x1B[0m, intensity: \x1B[01;37m%zu\x1B[0m (%zu/%zu), cu: \x1B[01;37m%d"  : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), cu: %d",

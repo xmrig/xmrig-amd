@@ -28,42 +28,33 @@ public:
     ~GPUInfo();
 
     rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
-    bool parseFromJsonString(const std::string& json);
-    bool parseFromJson(const rapidjson::Document& document);
+    bool parseFromJson(const rapidjson::Value& gpuInfo);
 
     std::string getName() const;
     void setName(const std::string& name);
 
     size_t getDeviceIdx() const;
-
     void setDeviceIdx(size_t deviceIdx);
 
     size_t getRawIntensity() const;
-
     void setRawIntensity(size_t rawIntensity);
 
     size_t getWorkSize() const;
-
     void setWorkSize(size_t workSize);
 
-    size_t getFreeMem() const;
+    size_t getMaxWorkSize() const;
+    void setMaxWorkSize(size_t maxWorkSize);
 
+    size_t getFreeMem() const;
     void setFreeMem(size_t freeMem);
 
-    int getStridedIndex() const;
-
-    void setStridedIndex(int stridedIndex);
-
     int getMemChunk() const;
-
     void setMemChunk(int memChunk);
 
     int getCompMode() const;
-
     void setCompMode(int compMode);
 
     int getComputeUnits() const;
-
     void setComputeUnits(int computeUnits);
 
 private:
@@ -73,13 +64,11 @@ private:
     size_t m_maxWorkSize;
     size_t m_freeMem;
 
-    int m_stridedIndex;
     int m_memChunk;
     int m_compMode;
     int m_computeUnits;
 
     std::string m_name;
-
 };
 
 

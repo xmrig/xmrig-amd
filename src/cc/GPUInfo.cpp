@@ -18,6 +18,14 @@
 #include "GPUInfo.h"
 
 GPUInfo::GPUInfo()
+    : m_deviceIdx(0),
+      m_rawIntensity(0),
+      m_workSize(0),
+      m_maxWorkSize(0),
+      m_freeMem(0),
+      m_memChunk(0),
+      m_compMode(0),
+      m_computeUnits(0)
 {
 
 }
@@ -29,17 +37,63 @@ GPUInfo::~GPUInfo()
 
 rapidjson::Value GPUInfo::toJson(rapidjson::MemoryPoolAllocator <rapidjson::CrtAllocator>& allocator)
 {
+    rapidjson::Value gpuInfo(rapidjson::kObjectType);
 
+    gpuInfo.AddMember("name", rapidjson::StringRef(m_name.c_str()), allocator);
+    gpuInfo.AddMember("device_idx", m_deviceIdx, allocator);
+    gpuInfo.AddMember("raw_intensity", m_rawIntensity, allocator);
+    gpuInfo.AddMember("work_size", m_workSize, allocator);
+    gpuInfo.AddMember("max_work_size", m_maxWorkSize, allocator);
+    gpuInfo.AddMember("free_mem", m_freeMem, allocator);
+    gpuInfo.AddMember("mem_chunk", m_memChunk, allocator);
+    gpuInfo.AddMember("comp_mode", m_memChunk, allocator);
+    gpuInfo.AddMember("compute_units", m_memChunk, allocator);
+
+    return gpuInfo;
 }
 
-bool GPUInfo::parseFromJson(const rapidjson::Document& document)
+bool GPUInfo::parseFromJson(const rapidjson::Value& gpuInfo)
 {
+    bool result = false;
 
-}
+    if (gpuInfo.HasMember("name")) {
+        m_name = gpuInfo["name"].GetString();
+        result = true;
+    }
 
-bool GPUInfo::parseFromJsonString(const std::string& json)
-{
+    if (gpuInfo.HasMember("device_idx")) {
+        m_deviceIdx = static_cast<size_t>(gpuInfo["device_idx"].GetInt());
+    }
 
+    if (gpuInfo.HasMember("raw_intensity")) {
+        m_rawIntensity = static_cast<size_t>(gpuInfo["raw_intensity"].GetInt());
+    }
+
+    if (gpuInfo.HasMember("work_size")) {
+        m_workSize = static_cast<size_t>(gpuInfo["work_size"].GetInt());
+    }
+
+    if (gpuInfo.HasMember("max_work_size")) {
+        m_maxWorkSize = static_cast<size_t>(gpuInfo["max_work_size"].GetInt());
+    }
+
+    if (gpuInfo.HasMember("free_mem")) {
+        m_freeMem = static_cast<size_t>(gpuInfo["free_mem"].GetInt());
+    }
+
+    if (gpuInfo.HasMember("mem_chunk")) {
+        m_memChunk = gpuInfo["mem_chunk"].GetInt();
+    }
+
+    if (gpuInfo.HasMember("comp_mode")) {
+        m_compMode = gpuInfo["comp_mode"].GetInt();
+    }
+
+    if (gpuInfo.HasMember("compute_units")) {
+        m_computeUnits = gpuInfo["compute_units"].GetInt();
+    }
+
+    return result;
 }
 
 size_t GPUInfo::getDeviceIdx() const
@@ -72,6 +126,16 @@ void GPUInfo::setWorkSize(size_t workSize)
     m_workSize = workSize;
 }
 
+size_t GPUInfo::getMaxWorkSize() const
+{
+    return m_maxWorkSize;
+}
+
+void GPUInfo::setMaxWorkSize(size_t maxWorkSize)
+{
+    m_maxWorkSize = maxWorkSize;
+}
+
 size_t GPUInfo::getFreeMem() const
 {
     return m_freeMem;
@@ -80,16 +144,6 @@ size_t GPUInfo::getFreeMem() const
 void GPUInfo::setFreeMem(size_t freeMem)
 {
     m_freeMem = freeMem;
-}
-
-int GPUInfo::getStridedIndex() const
-{
-    return m_stridedIndex;
-}
-
-void GPUInfo::setStridedIndex(int stridedIndex)
-{
-    m_stridedIndex = stridedIndex;
 }
 
 int GPUInfo::getMemChunk() const
