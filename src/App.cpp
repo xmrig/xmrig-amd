@@ -137,7 +137,7 @@ int App::exec()
     if (m_controller->config()->ccHost() && m_controller->config()->ccPort() > 0) {
         uv_async_init(uv_default_loop(), &m_async, App::onCommandReceived);
 
-        m_ccclient = new CCClient(m_controller, &m_async);
+        m_ccclient = new CCClient(m_controller->config(), &m_async);
 
         if (!m_controller->config()->pools().front().isValid()) {
             LOG_WARN("No pool URL supplied, but CC server configured. Trying.");

@@ -20,7 +20,6 @@
 #include <cstring>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include "common/log/Log.h"
 
 #include "ClientStatus.h"
 
@@ -520,8 +519,6 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
         m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
 
         result = true;
-    } else {
-        LOG_ERR("Parse Error, JSON does not contain: control_command");
     }
 
     return result;

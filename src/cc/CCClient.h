@@ -25,12 +25,14 @@
 #include <chrono>
 #include <ctime>
 #include <3rdparty/cpp-httplib/httplib.h>
-#include <core/Controller.h>
 #include "ClientStatus.h"
 #include "version.h"
 
 #ifdef TYPE_AMD_GPU
-#include <amd/GpuContext.h>
+#include "amd/GpuContext.h"
+#include "core/Controller.h"
+#else
+#include "Options.h"
 #endif
 
 class Hashrate;
@@ -39,15 +41,18 @@ class NetworkState;
 class CCClient
 {
 public:
-    CCClient(xmrig::Controller* m_controller, uv_async_t* async);
+#ifdef TYPE_AMD_GPU
+    CCClient(xmrig::Config* m_config, uv_async_t* async);
+    static void updateGpuInfo(const std::vector<GpuContext>& network);
+#else
+    CCClient(Options* config, uv_async_t* async);
+#endif
+
     ~CCClient();
 
     static void updateHashrate(const Hashrate *hashrate);
     static void updateNetworkState(const NetworkState &results);
 
-#ifdef TYPE_AMD_GPU
-    static void updateGpuInfo(const std::vector<GpuContext>& network);
-#endif
 private:
 
     void publishClientStatusReport();
@@ -62,7 +67,11 @@ private:
     static void onThreadStarted(void *handle);
     static void onReport(uv_timer_t *handle);
 
-    const xmrig::Controller* m_controller;
+#ifdef TYPE_AMD_GPU
+    const xmrig::Config* m_config;
+#else
+    const Options* m_config;
+#endif
 
     static CCClient* m_self;
     static uv_mutex_t m_mutex;
@@ -77,7 +86,6 @@ private:
     uv_timer_t m_timer;
     uv_loop_t m_client_loop;
     uv_thread_t m_thread;
-
 };
 
 #endif
