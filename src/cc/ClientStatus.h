@@ -1,10 +1,4 @@
-/* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2016-2017 XMRig       <support@xmrig.com>
+/* XMRigCC
  * Copyright 2017-     BenDr0id    <ben@graef.in>
  *
  *
@@ -27,7 +21,9 @@
 
 #include <string>
 #include <ctime>
+#include <list>
 #include <rapidjson/document.h>
+#include "GPUInfo.h"
 
 class ClientStatus
 {
@@ -82,16 +78,14 @@ public:
     void setVersion(const std::string& version);
 
     std::string getLog() const;
-    void setLog(const std::string& version);
+    void setLog(const std::string& log);
+    void clearLog();
 
     bool hasHugepages() const;
     void setHugepages(bool hasHugepages);
 
     bool isHugepagesEnabled() const;
     void setHugepagesEnabled(bool hugepagesEnabled);
-
-    int getHashFactor() const;
-    void setHashFactor(int hashFactor);
 
     bool isCpuX64() const;
     void setCpuX64(bool isCpuX64);
@@ -111,6 +105,15 @@ public:
     void setHashrateHighest(double hashrateHighest);
     double getHashrateHighest() const;
 
+    int getHashFactor() const;
+    void setHashFactor(int hashFactor);
+
+    int getTotalPages() const;
+    void setTotalPages(int totalPages);
+
+    int getTotalHugepages() const;
+    void setTotalHugepages(int totalHugepages);
+
     int getCurrentThreads() const;
     void setCurrentThreads(int currentThreads);
 
@@ -128,6 +131,10 @@ public:
 
     int getCpuL3() const;
     void setCpuL3(int cpuL3);
+
+    const std::list<GPUInfo> getGPUInfoList() const;
+    void addGPUInfo(const GPUInfo gpuInfo);
+    void clearGPUInfoList();
 
     uint64_t getSharesGood() const;
     void setSharesGood(uint64_t sharesGood);
@@ -149,7 +156,6 @@ public:
     std::string toJsonString();
     rapidjson::Value toJson(rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator);
     bool parseFromJson(const rapidjson::Document& document);
-
 
 private:
     const char* status_str[3] = {
@@ -174,18 +180,22 @@ private:
     bool m_isCpuX64;
     bool m_hasCpuAES;
 
-    int m_hashFactor;
     double m_hashrateShort;
     double m_hashrateMedium;
     double m_hashrateLong;
     double m_hashrateHighest;
 
+    int m_hashFactor;
+    int m_totalPages;
+    int m_totalHugepages;
     int m_currentThreads;
     int m_cpuSockets;
     int m_cpuCores;
     int m_cpuThreads;
     int m_cpuL2;
     int m_cpuL3;
+
+    std::list<GPUInfo> m_gpuInfoList;
 
     uint64_t m_sharesGood;
     uint64_t m_sharesTotal;

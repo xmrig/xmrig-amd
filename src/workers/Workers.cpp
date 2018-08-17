@@ -198,6 +198,10 @@ bool Workers::start(xmrig::Controller *controller)
         return false;
     }
 
+#   ifndef XMRIG_NO_CC
+    CCClient::updateGpuInfo(contexts);
+#   endif
+
     uv_timer_init(uv_default_loop(), &m_timer);
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 

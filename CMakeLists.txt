@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+
 option(WITH_AEON     "CryptoNight-Lite support" ON)
 option(WITH_SUMO     "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD    "HTTP REST API" OFF)
@@ -41,6 +45,7 @@ set(HEADERS
     src/common/interfaces/IStrategyListener.h
     src/common/interfaces/IWatcherListener.h
     src/common/log/BasicLog.h
+    src/common/log/RemoteLog.h
     src/common/log/ConsoleLog.h
     src/common/log/FileLog.h
     src/common/log/Log.h
@@ -128,6 +133,7 @@ set(SOURCES_COMMON
         src/common/config/ConfigLoader.cpp
         src/common/config/ConfigWatcher.cpp
         src/common/log/ConsoleLog.cpp
+        src/common/log/RemoteLog.cpp
         src/common/log/FileLog.cpp
         src/common/log/Log.cpp
         src/common/log/BasicLog.cpp
@@ -277,7 +283,8 @@ endif()
 if (WITH_CC_CLIENT)
     set(SOURCES_CC_COMMON
             src/cc/ControlCommand.cpp
-            src/cc/ClientStatus.cpp)
+            src/cc/ClientStatus.cpp
+            src/cc/GPUInfo.cpp)
 else()
     add_definitions(/DXMRIG_NO_CC)
 endif()
