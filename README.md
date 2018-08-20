@@ -33,7 +33,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 
 **XMRigCC Server**
 
-![Screenshot of XMRigCC Server](https://i.imgur.com/0Ke9gIg.png)
+![Screenshot of XMRigCC Server](https://i.imgur.com/iS1RzgO.png)
 
 **XMRigCC Dashboard**
 
