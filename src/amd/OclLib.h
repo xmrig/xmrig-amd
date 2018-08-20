@@ -25,7 +25,11 @@
 #define __OCLLIB_H__
 
 
-#include "3rdparty/CL/cl.h"
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include <CL/cl.h>
+#endif
 
 
 class OclLib

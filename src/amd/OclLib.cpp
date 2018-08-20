@@ -54,7 +54,7 @@ static const char *kGetProgramBuildInfo              = "clGetProgramBuildInfo";
 static const char *kGetProgramInfo                   = "clGetProgramInfo";
 static const char *kSetKernelArg                     = "clSetKernelArg";
 
-typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *);
+typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_context_properties *, cl_int *);
 typedef cl_command_queue (CL_API_CALL *createCommandQueue_t)(cl_context, cl_device_id, cl_command_queue_properties, cl_int *);
 typedef cl_context (CL_API_CALL *createContext_t)(const cl_context_properties *, cl_uint, const cl_device_id *, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *, cl_int *);
 typedef cl_int (CL_API_CALL *buildProgram_t)(cl_program, cl_uint, const cl_device_id *, const char *, void (CL_CALLBACK *pfn_notify)(cl_program, void *), void *);
@@ -140,7 +140,7 @@ cl_command_queue OclLib::createCommandQueue(cl_context context, cl_device_id dev
     cl_command_queue result;
 
     if (pCreateCommandQueueWithProperties) {
-        const cl_queue_properties commandQueueProperties[] = { 0, 0, 0 };
+        const cl_context_properties commandQueueProperties[] = { 0, 0, 0 };
         result = pCreateCommandQueueWithProperties(context, device, commandQueueProperties, errcode_ret);
     }
     else {
