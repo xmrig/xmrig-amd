@@ -2,21 +2,21 @@
 
 :warning: **You must update miners to version 2.5 before April 6 due [Monero PoW change](https://getmonero.org/2018/02/11/PoW-change-and-key-reuse.html).**
 
-[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/blob/master/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/network)
+[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/MoneroOcean/xmrig-amd/releases)
+[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/MoneroOcean/xmrig-amd/releases)
+[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](https://github.com/MoneroOcean/xmrig-amd/releases)
+[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](https://github.com/MoneroOcean/xmrig-amd/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](https://github.com/MoneroOcean/xmrig-amd/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](https://github.com/MoneroOcean/xmrig-amd/network)
 
 XMRig is high performance Monero (XMR) OpenCL miner, with the official full Windows support.
 
 GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
 
-* This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+* This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/MoneroOcean/xmrig) and [NVIDIA GPU version](https://github.com/MoneroOcean/xmrig-nvidia).
+* [Roadmap](https://github.com/MoneroOcean/xmrig/issues/106) for next releases.
 
-:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
+:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/MoneroOcean/xmrig-amd/issues) if auto configuration suggest wrong values.
 
 <img src="https://i.imgur.com/TFncsi7.png" width="696" >
 
@@ -24,7 +24,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
-* [Build](https://github.com/xmrig/xmrig-amd/wiki/Build)
+* [Build](https://github.com/MoneroOcean/xmrig-amd/wiki/Build)
 * [Donations](#donations)
 * [Release checksums](#release-checksums)
 * [Contacts](#contacts)
@@ -39,9 +39,9 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig-amd/releases
-* Git tree: https://github.com/xmrig/xmrig-amd.git
-  * Clone with `git clone https://github.com/xmrig/xmrig-amd.git`  :hammer: [Build instructions](https://github.com/xmrig/xmrig-amd/wiki/Build).
+* Binary releases: https://github.com/MoneroOcean/xmrig-amd/releases
+* Git tree: https://github.com/MoneroOcean/xmrig-amd.git
+  * Clone with `git clone https://github.com/MoneroOcean/xmrig-amd.git`  :hammer: [Build instructions](https://github.com/MoneroOcean/xmrig-amd/wiki/Build).
 
 ## Usage
 Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share configurations.
