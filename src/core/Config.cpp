@@ -44,15 +44,16 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
     m_cache(true),
     m_shouldSave(false),
-    m_platformIndex(0),
-#   ifdef _WIN32
-    m_loader("OpenCL.dll")
-#   else
-    m_loader("libOpenCL.so")
+#   ifndef __APPLE__
+#    ifdef _WIN32
+     m_loader("OpenCL.dll"),
+#    else
+     m_loader("libOpenCL.so"),
+#    endif
 #   endif
+    m_platformIndex(0)
 {
 }
-
 
 xmrig::Config::~Config()
 {
