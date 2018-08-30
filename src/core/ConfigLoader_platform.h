@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIGLOADER_PLATFORM_H__
-#define __CONFIGLOADER_PLATFORM_H__
+#ifndef XMRIG_CONFIGLOADER_PLATFORM_H
+#define XMRIG_CONFIGLOADER_PLATFORM_H
 
 
 #ifdef _MSC_VER
@@ -85,6 +85,7 @@ Options:\n\
       --api-port=N         port for the miner API\n\
       --api-access-token=T access token for API\n\
       --api-worker-id=ID   custom worker-id for API\n\
+      --api-id=ID          custom instance ID for API\n\
       --api-ipv6           enable IPv6 support for API\n\
       --api-no-restricted  enable full remote access (only if API token set)\n\
   -h, --help               display this help and exit\n\
@@ -100,6 +101,7 @@ static struct option const options[] = {
     { "api-access-token",  1, nullptr, xmrig::IConfig::ApiAccessTokenKey },
     { "api-port",          1, nullptr, xmrig::IConfig::ApiPort           },
     { "api-worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
+    { "api-id",            1, nullptr, xmrig::IConfig::ApiIdKey          },
     { "api-ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "api-no-restricted", 0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
     { "background",        0, nullptr, xmrig::IConfig::BackgroundKey     },
@@ -130,7 +132,7 @@ static struct option const options[] = {
     { "no-cache",          0, nullptr, xmrig::IConfig::OclCache          },
     { "print-platforms",   0, nullptr, xmrig::IConfig::OclPrint          },
     { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoader         },
-    { 0, 0, 0, 0 }
+    { nullptr,             0, nullptr, 0 }
 };
 
 
@@ -149,7 +151,7 @@ static struct option const config_options[] = {
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
     { "cache",             0, nullptr, xmrig::IConfig::OclCache       },
     { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoader      },
-    { 0, 0, 0, 0 }
+    { nullptr,             0, nullptr, 0 }
 };
 
 
@@ -162,7 +164,7 @@ static struct option const pool_options[] = {
     { "keepalive",     2, nullptr, xmrig::IConfig::KeepAliveKey  },
     { "variant",       1, nullptr, xmrig::IConfig::VariantKey    },
     { "rig-id",        1, nullptr, xmrig::IConfig::RigIdKey      },
-    { 0, 0, 0, 0 }
+    { nullptr,         0, nullptr, 0 }
 };
 
 
@@ -172,10 +174,11 @@ static struct option const api_options[] = {
     { "worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
     { "ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "restricted",    0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
-    { 0, 0, 0, 0 }
+    { "id",            1, nullptr, xmrig::IConfig::ApiIdKey          },
+    { nullptr,         0, nullptr, 0 }
 };
 
 
 } /* namespace xmrig */
 
-#endif /* __CONFIGLOADER_PLATFORM_H__ */
+#endif /* XMRIG_CONFIGLOADER_PLATFORM_H */
