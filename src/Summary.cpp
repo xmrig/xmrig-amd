@@ -27,7 +27,13 @@
 #include <uv.h>
 
 
-#include "3rdparty/CL/cl.h"
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
+
+
 #include "common/log/Log.h"
 #include "common/net/Pool.h"
 #include "core/Config.h"

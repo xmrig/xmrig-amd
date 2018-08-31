@@ -45,7 +45,9 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0),
-#   ifdef _WIN32
+#   if defined(__APPLE__)
+    m_loader("/System/Library/Frameworks/OpenCL.framework/OpenCL")
+#   elif defined(_WIN32)
     m_loader("OpenCL.dll")
 #   else
     m_loader("libOpenCL.so")

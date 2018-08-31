@@ -21,11 +21,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GPUCONTEXT_H__
-#define __GPUCONTEXT_H__
+#ifndef XMRIG_GPUCONTEXT_H
+#define XMRIG_GPUCONTEXT_H
 
 
-#include "3rdparty/CL/cl.h"
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
 
 
 #include <stdint.h>
@@ -97,4 +101,4 @@ struct GpuContext
 };
 
 
-#endif /* __GPUCONTEXT_H__ */
+#endif /* XMRIG_GPUCONTEXT_H */
