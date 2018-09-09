@@ -150,23 +150,32 @@ bool OclCache::load()
 
 bool OclCache::prepare(const char *options)
 {
-    uint8_t state[200] = { 0 };
-    char hash[65]      = { 0 };
+    uint8_t buf[200] = { 0 };
+    char hash[65]    = { 0 };
 
-    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_NAME, sizeof state, state) != CL_SUCCESS) {
+    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_NAME, sizeof buf, buf) != CL_SUCCESS) {
         return false;
     }
 
     std::string key(m_sourceCode);
     key += options;
-    key += reinterpret_cast<const char *>(state);
+    key += reinterpret_cast<const char *>(buf);
+
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    if (OclLib::getPlatformInfo(platforms[m_config->platformIndex()], CL_PLATFORM_VERSION, sizeof buf, buf, nullptr) == CL_SUCCESS) {
+        key += reinterpret_cast<const char *>(buf);
+    }
+
+    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) == CL_SUCCESS) {
+        key += reinterpret_cast<const char *>(buf);
+    }
 
     if (!Cpu::isX64()) {
         key += "x86";
     }
 
-    xmrig::keccak(key.c_str(), key.size(), state);
-    base32_encode(state, 32, reinterpret_cast<uint8_t *>(hash), sizeof hash);
+    xmrig::keccak(key.c_str(), key.size(), buf);
+    base32_encode(buf, 32, reinterpret_cast<uint8_t *>(hash), sizeof hash);
 
 #   ifdef _WIN32
     m_fileName = prefix() + "\\xmrig\\.cache\\" + hash + ".bin";
