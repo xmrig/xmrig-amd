@@ -243,9 +243,11 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 
     for (cl_uint i = 0; i < num_devices; i++) {
         OclLib::getDeviceInfo(device_list[i], CL_DEVICE_VENDOR, sizeof(buf), buf);
+#       if !defined(__APPLE__)
         if (strstr(buf, "Advanced Micro Devices") == nullptr) {
             continue;
         }
+#       endif
 
         GpuContext ctx;
         ctx.deviceIdx = i;
@@ -355,9 +357,11 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     char buf[256] = { 0 };
     OclLib::getPlatformInfo(platforms[platform_idx], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr);
 
+#   if !defined(__APPLE__)
     if (strstr(buf, "Advanced Micro Devices") == nullptr) {
         LOG_WARN("using non AMD device: %s", buf);
     }
+#   endif
 
     delete [] platforms;
 

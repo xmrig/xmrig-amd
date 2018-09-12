@@ -45,7 +45,9 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0),
-#   ifdef _WIN32
+#   if defined(__APPLE__)
+    m_loader("/System/Library/Frameworks/OpenCL.framework/OpenCL")
+#   elif defined(_WIN32)
     m_loader("OpenCL.dll")
 #   else
     m_loader("libOpenCL.so")
@@ -92,6 +94,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     Value api(kObjectType);
     api.AddMember("port",         apiPort(), allocator);
     api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("id",           apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
     api.AddMember("ipv6",         isApiIPv6(), allocator);
     api.AddMember("restricted",   isApiRestricted(), allocator);

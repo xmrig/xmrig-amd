@@ -33,7 +33,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 
 **XMRigCC Server**
 
-![Screenshot of XMRigCC Server](https://i.imgur.com/0Ke9gIg.png)
+![Screenshot of XMRigCC Server](https://i.imgur.com/iS1RzgO.png)
 
 **XMRigCC Dashboard**
 
@@ -63,6 +63,7 @@ xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SE
         --cc-client-config-folder=FOLDER  Folder contains the client config files
         --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'
         --no-color                        disable colored output
+        --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)
     -S, --syslog                          use system log for output messages
     -B, --background                      run the miner in the background
     -c, --config=FILE                     load a JSON-format configuration file
