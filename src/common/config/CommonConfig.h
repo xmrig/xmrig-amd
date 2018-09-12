@@ -53,6 +53,7 @@ public:
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
     inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
     inline const char *apiToken() const             { return m_apiToken.data(); }
+    inline const char *apiId() const                { return m_apiId.data(); }
     inline const char *apiWorkerId() const          { return m_apiWorkerId.data(); }
     inline const char *logFile() const              { return m_logFile.data(); }
     inline const char *userAgent() const            { return m_userAgent.data(); }
