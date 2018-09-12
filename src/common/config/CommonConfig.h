@@ -115,6 +115,7 @@ protected:
     State m_state;
     std::vector<Pool> m_activePools;
     std::vector<Pool> m_pools;
+    xmrig::c_str m_apiId;
     xmrig::c_str m_apiToken;
     xmrig::c_str m_apiWorkerId;
     xmrig::c_str m_fileName;
