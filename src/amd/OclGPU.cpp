@@ -208,29 +208,9 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 }
 
 
-cl_uint getNumPlatforms()
-{
-    cl_uint count = 0;
-    cl_int ret;
-
-    if ((ret = OclLib::getPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", err_to_str(ret));
-    }
-
-    if (count == 0) {
-        LOG_ERR("No OpenCL platform found.");
-    }
-
-    return count;
-}
-
-
 std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 {
-    const uint32_t numPlatforms = getNumPlatforms();
-
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    OclLib::getPlatformIDs(numPlatforms, platforms, nullptr);
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
 
     cl_uint num_devices;
     OclLib::getDeviceIDs(platforms[index], CL_DEVICE_TYPE_GPU, 0, nullptr, &num_devices);
@@ -272,7 +252,6 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
     
 
     delete [] device_list;
-    delete [] platforms;
 
     return ctxVec;
 }
@@ -280,43 +259,32 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 
 void printPlatforms()
 {
-    const uint32_t numPlatforms = getNumPlatforms();
-    if (numPlatforms == 0) {
-        return;
-    }
-
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    OclLib::getPlatformIDs(numPlatforms, platforms, nullptr);
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
 
     char buf[128] = { 0 };
 
-    for (uint32_t i = 0; i < numPlatforms; i++) {
+    for (size_t i = 0; i < platforms.size(); i++) {
         if (OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr) != CL_SUCCESS) {
             continue;
         }
 
-        printf("#%d: %s\n", i, buf);
+        printf("#%zu: %s\n", i, buf);
     }
-
-    delete[] platforms;
 }
 
 
 int getAMDPlatformIdx(xmrig::Config *config)
 {
-    const uint32_t numPlatforms = getNumPlatforms();
-    if (numPlatforms == 0) {
+#   if !defined(__APPLE__)
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    if (platforms.empty()) {
         return -1;
     }
-
-#   if !defined(__APPLE__)
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    OclLib::getPlatformIDs(numPlatforms, platforms, nullptr);
 
     int platformIndex = -1;
     char buf[256] = { 0 };
 
-    for (uint32_t i = 0; i < numPlatforms; i++) {
+    for (uint32_t i = 0; i < platforms.size(); i++) {
         OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr);
 
         if (strstr(buf, "Advanced Micro Devices") != nullptr) {
@@ -326,7 +294,6 @@ int getAMDPlatformIdx(xmrig::Config *config)
         }
     }
 
-    delete [] platforms;
     return platformIndex;
 #   else
     return 0;
@@ -340,19 +307,18 @@ int getAMDPlatformIdx(xmrig::Config *config)
 size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
 {
     const size_t platform_idx = config->platformIndex();
-    cl_uint entries           = getNumPlatforms();
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    cl_uint entries = platforms.size();
+
     if (entries == 0) {
         return OCL_ERR_API;
     }
 
     // The number of platforms naturally is the index of the last platform plus one.
     if (entries <= platform_idx) {
-        LOG_ERR("Selected OpenCL platform index %d doesn't exist.", platform_idx);
+        LOG_ERR("Selected OpenCL platform index %zu doesn't exist.", platform_idx);
         return OCL_ERR_BAD_PARAMS;
     }
-
-    cl_platform_id *platforms = new cl_platform_id[entries];
-    OclLib::getPlatformIDs(entries, platforms, nullptr);
 
     char buf[256] = { 0 };
     OclLib::getPlatformInfo(platforms[platform_idx], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr);
@@ -362,8 +328,6 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
         LOG_WARN("using non AMD device: %s", buf);
     }
 #   endif
-
-    delete [] platforms;
 
     /*MSVC skimping on devel costs by shoehorning C99 to be a subset of C++? Noooo... can't be.*/
 #   ifdef __GNUC__
