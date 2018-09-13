@@ -190,7 +190,7 @@ bool Workers::start(xmrig::Controller *controller)
 
     for (size_t i = 0; i < m_threadsCount; ++i) {
         const OclThread *thread = static_cast<OclThread *>(threads[i]);
-        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
+        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode(), thread->unrollFactor());
     }
 
     if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != 0) {

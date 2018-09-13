@@ -45,6 +45,7 @@ struct GpuContext
         stridedIndex(1),
         memChunk(2),
         compMode(1),
+        unrollFactor(8),
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
@@ -58,13 +59,14 @@ struct GpuContext
     {}
 
 
-    inline GpuContext(size_t index, size_t intensity, size_t worksize, int stridedIndex, int memChunk, bool compMode) :
+    inline GpuContext(size_t index, size_t intensity, size_t worksize, int stridedIndex, int memChunk, bool compMode, int unrollFactor) :
         deviceIdx(index),
         rawIntensity(intensity),
         workSize(worksize),
         stridedIndex(stridedIndex),
         memChunk(memChunk),
         compMode(compMode ? 1 : 0),
+        unrollFactor(unrollFactor),
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
@@ -84,6 +86,7 @@ struct GpuContext
     int stridedIndex;
     int memChunk;
     int compMode;
+    int unrollFactor;
 
     /*Output vars*/
     cl_device_id DeviceID;
@@ -92,7 +95,7 @@ struct GpuContext
     cl_mem OutputBuffer;
     cl_mem ExtraBuffers[6];
     cl_program Program;
-    cl_kernel Kernels[11];
+    cl_kernel Kernels[12];
     size_t freeMem;
     int computeUnits;
     std::string name;

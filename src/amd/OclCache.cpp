@@ -52,18 +52,28 @@ OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
+    const xmrig::Variant variant = m_config->algorithm().variant();
+
+    int stridedIndex = m_ctx->stridedIndex;
+
+    // Cryptonight Variant 2 OpenCL code doesn't support strided index yet
+    if (algo == xmrig::CRYPTONIGHT && variant == xmrig::VARIANT_2) {
+        stridedIndex = 0;
+    }
+
     const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d",
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d -DUNROLL_FACTOR=%d",
              xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
-             m_ctx->stridedIndex,
+             stridedIndex,
              static_cast<int>(1u << m_ctx->memChunk),
              m_ctx->compMode,
              xmrig::cn_select_memory(algo),
-             static_cast<int>(algo)
+             static_cast<int>(algo),
+             m_ctx->unrollFactor
              );
 
     if (!prepare(options)) {

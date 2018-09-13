@@ -34,7 +34,7 @@ class OclThread : public xmrig::IThread
 public:
     OclThread();
     OclThread(const rapidjson::Value &object);
-    OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity = -1);
+    OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity = -1, int unrollFactor = 8);
     ~OclThread();
 
     inline bool isCompMode() const  { return m_compMode; }
@@ -42,6 +42,7 @@ public:
     inline int stridedIndex() const { return m_stridedIndex; }
     inline size_t intensity() const { return m_intensity; }
     inline size_t worksize() const  { return m_worksize; }
+    inline int unrollFactor() const { return m_unrollFactor; }
 
     inline void setAffinity(int64_t affinity)  { m_affinity = affinity; }
     inline void setIndex(size_t index)         { m_index = index; }
@@ -57,6 +58,7 @@ public:
 
     void setMemChunk(int memChunk);
     void setStridedIndex(int stridedIndex);
+    void setUnrollFactor(int unrollFactor);
 
 protected:
 #   ifndef XMRIG_NO_API
@@ -69,6 +71,7 @@ private:
     bool m_compMode;
     int m_memChunk;
     int m_stridedIndex;
+    int m_unrollFactor;
     int64_t m_affinity;
     size_t m_index;
     size_t m_intensity;

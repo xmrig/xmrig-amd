@@ -27,12 +27,14 @@
 
 #include "rapidjson/document.h"
 #include "workers/OclThread.h"
+#include "common/log/Log.h"
 
 
 OclThread::OclThread() :
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
+    m_unrollFactor(8),
     m_affinity(-1),
     m_index(0),
     m_intensity(0),
@@ -45,6 +47,7 @@ OclThread::OclThread(const rapidjson::Value &object) :
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
+    m_unrollFactor(8),
     m_affinity(-1)
 {
     setIndex(object["index"].GetInt());
@@ -64,6 +67,11 @@ OclThread::OclThread(const rapidjson::Value &object) :
         setStridedIndex(stridedIndex.GetInt());
     }
 
+    const rapidjson::Value &unrollFactor = object["unroll_factor"];
+    if (unrollFactor.IsUint()) {
+        setUnrollFactor(unrollFactor.GetInt());
+    }
+
     const rapidjson::Value &memChunk = object["mem_chunk"];
     if (memChunk.IsUint()) {
         setMemChunk(memChunk.GetInt());
@@ -71,12 +79,12 @@ OclThread::OclThread(const rapidjson::Value &object) :
 
     const rapidjson::Value &compMode = object["comp_mode"];
     if (compMode.IsBool()) {
-        m_compMode = compMode.IsBool();
+        m_compMode = compMode.IsTrue() ? 1 : 0;
     }
 }
 
 
-OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity) :
+OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity, int unrollFactor) :
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
@@ -85,6 +93,7 @@ OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t af
     m_intensity(intensity),
     m_worksize(worksize)
 {
+    setUnrollFactor(unrollFactor);
 }
 
 
@@ -105,6 +114,27 @@ void OclThread::setStridedIndex(int stridedIndex)
 {
     if (stridedIndex >= 0 && stridedIndex <= 2) {
         m_stridedIndex = stridedIndex;
+    }
+}
+
+
+void OclThread::setUnrollFactor(int unrollFactor)
+{
+    // Unroll must be a power of 2, correct all invalid values
+    if (unrollFactor < 1) {
+        unrollFactor = 1;
+    }
+    else if (unrollFactor > 64) {
+        unrollFactor = 64;
+    }
+
+    m_unrollFactor = 1;
+    while (m_unrollFactor < unrollFactor) {
+        m_unrollFactor *= 2;
+    }
+
+    if (m_unrollFactor != unrollFactor) {
+        LOG_WARN("Unroll factor was force set to %d", m_unrollFactor);
     }
 }
 

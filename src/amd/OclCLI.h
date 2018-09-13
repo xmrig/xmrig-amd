@@ -57,6 +57,7 @@ private:
     inline int affinity(int index) const  { return get(m_affinity, index, -1); }
     inline int intensity(int index) const { return get(m_intensity, index, 0); }
     inline int worksize(int index) const  { return get(m_worksize, index, 8); }
+    inline int unrollFactor(int index) const { return get(m_unrollFactor, index, 8); }
 
     int get(const std::vector<int> &vector, int index, int defaultValue) const;
     void parse(std::vector<int> &vector, const char *arg) const;
@@ -65,6 +66,7 @@ private:
     std::vector<int> m_devices;
     std::vector<int> m_intensity;
     std::vector<int> m_worksize;
+    std::vector<int> m_unrollFactor;
 };
 
 
