@@ -645,37 +645,49 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 	if (gIdx < Threads)
 #	endif
 	{
-		Scratchpad += gIdx * (MEMORY >> 4);
 		states += 25 * gIdx;
-	}
-	
-	a[0] = states[0] ^ states[4];
-	a[1] = states[1] ^ states[5];
+#		if (STRIDED_INDEX == 0)
+		Scratchpad += gIdx * (MEMORY >> 4);
+#		elif (STRIDED_INDEX == 1)
+		Scratchpad += gIdx;
+#		elif (STRIDED_INDEX == 2)
+		Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
+#		endif
 
-	b[0] = states[2] ^ states[6];
-	b[1] = states[3] ^ states[7];
-	b[2] = states[8] ^ states[10];
-	b[3] = states[9] ^ states[11];
+		a[0] = states[0] ^ states[4];
+		a[1] = states[1] ^ states[5];
+
+		b[0] = states[2] ^ states[6];
+		b[1] = states[3] ^ states[7];
+		b[2] = states[8] ^ states[10];
+		b[3] = states[9] ^ states[11];
+	}
 	
 	ulong2 bx0 = ((ulong2 *)b)[0];
 	ulong2 bx1 = ((ulong2 *)b)[1];
 	
 	mem_fence(CLK_LOCAL_MEM_FENCE);
 
-	uint2 division_result = as_uint2(states[12]);
-	uint sqrt_result = as_uint2(states[13]).s0;
-	
+#if (STRIDED_INDEX == 0)
 #define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
+#elif (STRIDED_INDEX == 1)
+#define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4)) * as_uint2(Threads).s0))
+#elif (STRIDED_INDEX == 2)
+#define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % (MEM_CHUNK << 4)) + ((idx ^ (N << 4)) / (MEM_CHUNK << 4)) * WORKSIZE * (MEM_CHUNK << 4))))
+#endif
 
 #   if (COMP_MODE == 1)
     // do not use early return here
     if (gIdx < Threads)
 #   endif
     {
+	uint2 division_result = as_uint2(states[12]);
+	uint sqrt_result = as_uint2(states[13]).s0;
+
 	#pragma unroll UNROLL_FACTOR
 	for(int i = 0; i < ITERATIONS; ++i)
 	{
-		ulong idx = a[0] & MASK;
+		uint idx = a[0] & MASK;
 		uint4 c = SCRATCHPAD_CHUNK(0);
 		c = AES_Round(AES0, AES1, AES2, AES3, c, ((uint4 *)a)[0]);
 
