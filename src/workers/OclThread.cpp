@@ -159,6 +159,7 @@ rapidjson::Value OclThread::toConfig(rapidjson::Document &doc) const
     obj.AddMember("worksize",      static_cast<uint64_t>(worksize()),  allocator);
     obj.AddMember("strided_index", stridedIndex(),                     allocator);
     obj.AddMember("mem_chunk",     memChunk(),                         allocator);
+    obj.AddMember("unroll_factor", unrollFactor(),                     allocator);
     obj.AddMember("comp_mode",     isCompMode(),                       allocator);
 
     if (affinity() >= 0) {

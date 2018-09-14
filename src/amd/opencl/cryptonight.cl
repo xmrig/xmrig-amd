@@ -582,7 +582,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
     if (gIdx < Threads)
 #   endif
     {
-        #pragma unroll 8
+        #pragma unroll UNROLL_FACTOR
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
@@ -881,7 +881,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
     {
         ulong idx0 = a[0];
 
-        #pragma unroll 8
+        #pragma unroll UNROLL_FACTOR
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
@@ -976,7 +976,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
     {
         ulong idx0 = a[0];
 
-        #pragma unroll 8
+        #pragma unroll UNROLL_FACTOR
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
