@@ -82,21 +82,21 @@ OclThread::OclThread(const rapidjson::Value &object) :
 
     const rapidjson::Value &compMode = object["comp_mode"];
     if (compMode.IsBool()) {
-        m_compMode = compMode.IsTrue() ? 1 : 0;
+        setCompMode(compMode.IsTrue());
     }
 }
 
 
-OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity, int unrollFactor) :
+OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity) :
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
+    m_unrollFactor(8),
     m_affinity(affinity),
     m_index(index),
     m_intensity(intensity),
     m_worksize(worksize)
 {
-    setUnrollFactor(unrollFactor);
 }
 
 
@@ -125,19 +125,20 @@ void OclThread::setUnrollFactor(int unrollFactor)
 {
     // Unroll must be a power of 2, correct all invalid values
     if (unrollFactor < 1) {
-        unrollFactor = 1;
+        m_unrollFactor = 1;
     }
-    else if (unrollFactor > 64) {
-        unrollFactor = 64;
+    else if (unrollFactor >= 64) {
+        m_unrollFactor = 64;
     }
-
-    m_unrollFactor = 1;
-    while (m_unrollFactor < unrollFactor) {
-        m_unrollFactor *= 2;
+    else {
+        m_unrollFactor = 1;
+        while (m_unrollFactor < unrollFactor) {
+            m_unrollFactor *= 2;
+        }
     }
 
     if (m_unrollFactor != unrollFactor) {
-        LOG_WARN("Unroll factor was force set to %d", m_unrollFactor);
+        LOG_WARN("GPU #%zu: Unroll factor was force set to %d", index(), m_unrollFactor);
     }
 }
 

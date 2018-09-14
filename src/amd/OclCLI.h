@@ -50,13 +50,20 @@ public:
     void autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config);
     void parseLaunch(const char *arg);
 
-    inline void parseAffinity(const char *arg) { parse(m_affinity, arg); }
-    inline void parseDevices(const char *arg)  { parse(m_devices, arg); }
+    inline void parseAffinity(const char *arg)     { parse(m_affinity, arg); }
+    inline void parseCompMode(const char *arg)     { parse(m_compMode, arg); }
+    inline void parseDevices(const char *arg)      { parse(m_devices, arg); }
+    inline void parseMemChunk(const char *arg)     { parse(m_memChunk, arg); }
+    inline void parseStridedIndex(const char *arg) { parse(m_stridedIndex, arg); }
+    inline void parseUnrollFactor(const char *arg) { parse(m_unrollFactor, arg); }
 
 private:
     inline bool isEmpty() const              { return m_devices.empty() && m_intensity.empty(); }
     inline int affinity(int index) const     { return get(m_affinity, index, -1); }
+    inline int compMode(int index) const     { return get(m_compMode, index, 1); }
     inline int intensity(int index) const    { return get(m_intensity, index, 0); }
+    inline int memChunk(int index) const     { return get(m_memChunk, index, 2); }
+    inline int stridedIndex(int index) const { return get(m_stridedIndex, index, 1); }
     inline int unrollFactor(int index) const { return get(m_unrollFactor, index, 8); }
     inline int worksize(int index) const     { return get(m_worksize, index, 8); }
 
@@ -64,8 +71,11 @@ private:
     void parse(std::vector<int> &vector, const char *arg) const;
 
     std::vector<int> m_affinity;
+    std::vector<int> m_compMode;
     std::vector<int> m_devices;
     std::vector<int> m_intensity;
+    std::vector<int> m_memChunk;
+    std::vector<int> m_stridedIndex;
     std::vector<int> m_unrollFactor;
     std::vector<int> m_worksize;
 };

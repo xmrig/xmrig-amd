@@ -50,7 +50,13 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
     }
 
     for (size_t i = 0; i < m_devices.size(); i++) {
-        threads.push_back(new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i), unrollFactor(i)));
+        OclThread *thread = new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i));
+        thread->setStridedIndex(stridedIndex(i));
+        thread->setMemChunk(memChunk(i));
+        thread->setUnrollFactor(unrollFactor(i));
+        thread->setCompMode(compMode(i) == 0 ? false : true);
+
+        threads.push_back(thread);
     }
 
     return true;
@@ -137,18 +143,12 @@ void OclCLI::parseLaunch(const char *arg)
             else if (count == 2) {
                 m_worksize.push_back(v > 0 ? v : 8);
             }
-            else if (count == 3) {
-                m_unrollFactor.push_back(v > 0 ? v : 8);
-            }
 
             pch = strtok(nullptr, "x");
         }
 
-        if (count < 2) {
+        if (count == 1) {
             m_worksize.push_back(8);
-        }
-        if (count < 3) {
-            m_unrollFactor.push_back(8);
         }
     }
 

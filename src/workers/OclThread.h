@@ -35,7 +35,7 @@ class OclThread : public xmrig::IThread
 public:
     OclThread();
     OclThread(const rapidjson::Value &object);
-    OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity = -1, int unrollFactor = 8);
+    OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity = -1);
     ~OclThread();
 
     inline bool isCompMode() const  { return m_compMode; }
@@ -46,6 +46,7 @@ public:
     inline size_t worksize() const  { return m_worksize; }
 
     inline void setAffinity(int64_t affinity)  { m_affinity = affinity; }
+    inline void setCompMode(bool enable)       { m_compMode = enable; }
     inline void setIndex(size_t index)         { m_index = index; }
     inline void setIntensity(size_t intensity) { m_intensity = intensity; }
     inline void setWorksize(size_t worksize)   { m_worksize = worksize; }

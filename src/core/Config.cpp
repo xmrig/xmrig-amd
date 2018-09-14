@@ -158,7 +158,7 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     }
 
     switch (key) {
-    case OclCache: /* cache */
+    case OclCacheKey: /* cache */
         m_cache = enable;
         break;
 
@@ -177,31 +177,47 @@ bool xmrig::Config::parseString(int key, const char *arg)
     }
 
     switch (key) {
-    case OclDevices: /* --opencl-devices */
+    case OclDevicesKey: /* --opencl-devices */
         m_oclCLI.parseDevices(arg);
         break;
 
-    case OclLaunch: /* --opencl-launch */
+    case OclLaunchKey: /* --opencl-launch */
         m_oclCLI.parseLaunch(arg);
         break;
 
-    case OclAffinity: /* --opencl-affinity */
+    case OclAffinityKey: /* --opencl-affinity */
         m_oclCLI.parseAffinity(arg);
         break;
 
-    case OclCache: /* --no-cache */
+    case OclSridedIndexKey: /* --opencl-srided-index */
+        m_oclCLI.parseStridedIndex(arg);
+        break;
+
+    case OclMemChunkKey: /* --opencl-mem-chunk */
+        m_oclCLI.parseMemChunk(arg);
+        break;
+
+    case OclUnrollKey: /* --opencl-unroll-factor */
+        m_oclCLI.parseUnrollFactor(arg);
+        break;
+
+    case OclCompModeKey: /* --opencl-comp-mode */
+        m_oclCLI.parseCompMode(arg);
+        break;
+
+    case OclCacheKey: /* --no-cache */
         return parseBoolean(key, false);
 
-    case OclPrint: /* --print-platforms */
+    case OclPrintKey: /* --print-platforms */
         if (OclLib::init(loader())) {
             printPlatforms();
         }
         return false;
 
-    case OclPlatform: /* --opencl-platform */
+    case OclPlatformKey: /* --opencl-platform */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
-    case OclLoader: /* --opencl-loader */
+    case OclLoaderKey: /* --opencl-loader */
         m_loader = arg;
         break;
 
@@ -220,7 +236,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     }
 
     switch (key) {
-    case OclPlatform: /* --opencl-platform */
+    case OclPlatformKey: /* --opencl-platform */
         m_platformIndex = static_cast<int>(arg);
         break;
 
