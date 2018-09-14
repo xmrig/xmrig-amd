@@ -168,6 +168,14 @@ void Workers::setJob(const Job &job, bool donate)
 
 bool Workers::start(xmrig::Controller *controller)
 {
+#   ifdef APP_DEBUG
+    LOG_NOTICE("THREADS ------------------------------------------------------------------");
+    for (const xmrig::IThread *thread : controller->config()->threads()) {
+        thread->print();
+    }
+    LOG_NOTICE("--------------------------------------------------------------------------");
+#   endif
+
     m_controller = controller;
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     size_t ways = 0;

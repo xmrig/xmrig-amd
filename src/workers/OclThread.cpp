@@ -22,6 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -138,6 +140,16 @@ void OclThread::setUnrollFactor(int unrollFactor)
         LOG_WARN("Unroll factor was force set to %d", m_unrollFactor);
     }
 }
+
+
+#ifdef APP_DEBUG
+void OclThread::print() const
+{
+    LOG_DEBUG(GREEN_BOLD("OpenCL thread:") " index " WHITE_BOLD("%zu") ", intensity " WHITE_BOLD("%zu") ", worksize " WHITE_BOLD("%zu") ",", index(), intensity(), worksize());
+    LOG_DEBUG("               strided_index %d, mem_chunk %d, unroll_factor %d, comp_mode %d,", stridedIndex(), memChunk(), unrollFactor(), isCompMode());
+    LOG_DEBUG("               affine_to_cpu: %" PRId64, affinity());
+}
+#endif
 
 
 #ifndef XMRIG_NO_API

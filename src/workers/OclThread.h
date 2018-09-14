@@ -41,9 +41,9 @@ public:
     inline bool isCompMode() const  { return m_compMode; }
     inline int memChunk() const     { return m_memChunk; }
     inline int stridedIndex() const { return m_stridedIndex; }
+    inline int unrollFactor() const { return m_unrollFactor; }
     inline size_t intensity() const { return m_intensity; }
     inline size_t worksize() const  { return m_worksize; }
-    inline int unrollFactor() const { return m_unrollFactor; }
 
     inline void setAffinity(int64_t affinity)  { m_affinity = affinity; }
     inline void setIndex(size_t index)         { m_index = index; }
@@ -60,6 +60,10 @@ public:
     void setMemChunk(int memChunk);
     void setStridedIndex(int stridedIndex);
     void setUnrollFactor(int unrollFactor);
+
+#   ifdef APP_DEBUG
+    void print() const override;
+#   endif
 
 protected:
 #   ifndef XMRIG_NO_API
