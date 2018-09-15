@@ -62,11 +62,11 @@ public:
     void setStridedIndex(int stridedIndex);
     void setUnrollFactor(int unrollFactor);
 
+protected:
 #   ifdef APP_DEBUG
     void print() const override;
 #   endif
 
-protected:
 #   ifndef XMRIG_NO_API
     rapidjson::Value toAPI(rapidjson::Document &doc) const override;
 #   endif
