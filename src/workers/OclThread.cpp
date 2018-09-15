@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,18 +22,22 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
 
 #include "rapidjson/document.h"
 #include "workers/OclThread.h"
+#include "common/log/Log.h"
 
 
 OclThread::OclThread() :
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
+    m_unrollFactor(8),
     m_affinity(-1),
     m_index(0),
     m_intensity(0),
@@ -45,6 +50,7 @@ OclThread::OclThread(const rapidjson::Value &object) :
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
+    m_unrollFactor(8),
     m_affinity(-1)
 {
     setIndex(object["index"].GetInt());
@@ -64,6 +70,11 @@ OclThread::OclThread(const rapidjson::Value &object) :
         setStridedIndex(stridedIndex.GetInt());
     }
 
+    const rapidjson::Value &unrollFactor = object["unroll_factor"];
+    if (unrollFactor.IsUint()) {
+        setUnrollFactor(unrollFactor.GetInt());
+    }
+
     const rapidjson::Value &memChunk = object["mem_chunk"];
     if (memChunk.IsUint()) {
         setMemChunk(memChunk.GetInt());
@@ -71,7 +82,7 @@ OclThread::OclThread(const rapidjson::Value &object) :
 
     const rapidjson::Value &compMode = object["comp_mode"];
     if (compMode.IsBool()) {
-        m_compMode = compMode.IsBool();
+        setCompMode(compMode.IsTrue());
     }
 }
 
@@ -80,6 +91,7 @@ OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t af
     m_compMode(true),
     m_memChunk(2),
     m_stridedIndex(1),
+    m_unrollFactor(8),
     m_affinity(affinity),
     m_index(index),
     m_intensity(intensity),
@@ -109,6 +121,38 @@ void OclThread::setStridedIndex(int stridedIndex)
 }
 
 
+void OclThread::setUnrollFactor(int unrollFactor)
+{
+    // Unroll must be a power of 2, correct all invalid values
+    if (unrollFactor < 1) {
+        m_unrollFactor = 1;
+    }
+    else if (unrollFactor >= 64) {
+        m_unrollFactor = 64;
+    }
+    else {
+        m_unrollFactor = 1;
+        while (m_unrollFactor < unrollFactor) {
+            m_unrollFactor *= 2;
+        }
+    }
+
+    if (m_unrollFactor != unrollFactor) {
+        LOG_WARN("GPU #%zu: Unroll factor was force set to %d", index(), m_unrollFactor);
+    }
+}
+
+
+#ifdef APP_DEBUG
+void OclThread::print() const
+{
+    LOG_DEBUG(GREEN_BOLD("OpenCL thread:") " index " WHITE_BOLD("%zu") ", intensity " WHITE_BOLD("%zu") ", worksize " WHITE_BOLD("%zu") ",", index(), intensity(), worksize());
+    LOG_DEBUG("               strided_index %d, mem_chunk %d, unroll_factor %d, comp_mode %d,", stridedIndex(), memChunk(), unrollFactor(), isCompMode());
+    LOG_DEBUG("               affine_to_cpu: %" PRId64, affinity());
+}
+#endif
+
+
 #ifndef XMRIG_NO_API
 rapidjson::Value OclThread::toAPI(rapidjson::Document &doc) const
 {
@@ -129,6 +173,7 @@ rapidjson::Value OclThread::toConfig(rapidjson::Document &doc) const
     obj.AddMember("worksize",      static_cast<uint64_t>(worksize()),  allocator);
     obj.AddMember("strided_index", stridedIndex(),                     allocator);
     obj.AddMember("mem_chunk",     memChunk(),                         allocator);
+    obj.AddMember("unroll_factor", unrollFactor(),                     allocator);
     obj.AddMember("comp_mode",     isCompMode(),                       allocator);
 
     if (affinity() >= 0) {

@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -49,7 +50,13 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
     }
 
     for (size_t i = 0; i < m_devices.size(); i++) {
-        threads.push_back(new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i)));
+        OclThread *thread = new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i));
+        thread->setStridedIndex(stridedIndex(i));
+        thread->setMemChunk(memChunk(i));
+        thread->setUnrollFactor(unrollFactor(i));
+        thread->setCompMode(compMode(i) == 0 ? false : true);
+
+        threads.push_back(thread);
     }
 
     return true;

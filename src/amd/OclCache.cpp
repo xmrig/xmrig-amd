@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -52,10 +53,11 @@ OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
+
     const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d",
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d -DUNROLL_FACTOR=%d",
              xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
@@ -63,7 +65,8 @@ bool OclCache::load()
              static_cast<int>(1u << m_ctx->memChunk),
              m_ctx->compMode,
              xmrig::cn_select_memory(algo),
-             static_cast<int>(algo)
+             static_cast<int>(algo),
+             m_ctx->unrollFactor
              );
 
     if (!prepare(options)) {
