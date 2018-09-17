@@ -5,6 +5,7 @@ option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
+option(WITH_TLS       "Enable OpenSSL support" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
@@ -139,15 +140,12 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
+        res/app.rc
         src/amd/OclCache_win.cpp
         src/App_win.cpp
         src/common/Platform_win.cpp
         src/Cpu_win.cpp
         )
-
-    if (NOT CMAKE_CXX_COMPILER_ID MATCHES GNU)
-        set(SOURCES_OS ${SOURCES_OS} res/app.rc)
-    endif()
 
     add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
@@ -200,6 +198,8 @@ else()
     set(SOURCES_CPUID src/Cpu_stub.cpp)
 endif()
 
+include(cmake/OpenSSL.cmake)
+
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
@@ -239,6 +239,7 @@ if (WITH_HTTPD)
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
     endif()
 else()
+    set(HTTPD_SOURCES "")
     set(MHD_LIBRARY "")
     add_definitions(/DXMRIG_NO_HTTPD)
     add_definitions(/DXMRIG_NO_API)
@@ -256,5 +257,5 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})
