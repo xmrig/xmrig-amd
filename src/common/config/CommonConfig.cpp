@@ -48,6 +48,11 @@
 #endif
 
 
+#ifdef XMRIG_NVIDIA_PROJECT
+#   include "nvidia/cryptonight.h"
+#endif
+
+
 #include "common/config/CommonConfig.h"
 #include "common/log/Log.h"
 #include "donate.h"
@@ -163,6 +168,9 @@ void xmrig::CommonConfig::printVersions()
     const char *ocl = "0.0";
 #   endif
     int length = snprintf(buf, sizeof buf, "OpenCL/%s ", ocl);
+#   elif defined(XMRIG_NVIDIA_PROJECT)
+    const int cudaVersion = cuda_get_runtime_version();
+    int length = snprintf(buf, sizeof buf, "CUDA/%d.%d ", cudaVersion / 1000, cudaVersion % 100);
 #   else
     memset(buf, 0, 16);
     int length = 0;
@@ -178,7 +186,6 @@ void xmrig::CommonConfig::printVersions()
 #   ifndef XMRIG_NO_HTTPD
     length += snprintf(buf + length, (sizeof buf) - length, "microhttpd/%s ", MHD_get_version());
 #   endif
-
 
     Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s")
                               : " * %-13slibuv/%s %s",
