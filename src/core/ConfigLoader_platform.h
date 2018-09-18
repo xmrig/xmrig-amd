@@ -124,6 +124,8 @@ static struct option const options[] = {
     { "user-agent",           1, nullptr, xmrig::IConfig::UserAgentKey      },
     { "userpass",             1, nullptr, xmrig::IConfig::UserpassKey       },
     { "rig-id",               1, nullptr, xmrig::IConfig::RigIdKey          },
+    { "tls",                  0, nullptr, xmrig::IConfig::TlsKey            },
+    { "tls-fingerprint",      1, nullptr, xmrig::IConfig::FingerprintKey    },
     { "version",              0, nullptr, xmrig::IConfig::VersionKey        },
     { "opencl-affinity",      1, nullptr, xmrig::IConfig::OclAffinityKey    },
     { "opencl-devices",       1, nullptr, xmrig::IConfig::OclDevicesKey     },
@@ -131,8 +133,8 @@ static struct option const options[] = {
     { "opencl-platform",      1, nullptr, xmrig::IConfig::OclPlatformKey    },
     { "opencl-srided-index",  1, nullptr, xmrig::IConfig::OclSridedIndexKey },
     { "opencl-mem-chunk",     1, nullptr, xmrig::IConfig::OclMemChunkKey    },
-    { "opencl-unroll-factor", 1, nullptr, xmrig::IConfig::OclUnrollKey   },
-    { "opencl-comp-mode",     1, nullptr, xmrig::IConfig::OclCompModeKey },
+    { "opencl-unroll-factor", 1, nullptr, xmrig::IConfig::OclUnrollKey      },
+    { "opencl-comp-mode",     1, nullptr, xmrig::IConfig::OclCompModeKey    },
     { "no-cache",             0, nullptr, xmrig::IConfig::OclCacheKey       },
     { "print-platforms",      0, nullptr, xmrig::IConfig::OclPrintKey       },
     { "opencl-loader",        1, nullptr, xmrig::IConfig::OclLoaderKey      },
@@ -160,15 +162,17 @@ static struct option const config_options[] = {
 
 
 static struct option const pool_options[] = {
-    { "url",           1, nullptr, xmrig::IConfig::UrlKey        },
-    { "pass",          1, nullptr, xmrig::IConfig::PasswordKey   },
-    { "user",          1, nullptr, xmrig::IConfig::UserKey       },
-    { "userpass",      1, nullptr, xmrig::IConfig::UserpassKey   },
-    { "nicehash",      0, nullptr, xmrig::IConfig::NicehashKey   },
-    { "keepalive",     2, nullptr, xmrig::IConfig::KeepAliveKey  },
-    { "variant",       1, nullptr, xmrig::IConfig::VariantKey    },
-    { "rig-id",        1, nullptr, xmrig::IConfig::RigIdKey      },
-    { nullptr,         0, nullptr, 0 }
+    { "url",             1, nullptr, xmrig::IConfig::UrlKey         },
+    { "pass",            1, nullptr, xmrig::IConfig::PasswordKey    },
+    { "user",            1, nullptr, xmrig::IConfig::UserKey        },
+    { "userpass",        1, nullptr, xmrig::IConfig::UserpassKey    },
+    { "nicehash",        0, nullptr, xmrig::IConfig::NicehashKey    },
+    { "keepalive",       2, nullptr, xmrig::IConfig::KeepAliveKey   },
+    { "variant",         1, nullptr, xmrig::IConfig::VariantKey     },
+    { "rig-id",          1, nullptr, xmrig::IConfig::RigIdKey       },
+    { "tls",             0, nullptr, xmrig::IConfig::TlsKey         },
+    { "tls-fingerprint", 1, nullptr, xmrig::IConfig::FingerprintKey },
+    { nullptr,           0, nullptr, 0 }
 };
 
 

@@ -21,36 +21,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_VERSION_H
-#define XMRIG_VERSION_H
+#ifndef XMRIG_TLS_H
+#define XMRIG_TLS_H
 
-#define APP_ID        "xmrig-amd"
-#define APP_NAME      "XMRig-AMD"
-#define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.8.0-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
-#define APP_KIND      "amd"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  8
-#define APP_VER_PATCH  0
+#include <openssl/ssl.h>
 
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1910)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
 
-#endif /* XMRIG_VERSION_H */
+#include "common/net/Client.h"
+
+
+class Client::Tls
+{
+public:
+    Tls(Client *client);
+    ~Tls();
+
+    bool handshake();
+    bool send(const char *data, size_t size);
+    const char *fingerprint() const;
+    const char *version() const;
+    void read(const char *data, size_t size);
+
+private:
+    bool send();
+    bool verify(X509 *cert);
+    bool verifyFingerprint(X509 *cert);
+
+    BIO *m_readBio;
+    BIO *m_writeBio;
+    bool m_ready;
+    char m_buf[1024 * 2];
+    char m_fingerprint[32 * 2 + 8];
+    Client *m_client;
+    SSL *m_ssl;
+    SSL_CTX *m_ctx;
+};
+
+
+#endif /* XMRIG_TLS_H */
