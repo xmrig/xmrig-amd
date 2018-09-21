@@ -63,15 +63,9 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
 }
 
 
-void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config)
+void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *config)
 {
-    *platformIndex = getAMDPlatformIdx(config);
-    if (*platformIndex == -1) {
-        LOG_ERR("No AMD OpenCL platform found. Possible driver issues or wrong vendor driver.");
-        return;
-    }
-
-    std::vector<GpuContext> devices = getAMDDevices(*platformIndex, config);
+    std::vector<GpuContext> devices = getAMDDevices(config->platformIndex(), config);
     if (devices.empty()) {
         LOG_ERR("No AMD device found.");
         return;

@@ -47,7 +47,7 @@ public:
     OclCLI();
 
     bool setup(std::vector<xmrig::IThread *> &threads);
-    void autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config);
+    void autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *config);
     void parseLaunch(const char *arg);
 
     inline void parseAffinity(const char *arg)     { parse(m_affinity, arg); }

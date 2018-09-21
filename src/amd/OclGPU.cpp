@@ -261,6 +261,69 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 }
 
 
+int OclGPU::findPlatformIdx(xmrig::Config *config)
+{
+    assert(config->vendor() > xmrig::OCL_VENDOR_MANUAL);
+
+#   if !defined(__APPLE__)
+    char name[256]  = { 0 };
+    const int index = findPlatformIdx(config->vendor(), name, sizeof name);
+
+    if (index >= 0) {
+        LOG_INFO(config->isColors() ? GREEN_BOLD("found ") WHITE_BOLD("%s") " platform index: " WHITE_BOLD("%d") ", name: " WHITE_BOLD("%s")
+                                    : "found %s platform index: %d, name: %s",
+                 config->vendorName(config->vendor()), index , name);
+    }
+
+    return index;
+#   else
+    return 0;
+#   endif
+}
+
+
+int OclGPU::findPlatformIdx(xmrig::OclVendor vendor, char *name, size_t nameSize)
+{
+#   if !defined(__APPLE__)
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    if (platforms.empty()) {
+        return -1;
+    }
+
+    for (uint32_t i = 0; i < platforms.size(); i++) {
+        OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, nameSize, name, nullptr);
+
+        switch (vendor) {
+        case xmrig::OCL_VENDOR_AMD:
+            if (strstr(name, "Advanced Micro Devices") != nullptr) {
+                return i;
+            }
+            break;
+
+        case xmrig::OCL_VENDOR_NVIDIA:
+            if (strstr(name, "NVIDIA") != nullptr) {
+                return i;
+            }
+            break;
+
+        case xmrig::OCL_VENDOR_INTEL:
+            if (strstr(name, "Intel") != nullptr) {
+                return i;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    return -1;
+#   else
+    return 0;
+#   endif
+}
+
+
 void printPlatforms()
 {
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
@@ -274,34 +337,6 @@ void printPlatforms()
 
         printf("#%zu: %s\n", i, buf);
     }
-}
-
-
-int getAMDPlatformIdx(xmrig::Config *config)
-{
-#   if !defined(__APPLE__)
-    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
-    if (platforms.empty()) {
-        return -1;
-    }
-
-    int platformIndex = -1;
-    char buf[256] = { 0 };
-
-    for (uint32_t i = 0; i < platforms.size(); i++) {
-        OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr);
-
-        if (strstr(buf, "Advanced Micro Devices") != nullptr) {
-            platformIndex = i;
-            LOG_INFO(config->isColors() ? "\x1B[01;32mfound\x1B[0m AMD platform index: \x1B[01;37m%d\x1B[0m, name: \x1B[01;37m%s" : "found AMD platform index: %d, name: %s", i , buf);
-            break;
-        }
-    }
-
-    return platformIndex;
-#   else
-    return 0;
-#   endif
 }
 
 

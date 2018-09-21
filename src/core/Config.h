@@ -60,8 +60,10 @@ public:
     inline const char *loader() const                    { return m_loader.data(); }
     inline const std::vector<IThread *> &threads() const { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
+    inline xmrig::OclVendor vendor() const               { return m_vendor; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
+    static const char *vendorName(xmrig::OclVendor vendor);
 
 protected:
     bool finalize() override;
@@ -72,6 +74,8 @@ protected:
 
 private:
     void parseThread(const rapidjson::Value &object);
+    void setPlatformIndex(const char *name);
+    void setPlatformIndex(int index);
 
     bool m_autoConf;
     bool m_cache;
@@ -80,6 +84,7 @@ private:
     OclCLI m_oclCLI;
     std::vector<IThread *> m_threads;
     xmrig::c_str m_loader;
+    xmrig::OclVendor m_vendor;
 };
 
 

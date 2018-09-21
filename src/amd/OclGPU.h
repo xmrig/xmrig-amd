@@ -31,6 +31,7 @@
 
 
 #include "amd/GpuContext.h"
+#include "common/xmrig.h"
 
 
 namespace xmrig {
@@ -38,8 +39,17 @@ namespace xmrig {
 }
 
 
+class OclGPU
+{
+public:
+    static int findPlatformIdx(xmrig::Config *config);
+
+private:
+    static int findPlatformIdx(xmrig::OclVendor vendor, char *name, size_t nameSize);
+};
+
+
 void printPlatforms();
-int getAMDPlatformIdx(xmrig::Config *config);
 std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config);
 
 size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config);
