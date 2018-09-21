@@ -61,6 +61,22 @@ xmrig::Config::~Config()
 }
 
 
+bool xmrig::Config::isCNv2() const
+{
+    if (algorithm().algo() != CRYPTONIGHT) {
+        return false;
+    }
+
+    for (const Pool pool : pools()) {
+        if (pool.algorithm().variant() == VARIANT_2 || pool.algorithm().variant() == VARIANT_AUTO) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 bool xmrig::Config::oclInit()
 {
     LOG_WARN("compiling code and initializing GPUs. This will take a while...");

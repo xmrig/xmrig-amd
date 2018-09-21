@@ -47,8 +47,9 @@ class Config : public CommonConfig
 {
 public:
     Config();
-    ~Config();
+    ~Config() override;
 
+    bool isCNv2() const;
     bool oclInit();
     bool reload(const char *json);
 

@@ -63,7 +63,7 @@ private:
     inline int compMode(int index) const     { return get(m_compMode, index, 1); }
     inline int intensity(int index) const    { return get(m_intensity, index, 0); }
     inline int memChunk(int index) const     { return get(m_memChunk, index, 2); }
-    inline int stridedIndex(int index) const { return get(m_stridedIndex, index, 1); }
+    inline int stridedIndex(int index) const { return get(m_stridedIndex, index, 2); }
     inline int unrollFactor(int index) const { return get(m_unrollFactor, index, 8); }
     inline int worksize(int index) const     { return get(m_worksize, index, 8); }
 

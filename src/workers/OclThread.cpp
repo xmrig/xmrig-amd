@@ -36,7 +36,7 @@
 OclThread::OclThread() :
     m_compMode(true),
     m_memChunk(2),
-    m_stridedIndex(1),
+    m_stridedIndex(2),
     m_unrollFactor(8),
     m_affinity(-1),
     m_index(0),
@@ -49,7 +49,7 @@ OclThread::OclThread() :
 OclThread::OclThread(const rapidjson::Value &object) :
     m_compMode(true),
     m_memChunk(2),
-    m_stridedIndex(1),
+    m_stridedIndex(2),
     m_unrollFactor(8),
     m_affinity(-1)
 {
@@ -96,7 +96,7 @@ OclThread::OclThread(const rapidjson::Value &object) :
 OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity) :
     m_compMode(true),
     m_memChunk(2),
-    m_stridedIndex(1),
+    m_stridedIndex(2),
     m_unrollFactor(8),
     m_affinity(affinity),
     m_index(index),
