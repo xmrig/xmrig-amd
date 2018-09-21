@@ -134,6 +134,7 @@ static struct option const options[] = {
     { "opencl-srided-index",  1, nullptr, xmrig::IConfig::OclSridedIndexKey },
     { "opencl-mem-chunk",     1, nullptr, xmrig::IConfig::OclMemChunkKey    },
     { "opencl-unroll-factor", 1, nullptr, xmrig::IConfig::OclUnrollKey      },
+    { "opencl-unroll",        1, nullptr, xmrig::IConfig::OclUnrollKey      },
     { "opencl-comp-mode",     1, nullptr, xmrig::IConfig::OclCompModeKey    },
     { "no-cache",             0, nullptr, xmrig::IConfig::OclCacheKey       },
     { "print-platforms",      0, nullptr, xmrig::IConfig::OclPrintKey       },

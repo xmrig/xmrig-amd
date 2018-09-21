@@ -70,9 +70,15 @@ OclThread::OclThread(const rapidjson::Value &object) :
         setStridedIndex(stridedIndex.GetInt());
     }
 
+    // DEPRECATED
     const rapidjson::Value &unrollFactor = object["unroll_factor"];
     if (unrollFactor.IsUint()) {
         setUnrollFactor(unrollFactor.GetInt());
+    }
+
+    const rapidjson::Value &unroll = object["unroll"];
+    if (unroll.IsUint()) {
+        setUnrollFactor(unroll.GetInt());
     }
 
     const rapidjson::Value &memChunk = object["mem_chunk"];

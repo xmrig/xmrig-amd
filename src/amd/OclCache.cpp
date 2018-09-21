@@ -53,7 +53,6 @@ OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
-
     const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
