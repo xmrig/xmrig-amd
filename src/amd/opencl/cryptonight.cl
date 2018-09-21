@@ -628,50 +628,50 @@ R"===(
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
 {
-	ulong a[2], b[4];
-	__local uint AES0[256], AES1[256], AES2[256], AES3[256], RCP[256];
-	
-	const ulong gIdx = getIdx();
+    ulong a[2], b[4];
+    __local uint AES0[256], AES1[256], AES2[256], AES3[256], RCP[256];
+    
+    const ulong gIdx = getIdx();
 
-	for(int i = get_local_id(0); i < 256; i += WORKSIZE)
-	{
-		const uint tmp = AES0_C[i];
-		AES0[i] = tmp;
-		AES1[i] = rotate(tmp, 8U);
-		AES2[i] = rotate(tmp, 16U);
-		AES3[i] = rotate(tmp, 24U);
-		RCP[i] = RCP_C[i];
-	}
+    for(int i = get_local_id(0); i < 256; i += WORKSIZE)
+    {
+        const uint tmp = AES0_C[i];
+        AES0[i] = tmp;
+        AES1[i] = rotate(tmp, 8U);
+        AES2[i] = rotate(tmp, 16U);
+        AES3[i] = rotate(tmp, 24U);
+        RCP[i] = RCP_C[i];
+    }
 
-	barrier(CLK_LOCAL_MEM_FENCE);
+    barrier(CLK_LOCAL_MEM_FENCE);
 
-#	if (COMP_MODE == 1)
-	// do not use early return here
-	if (gIdx < Threads)
-#	endif
-	{
-		states += 25 * gIdx;
-#		if (STRIDED_INDEX == 0)
-		Scratchpad += gIdx * (MEMORY >> 4);
-#		elif (STRIDED_INDEX == 1)
-		Scratchpad += gIdx;
-#		elif (STRIDED_INDEX == 2)
-		Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
-#		endif
+#   if (COMP_MODE == 1)
+    // do not use early return here
+    if (gIdx < Threads)
+#   endif
+    {
+        states += 25 * gIdx;
+#       if (STRIDED_INDEX == 0)
+        Scratchpad += gIdx * (MEMORY >> 4);
+#       elif (STRIDED_INDEX == 1)
+        Scratchpad += gIdx;
+#       elif (STRIDED_INDEX == 2)
+        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
+#       endif
 
-		a[0] = states[0] ^ states[4];
-		a[1] = states[1] ^ states[5];
+        a[0] = states[0] ^ states[4];
+        a[1] = states[1] ^ states[5];
 
-		b[0] = states[2] ^ states[6];
-		b[1] = states[3] ^ states[7];
-		b[2] = states[8] ^ states[10];
-		b[3] = states[9] ^ states[11];
-	}
-	
-	ulong2 bx0 = ((ulong2 *)b)[0];
-	ulong2 bx1 = ((ulong2 *)b)[1];
-	
-	mem_fence(CLK_LOCAL_MEM_FENCE);
+        b[0] = states[2] ^ states[6];
+        b[1] = states[3] ^ states[7];
+        b[2] = states[8] ^ states[10];
+        b[3] = states[9] ^ states[11];
+    }
+    
+    ulong2 bx0 = ((ulong2 *)b)[0];
+    ulong2 bx1 = ((ulong2 *)b)[1];
+    
+    mem_fence(CLK_LOCAL_MEM_FENCE);
 
 #if (STRIDED_INDEX == 0)
 #define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
@@ -686,59 +686,59 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
     if (gIdx < Threads)
 #   endif
     {
-	uint2 division_result = as_uint2(states[12]);
-	uint sqrt_result = as_uint2(states[13]).s0;
+    uint2 division_result = as_uint2(states[12]);
+    uint sqrt_result = as_uint2(states[13]).s0;
 
-	#pragma unroll UNROLL_FACTOR
-	for(int i = 0; i < ITERATIONS; ++i)
-	{
-		uint idx = a[0] & MASK;
-		uint4 c = SCRATCHPAD_CHUNK(0);
-		c = AES_Round(AES0, AES1, AES2, AES3, c, ((uint4 *)a)[0]);
+    #pragma unroll UNROLL_FACTOR
+    for(int i = 0; i < ITERATIONS; ++i)
+    {
+        uint idx = a[0] & MASK;
+        uint4 c = SCRATCHPAD_CHUNK(0);
+        c = AES_Round(AES0, AES1, AES2, AES3, c, ((uint4 *)a)[0]);
 
-		{
-			const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1));
-			const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
-			const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
+        {
+            const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1));
+            const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
+            const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
 
-			SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
-			SCRATCHPAD_CHUNK(2) = as_uint4(chunk1 + bx0);
-			SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
-		}
+            SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
+            SCRATCHPAD_CHUNK(2) = as_uint4(chunk1 + bx0);
+            SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
+        }
 
-		SCRATCHPAD_CHUNK(0) = as_uint4(bx0) ^ c;
+        SCRATCHPAD_CHUNK(0) = as_uint4(bx0) ^ c;
 
-		idx = as_ulong2(c).s0 & MASK;
-		uint4 tmp = SCRATCHPAD_CHUNK(0);
+        idx = as_ulong2(c).s0 & MASK;
+        uint4 tmp = SCRATCHPAD_CHUNK(0);
 
-		{
-			tmp.s0 ^= division_result.s0;
-			tmp.s1 ^= division_result.s1 ^ sqrt_result;
+        {
+            tmp.s0 ^= division_result.s0;
+            tmp.s1 ^= division_result.s1 ^ sqrt_result;
 
-			division_result = fast_div_v2((__local uchar *) RCP, as_ulong2(c).s1, (c.s0 + (sqrt_result << 1)) | 0x80000001UL);
-			sqrt_result = fast_sqrt_v2(as_ulong2(c).s0 + as_ulong(division_result));
-		}
+            division_result = fast_div_v2((__local uchar *) RCP, as_ulong2(c).s1, (c.s0 + (sqrt_result << 1)) | 0x80000001UL);
+            sqrt_result = fast_sqrt_v2(as_ulong2(c).s0 + as_ulong(division_result));
+        }
 
-		{
-			const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1));
-			const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
-			const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
+        {
+            const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1));
+            const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
+            const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
 
-			SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
-			SCRATCHPAD_CHUNK(2) = as_uint4(chunk1 + bx0);
-			SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
-		}
+            SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
+            SCRATCHPAD_CHUNK(2) = as_uint4(chunk1 + bx0);
+            SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
+        }
 
-		a[1] += as_ulong2(c).s0 * as_ulong2(tmp).s0;
-		a[0] += mul_hi(as_ulong2(c).s0, as_ulong2(tmp).s0);
+        a[1] += as_ulong2(c).s0 * as_ulong2(tmp).s0;
+        a[0] += mul_hi(as_ulong2(c).s0, as_ulong2(tmp).s0);
 
-		SCRATCHPAD_CHUNK(0) = ((uint4 *)a)[0];
+        SCRATCHPAD_CHUNK(0) = ((uint4 *)a)[0];
 
-		((uint4 *)a)[0] ^= tmp;
-		bx1 = bx0;
-		bx0 = as_ulong2(c);
-	}
-	
+        ((uint4 *)a)[0] ^= tmp;
+        bx1 = bx0;
+        bx0 = as_ulong2(c);
+    }
+    
 #undef SCRATCHPAD_CHUNK
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
