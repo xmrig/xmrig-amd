@@ -129,23 +129,12 @@ void OclThread::setStridedIndex(int stridedIndex)
 
 void OclThread::setUnrollFactor(int unrollFactor)
 {
-    // Unroll must be a power of 2, correct all invalid values
     if (unrollFactor < 1) {
         m_unrollFactor = 1;
-    }
-    else if (unrollFactor >= 64) {
-        m_unrollFactor = 64;
-    }
-    else {
-        m_unrollFactor = 1;
-        while (m_unrollFactor < unrollFactor) {
-            m_unrollFactor *= 2;
-        }
+        return;
     }
 
-    if (m_unrollFactor != unrollFactor) {
-        LOG_WARN("GPU #%zu: Unroll factor was force set to %d", index(), m_unrollFactor);
-    }
+    m_unrollFactor = unrollFactor > 128 ? 128 : unrollFactor;
 }
 
 
