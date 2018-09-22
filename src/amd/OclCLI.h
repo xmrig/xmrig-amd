@@ -33,6 +33,7 @@
 
 
 class OclThread;
+struct GpuContext;
 
 
 namespace xmrig {
@@ -69,6 +70,9 @@ private:
 
     int get(const std::vector<int> &vector, int index, int defaultValue) const;
     void parse(std::vector<int> &vector, const char *arg) const;
+
+    static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo);
+    static size_t getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, size_t hashMemSize);
 
     std::vector<int> m_affinity;
     std::vector<int> m_compMode;

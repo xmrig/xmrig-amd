@@ -98,9 +98,14 @@ bool xmrig::Config::oclInit()
     if (m_vendor != OCL_VENDOR_MANUAL) {
         m_platformIndex = OclGPU::findPlatformIdx(this);
         if (m_platformIndex == -1) {
-            LOG_ERR("%s%s OpenCL platform NOT found", isColors() ? "\x1B[1;31m" : "", vendorName(m_vendor));
+            LOG_ERR("%s%s OpenCL platform NOT found.", isColors() ? "\x1B[1;31m" : "", vendorName(m_vendor));
             return false;
         }
+    }
+
+    if (m_platformIndex >= static_cast<int>(OclLib::getNumPlatforms())) {
+        LOG_ERR("%sSelected OpenCL platform index %d doesn't exist.", isColors() ? "\x1B[1;31m" : "", m_platformIndex);
+        return false;
     }
 
     if (m_threads.empty() && !m_oclCLI.setup(m_threads)) {
@@ -109,7 +114,7 @@ bool xmrig::Config::oclInit()
         m_oclCLI.autoConf(m_threads, this);
     }
 
-    return true;
+    return !m_threads.empty();
 }
 
 
@@ -130,20 +135,20 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
     Value api(kObjectType);
-    api.AddMember("port",         apiPort(), allocator);
-    api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("id",           apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("ipv6",         isApiIPv6(), allocator);
-    api.AddMember("restricted",   isApiRestricted(), allocator);
-    doc.AddMember("api",          api, allocator);
+    api.AddMember("port",            apiPort(), allocator);
+    api.AddMember("access-token",    apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("id",              apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("worker-id",       apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("ipv6",            isApiIPv6(), allocator);
+    api.AddMember("restricted",      isApiRestricted(), allocator);
+    doc.AddMember("api",             api, allocator);
 
-    doc.AddMember("background",   isBackground(), allocator);
-    doc.AddMember("cache",        isOclCache(), allocator);
-    doc.AddMember("colors",       isColors(), allocator);
-    doc.AddMember("donate-level", donateLevel(), allocator);
-    doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
-    doc.AddMember("opencl-platform", platformIndex(), allocator);
+    doc.AddMember("background",      isBackground(), allocator);
+    doc.AddMember("cache",           isOclCache(), allocator);
+    doc.AddMember("colors",          isColors(), allocator);
+    doc.AddMember("donate-level",    donateLevel(), allocator);
+    doc.AddMember("log-file",        logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
+    doc.AddMember("opencl-platform", vendor() == OCL_VENDOR_MANUAL ? Value(platformIndex()).Move() : Value(StringRef(vendorName(vendor()))).Move(), allocator);
     doc.AddMember("opencl-loader",   StringRef(loader()), allocator);
 
     Value pools(kArrayType);

@@ -43,6 +43,7 @@ class OclGPU
 {
 public:
     static int findPlatformIdx(xmrig::Config *config);
+    static std::vector<GpuContext> getDevices(xmrig::Config *config);
 
 private:
     static int findPlatformIdx(xmrig::OclVendor vendor, char *name, size_t nameSize);
@@ -50,7 +51,6 @@ private:
 
 
 void printPlatforms();
-std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config);
 
 size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config);
 size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant);
