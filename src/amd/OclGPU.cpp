@@ -83,7 +83,7 @@ inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, 
 }
 
 
-inline static int cnKernelOffset(uint32_t variant)
+inline static int cnKernelOffset(xmrig::Variant variant)
 {
     switch (variant) {
     case xmrig::VARIANT_0:
@@ -462,7 +462,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant)
+size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant)
 {
     cl_int ret;
 
@@ -511,7 +511,8 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     }
 
     // variant
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
+    const cl_uint v = static_cast<cl_uint>(variant);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &v)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
         return OCL_ERR_API;
     }
@@ -563,7 +564,7 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant)
+size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
 {
     cl_int ret;
     cl_uint zero = 0;
