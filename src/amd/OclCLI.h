@@ -33,6 +33,7 @@
 
 
 class OclThread;
+struct GpuContext;
 
 
 namespace xmrig {
@@ -47,7 +48,7 @@ public:
     OclCLI();
 
     bool setup(std::vector<xmrig::IThread *> &threads);
-    void autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config);
+    void autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *config);
     void parseLaunch(const char *arg);
 
     inline void parseAffinity(const char *arg)     { parse(m_affinity, arg); }
@@ -69,6 +70,9 @@ private:
 
     int get(const std::vector<int> &vector, int index, int defaultValue) const;
     void parse(std::vector<int> &vector, const char *arg) const;
+
+    static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo);
+    static size_t getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, size_t hashMemSize);
 
     std::vector<int> m_affinity;
     std::vector<int> m_compMode;

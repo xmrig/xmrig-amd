@@ -63,57 +63,30 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
 }
 
 
-void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, int *platformIndex, xmrig::Config *config)
+void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *config)
 {
-    *platformIndex = getAMDPlatformIdx(config);
-    if (*platformIndex == -1) {
-        LOG_ERR("No AMD OpenCL platform found. Possible driver issues or wrong vendor driver.");
-        return;
-    }
-
-    std::vector<GpuContext> devices = getAMDDevices(*platformIndex, config);
+    std::vector<GpuContext> devices = OclGPU::getDevices(config);
     if (devices.empty()) {
-        LOG_ERR("No AMD device found.");
+        LOG_ERR("No devices found.");
         return;
     }
 
-    constexpr size_t byteToMiB = 1024u * 1024u;
-    const size_t hashMemSize   = xmrig::cn_select_memory(config->algorithm().algo());
+    const size_t hashMemSize = xmrig::cn_select_memory(config->algorithm().algo());
 
-    for (GpuContext &ctx : devices) {
+    for (const GpuContext &ctx : devices) {
         // Vega APU slow and can cause BSOD, skip from autoconfig.
         if (ctx.name.compare("gfx902") == 0) {
             continue;
         }
 
-        size_t maxThreads = 1000u;
-        if (
-            ctx.name.compare("gfx901") == 0 ||
-            ctx.name.compare("gfx904") == 0 ||
-            // UNKNOWN
-            ctx.name.compare("gfx900") == 0 ||
-            ctx.name.compare("gfx903") == 0 ||
-            ctx.name.compare("gfx905") == 0
-        )
-        {
-            /* Increase the number of threads for AMD VEGA gpus.
-             * Limit the number of threads based on the issue: https://github.com/fireice-uk/xmr-stak/issues/5#issuecomment-339425089
-             * to avoid out of memory errors
-             */
-            maxThreads = 2024u;
-        }
-
-        if (config->algorithm().algo() == xmrig::CRYPTONIGHT_LITE) {
-            maxThreads *= 2u;
-        }
-
-        const size_t availableMem      = ctx.freeMem - (128u * byteToMiB);
-        const size_t perThread         = hashMemSize + 224u;
-        const size_t maxIntensity      = availableMem / perThread;
-        const size_t possibleIntensity = std::min(maxThreads, maxIntensity);
+        const size_t maxThreads        = getMaxThreads(ctx, config->algorithm().algo());
+        const size_t possibleIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
         const size_t intensity         = (possibleIntensity / (8 * ctx.computeUnits)) * ctx.computeUnits * 8;
 
-        threads.push_back(new OclThread(ctx.deviceIdx, intensity, 8));
+        OclThread *thread = new OclThread(ctx.deviceIdx, intensity, 8);
+        thread->setStridedIndex(ctx.vendor == xmrig::OCL_VENDOR_NVIDIA ? 0 : 2);
+
+        threads.push_back(thread);
     }
 }
 
@@ -182,4 +155,47 @@ void OclCLI::parse(std::vector<int> &vector, const char *arg) const
     }
 
     free(value);
+}
+
+
+size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo)
+{
+    const size_t ratio = algo == xmrig::CRYPTONIGHT_LITE ? 2u : 1u;
+    if (ctx.vendor == xmrig::OCL_VENDOR_INTEL) {
+        return ratio * ctx.computeUnits * 8;
+    }
+
+    if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name.compare("gfx901") == 0 ||
+                                                ctx.name.compare("gfx904") == 0 ||
+                                                ctx.name.compare("gfx900") == 0 ||
+                                                ctx.name.compare("gfx903") == 0 ||
+                                                ctx.name.compare("gfx905") == 0))
+    {
+        /* Increase the number of threads for AMD VEGA gpus.
+         * Limit the number of threads based on the issue: https://github.com/fireice-uk/xmr-stak/issues/5#issuecomment-339425089
+         * to avoid out of memory errors
+         */
+        return ratio * 2024u;
+    }
+
+    if (ctx.vendor == xmrig::OCL_VENDOR_NVIDIA && (ctx.name.find("P100") != std::string::npos ||
+                                                   ctx.name.find("V100") != std::string::npos))
+    {
+        return 40000u;
+    }
+
+    return ratio * 1000u;
+}
+
+
+size_t OclCLI::getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, size_t hashMemSize)
+{
+    constexpr const size_t byteToMiB = 1024u * 1024u;
+
+    const size_t minFreeMem   = (maxThreads == 40000u ? 512u : 128u) * byteToMiB;
+    const size_t availableMem = ctx.freeMem - minFreeMem;
+    const size_t perThread    = hashMemSize + 224u;
+    const size_t maxIntensity = availableMem / perThread;
+
+    return std::min(maxThreads, maxIntensity);
 }

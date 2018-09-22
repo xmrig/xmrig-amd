@@ -37,6 +37,9 @@
 #include <string>
 
 
+#include "common/xmrig.h"
+
+
 struct GpuContext
 {
     inline GpuContext() :
@@ -47,6 +50,7 @@ struct GpuContext
         memChunk(2),
         compMode(1),
         unrollFactor(8),
+        vendor(xmrig::OCL_VENDOR_UNKNOWN),
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
@@ -68,6 +72,7 @@ struct GpuContext
         memChunk(memChunk),
         compMode(compMode ? 1 : 0),
         unrollFactor(unrollFactor),
+        vendor(xmrig::OCL_VENDOR_UNKNOWN),
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
@@ -88,6 +93,7 @@ struct GpuContext
     int memChunk;
     int compMode;
     int unrollFactor;
+    xmrig::OclVendor vendor;
 
     /*Output vars*/
     cl_device_id DeviceID;

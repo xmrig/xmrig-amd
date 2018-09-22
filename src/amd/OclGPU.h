@@ -31,6 +31,7 @@
 
 
 #include "amd/GpuContext.h"
+#include "common/xmrig.h"
 
 
 namespace xmrig {
@@ -38,12 +39,21 @@ namespace xmrig {
 }
 
 
-void printPlatforms();
-int getAMDPlatformIdx(xmrig::Config *config);
-std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config);
+class OclGPU
+{
+public:
+    static int findPlatformIdx(xmrig::Config *config);
+    static std::vector<GpuContext> getDevices(xmrig::Config *config);
 
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config);
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant);
-size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant);
+private:
+    static int findPlatformIdx(xmrig::OclVendor vendor, char *name, size_t nameSize);
+};
+
+
+void printPlatforms();
+
+size_t InitOpenCL(GpuContext *ctx, size_t num_gpus, xmrig::Config *config);
+size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant);
+size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant);
 
 #endif /* XMRIG_OCLGPU_H */

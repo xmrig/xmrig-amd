@@ -40,19 +40,33 @@
 #include "workers/OclThread.h"
 
 
+#ifdef _MSC_VER
+#   define strncasecmp _strnicmp
+#   define strcasecmp  _stricmp
+#endif
+
+
+static const char *vendors[] = {
+    "AMD",
+    "NVIDIA",
+    "Intel"
+};
+
+
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
     m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0),
 #   if defined(__APPLE__)
-    m_loader("/System/Library/Frameworks/OpenCL.framework/OpenCL")
+    m_loader("/System/Library/Frameworks/OpenCL.framework/OpenCL"),
 #   elif defined(_WIN32)
-    m_loader("OpenCL.dll")
+    m_loader("OpenCL.dll"),
 #   else
-    m_loader("libOpenCL.so")
+    m_loader("libOpenCL.so"),
 #   endif
-{
+    m_vendor(xmrig::OCL_VENDOR_AMD)
+{    
 }
 
 
@@ -81,13 +95,26 @@ bool xmrig::Config::oclInit()
 {
     LOG_WARN("compiling code and initializing GPUs. This will take a while...");
 
+    if (m_vendor != OCL_VENDOR_MANUAL) {
+        m_platformIndex = OclGPU::findPlatformIdx(this);
+        if (m_platformIndex == -1) {
+            LOG_ERR("%s%s OpenCL platform NOT found.", isColors() ? "\x1B[1;31m" : "", vendorName(m_vendor));
+            return false;
+        }
+    }
+
+    if (m_platformIndex >= static_cast<int>(OclLib::getNumPlatforms())) {
+        LOG_ERR("%sSelected OpenCL platform index %d doesn't exist.", isColors() ? "\x1B[1;31m" : "", m_platformIndex);
+        return false;
+    }
+
     if (m_threads.empty() && !m_oclCLI.setup(m_threads)) {
         m_autoConf   = true;
         m_shouldSave = true;
-        m_oclCLI.autoConf(m_threads, &m_platformIndex, this);
+        m_oclCLI.autoConf(m_threads, this);
     }
 
-    return true;
+    return !m_threads.empty();
 }
 
 
@@ -108,20 +135,20 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
     Value api(kObjectType);
-    api.AddMember("port",         apiPort(), allocator);
-    api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("id",           apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("ipv6",         isApiIPv6(), allocator);
-    api.AddMember("restricted",   isApiRestricted(), allocator);
-    doc.AddMember("api",          api, allocator);
+    api.AddMember("port",            apiPort(), allocator);
+    api.AddMember("access-token",    apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("id",              apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("worker-id",       apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("ipv6",            isApiIPv6(), allocator);
+    api.AddMember("restricted",      isApiRestricted(), allocator);
+    doc.AddMember("api",             api, allocator);
 
-    doc.AddMember("background",   isBackground(), allocator);
-    doc.AddMember("cache",        isOclCache(), allocator);
-    doc.AddMember("colors",       isColors(), allocator);
-    doc.AddMember("donate-level", donateLevel(), allocator);
-    doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
-    doc.AddMember("opencl-platform", platformIndex(), allocator);
+    doc.AddMember("background",      isBackground(), allocator);
+    doc.AddMember("cache",           isOclCache(), allocator);
+    doc.AddMember("colors",          isColors(), allocator);
+    doc.AddMember("donate-level",    donateLevel(), allocator);
+    doc.AddMember("log-file",        logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
+    doc.AddMember("opencl-platform", vendor() == OCL_VENDOR_MANUAL ? Value(platformIndex()).Move() : Value(StringRef(vendorName(vendor()))).Move(), allocator);
     doc.AddMember("opencl-loader",   StringRef(loader()), allocator);
 
     Value pools(kArrayType);
@@ -150,6 +177,16 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 xmrig::Config *xmrig::Config::load(int argc, char **argv, IWatcherListener *listener)
 {
     return static_cast<Config*>(ConfigLoader::load(argc, argv, new ConfigCreator(), listener));
+}
+
+
+const char *xmrig::Config::vendorName(xmrig::OclVendor vendor)
+{
+    if (vendor == xmrig::OCL_VENDOR_MANUAL) {
+        return "manual";
+    }
+
+    return vendors[vendor];
 }
 
 
@@ -231,7 +268,8 @@ bool xmrig::Config::parseString(int key, const char *arg)
         return false;
 
     case OclPlatformKey: /* --opencl-platform */
-        return parseUint64(key, strtol(arg, nullptr, 10));
+        setPlatformIndex(arg);
+        break;
 
     case OclLoaderKey: /* --opencl-loader */
         m_loader = arg;
@@ -253,7 +291,7 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 
     switch (key) {
     case OclPlatformKey: /* --opencl-platform */
-        m_platformIndex = static_cast<int>(arg);
+        setPlatformIndex(static_cast<int>(arg));
         break;
 
     default:
@@ -285,4 +323,30 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 void xmrig::Config::parseThread(const rapidjson::Value &object)
 {
     m_threads.push_back(new OclThread(object));
+}
+
+
+void xmrig::Config::setPlatformIndex(const char *name)
+{
+    constexpr size_t size = sizeof(vendors) / sizeof((vendors)[0]);
+
+    for (size_t i = 0; i < size; i++) {
+        if (strcasecmp(name, vendors[i]) == 0) {
+            m_vendor = static_cast<OclVendor>(i);
+            return;
+        }
+    }
+
+    setPlatformIndex(strtol(name, nullptr, 10));
+}
+
+
+void xmrig::Config::setPlatformIndex(int index)
+{
+    if (index < 0) {
+        return;
+    }
+
+    m_platformIndex = index;
+    m_vendor        = xmrig::OCL_VENDOR_MANUAL;
 }
