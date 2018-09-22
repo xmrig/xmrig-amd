@@ -67,7 +67,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
 {
     std::vector<GpuContext> devices = OclGPU::getDevices(config);
     if (devices.empty()) {
-        LOG_ERR("No devices found");
+        LOG_ERR("No devices found.");
         return;
     }
 
