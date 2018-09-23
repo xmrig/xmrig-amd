@@ -719,9 +719,13 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
             sqrt_result = fast_sqrt_v2(as_ulong2(c).s0 + as_ulong(division_result));
         }
 
+        ulong2 t;
+        t.s0 = mul_hi(as_ulong2(c).s0, as_ulong2(tmp).s0);
+        t.s1 = as_ulong2(c).s0 * as_ulong2(tmp).s0;
         {
-            const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1));
+            const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1)) ^ t;
             const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
+            t ^= chunk2;
             const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
 
             SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
@@ -729,8 +733,8 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
             SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
         }
 
-        a[1] += as_ulong2(c).s0 * as_ulong2(tmp).s0;
-        a[0] += mul_hi(as_ulong2(c).s0, as_ulong2(tmp).s0);
+        a[1] += t.s1;
+        a[0] += t.s0;
 
         SCRATCHPAD_CHUNK(0) = ((uint4 *)a)[0];
 
