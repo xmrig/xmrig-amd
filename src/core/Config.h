@@ -47,7 +47,6 @@ class Config : public CommonConfig
 {
 public:
     Config();
-    ~Config() override;
 
     bool isCNv2() const;
     bool oclInit();

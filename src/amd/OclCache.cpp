@@ -32,11 +32,11 @@
 #include "amd/OclError.h"
 #include "amd/OclLib.h"
 #include "base32/base32.h"
+#include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
 #include "common/log/Log.h"
 #include "common/utils/timestamp.h"
 #include "core/Config.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 
 
@@ -172,7 +172,7 @@ bool OclCache::prepare(const char *options)
         key += reinterpret_cast<const char *>(buf);
     }
 
-    if (!Cpu::isX64()) {
+    if (!xmrig::Cpu::info()->isX64()) {
         key += "x86";
     }
 

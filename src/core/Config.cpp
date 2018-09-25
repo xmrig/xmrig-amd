@@ -32,7 +32,6 @@
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -67,11 +66,6 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
 #   endif
     m_vendor(xmrig::OCL_VENDOR_AMD)
 {    
-}
-
-
-xmrig::Config::~Config()
-{
 }
 
 

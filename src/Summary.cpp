@@ -34,11 +34,11 @@
 #endif
 
 
+#include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "common/net/Pool.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
 #include "Summary.h"
 #include "version.h"
 
@@ -48,12 +48,12 @@ static void print_cpu(xmrig::Config *config)
     if (config->isColors()) {
         Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s %sx64 %sAES"),
                        "CPU",
-                       Cpu::brand(),
-                       Cpu::isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
-                       Cpu::hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
+                       xmrig::Cpu::info()->brand(),
+                       xmrig::Cpu::info()->isX64() ? "\x1B[1;32m" : "\x1B[1;31m-",
+                       xmrig::Cpu::info()->hasAES() ? "\x1B[1;32m" : "\x1B[1;31m-");
     }
     else {
-        Log::i()->text(" * %-13s%s %sx64 %sAES", "CPU", Cpu::brand(), Cpu::isX64() ? "" : "-", Cpu::hasAES() ? "" : "-");
+        Log::i()->text(" * %-13s%s %sx64 %sAES", "CPU", xmrig::Cpu::info()->brand(), xmrig::Cpu::info()->isX64() ? "" : "-", xmrig::Cpu::info()->hasAES() ? "" : "-");
     }
 }
 
