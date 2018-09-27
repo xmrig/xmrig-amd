@@ -100,10 +100,16 @@ XMRIG_INCLUDE_FAST_INT_MATH_V2
 #define VARIANT_XHV  5  // Modified CryptoNight-Heavy (Haven Protocol only)
 #define VARIANT_XAO  6  // Modified CryptoNight variant 0 (Alloy only)
 #define VARIANT_RTO  7  // Modified CryptoNight variant 1 (Arto only)
+#define VARIANT_2    8  // CryptoNight variant 2
 
 #define CRYPTONIGHT       0 /* CryptoNight (Monero) */
 #define CRYPTONIGHT_LITE  1 /* CryptoNight-Lite (AEON) */
 #define CRYPTONIGHT_HEAVY 2 /* CryptoNight-Heavy (RYO) */
+
+#if defined(__NV_CL_C_VERSION) && STRIDED_INDEX != 0
+#   undef STRIDED_INDEX
+#   define STRIDED_INDEX 0
+#endif
 
 
 static const __constant ulong keccakf_rndc[24] =
