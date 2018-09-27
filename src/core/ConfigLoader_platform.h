@@ -158,6 +158,7 @@ static struct option const config_options[] = {
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatformKey },
     { "cache",             0, nullptr, xmrig::IConfig::OclCacheKey    },
     { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoaderKey   },
+    { "autosave",          0, nullptr, xmrig::IConfig::AutoSaveKey    },
     { nullptr,             0, nullptr, 0 }
 };
 

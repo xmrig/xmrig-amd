@@ -67,6 +67,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_adjusted(false),
     m_apiIPv6(false),
     m_apiRestricted(true),
+    m_autoSave(true),
     m_background(false),
     m_colors(true),
     m_dryRun(false),
@@ -308,8 +309,12 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_apiRestricted = enable;
         break;
 
-    case IConfig::DryRunKey: /* --dry-run */
+    case DryRunKey: /* --dry-run */
         m_dryRun = enable;
+        break;
+
+    case AutoSaveKey:
+        m_autoSave = enable;
         break;
 
     default:

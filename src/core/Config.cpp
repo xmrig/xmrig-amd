@@ -136,6 +136,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("ipv6",            isApiIPv6(), allocator);
     api.AddMember("restricted",      isApiRestricted(), allocator);
     doc.AddMember("api",             api, allocator);
+    doc.AddMember("autosave",        isAutoSave(), allocator);
 
     doc.AddMember("background",      isBackground(), allocator);
     doc.AddMember("cache",           isOclCache(), allocator);

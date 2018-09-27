@@ -8,6 +8,7 @@
         "ipv6": false,
         "restricted": true
     },
+    "autosave": true,
     "background": false,
     "cache": true,
     "colors": true,
