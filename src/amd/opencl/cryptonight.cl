@@ -651,12 +651,17 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #   endif
     {
         states += 25 * gIdx;
-#       if (STRIDED_INDEX == 0)
-        Scratchpad += gIdx * (MEMORY >> 4);
-#       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
-#       elif (STRIDED_INDEX == 2)
-        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
+
+#       if defined(__NV_CL_C_VERSION)
+            Scratchpad += gIdx * (ITERATIONS >> 2);
+#       else
+#           if (STRIDED_INDEX == 0)
+                Scratchpad += gIdx * (MEMORY >> 4);
+#           elif (STRIDED_INDEX == 1)
+                Scratchpad += gIdx;
+#           elif (STRIDED_INDEX == 2)
+                Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
+#           endif
 #       endif
 
         a[0] = states[0] ^ states[4];
@@ -673,13 +678,19 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
     
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
-#if (STRIDED_INDEX == 0)
-#define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
-#elif (STRIDED_INDEX == 1)
-#define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4)) * as_uint2(Threads).s0))
-#elif (STRIDED_INDEX == 2)
-#define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % (MEM_CHUNK << 4)) + ((idx ^ (N << 4)) / (MEM_CHUNK << 4)) * WORKSIZE * (MEM_CHUNK << 4))))
-#endif
+#   ifdef __NV_CL_C_VERSION
+        __local uint16 scratchpad_line_buf[WORKSIZE];
+        __local uint16* scratchpad_line = scratchpad_line_buf + get_local_id(0);
+#       define SCRATCHPAD_CHUNK(N) (*(__local uint4*)((__local uchar*)(scratchpad_line) + (idx1 ^ (N << 4))))
+#   else
+#       if (STRIDED_INDEX == 0)
+#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
+#       elif (STRIDED_INDEX == 1)
+#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4)) * as_uint2(Threads).s0))
+#       elif (STRIDED_INDEX == 2)
+#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % (MEM_CHUNK << 4)) + ((idx ^ (N << 4)) / (MEM_CHUNK << 4)) * WORKSIZE * (MEM_CHUNK << 4))))
+#       endif
+#   endif
 
 #   if (COMP_MODE == 1)
     // do not use early return here
@@ -692,7 +703,15 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
     #pragma unroll UNROLL_FACTOR
     for(int i = 0; i < ITERATIONS; ++i)
     {
-        uint idx = a[0] & MASK;
+#       ifdef __NV_CL_C_VERSION
+            ulong idx  = a[0] & 0x1FFFC0;
+            ulong idx1 = a[0] & 0x30;
+
+            *scratchpad_line = *(__global uint16*)((__global uchar*)(Scratchpad) + idx);
+#       else
+            ulong idx = a[0] & MASK;
+#       endif
+
         uint4 c = SCRATCHPAD_CHUNK(0);
         c = AES_Round(AES0, AES1, AES2, AES3, c, ((uint4 *)a)[0]);
 
@@ -708,7 +727,17 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 
         SCRATCHPAD_CHUNK(0) = as_uint4(bx0) ^ c;
 
-        idx = as_ulong2(c).s0 & MASK;
+#       ifdef __NV_CL_C_VERSION
+            *(__global uint16*)((__global uchar*)(Scratchpad) + idx) = *scratchpad_line;
+
+            idx = as_ulong2(c).s0 & 0x1FFFC0;
+            idx1 = as_ulong2(c).s0 & 0x30;
+
+            *scratchpad_line = *(__global uint16*)((__global uchar*)(Scratchpad) + idx);
+#       else
+            idx = as_ulong2(c).s0 & MASK;
+#       endif
+
         uint4 tmp = SCRATCHPAD_CHUNK(0);
 
         {
@@ -738,12 +767,16 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 
         SCRATCHPAD_CHUNK(0) = ((uint4 *)a)[0];
 
+#       ifdef __NV_CL_C_VERSION
+            *(__global uint16*)((__global uchar*)(Scratchpad) + idx) = *scratchpad_line;
+#       endif
+
         ((uint4 *)a)[0] ^= tmp;
         bx1 = bx0;
         bx0 = as_ulong2(c);
     }
     
-#undef SCRATCHPAD_CHUNK
+#   undef SCRATCHPAD_CHUNK
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
 }
