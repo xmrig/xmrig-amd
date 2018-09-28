@@ -131,7 +131,7 @@ static struct option const options[] = {
     { "opencl-devices",       1, nullptr, xmrig::IConfig::OclDevicesKey     },
     { "opencl-launch",        1, nullptr, xmrig::IConfig::OclLaunchKey      },
     { "opencl-platform",      1, nullptr, xmrig::IConfig::OclPlatformKey    },
-    { "opencl-srided-index",  1, nullptr, xmrig::IConfig::OclSridedIndexKey },
+    { "opencl-strided-index", 1, nullptr, xmrig::IConfig::OclSridedIndexKey },
     { "opencl-mem-chunk",     1, nullptr, xmrig::IConfig::OclMemChunkKey    },
     { "opencl-unroll-factor", 1, nullptr, xmrig::IConfig::OclUnrollKey      },
     { "opencl-unroll",        1, nullptr, xmrig::IConfig::OclUnrollKey      },
