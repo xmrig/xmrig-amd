@@ -21,11 +21,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __OCLLIB_H__
-#define __OCLLIB_H__
+#ifndef XMRIG_OCLLIB_H
+#define XMRIG_OCLLIB_H
 
 
-#include "3rdparty/CL/cl.h"
+#include <vector>
+
+
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
 
 
 class OclLib
@@ -51,10 +58,12 @@ public:
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret);
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret);
+    static std::vector<cl_platform_id> getPlatformIDs();
+    static uint32_t getNumPlatforms();
 
 private:
     static bool load();
 };
 
 
-#endif /* __OCLLIB_H__ */
+#endif /* XMRIG_OCLLIB_H */

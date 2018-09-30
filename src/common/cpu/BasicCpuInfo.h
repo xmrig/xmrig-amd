@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
+ *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
@@ -21,45 +22,49 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONTROLLER_H
-#define XMRIG_CONTROLLER_H
+#ifndef XMRIG_BASICCPUINFO_H
+#define XMRIG_BASICCPUINFO_H
 
 
-#include "common/interfaces/IWatcherListener.h"
-
-
-class Network;
-class StatsData;
+#include "common/interfaces/ICpuInfo.h"
 
 
 namespace xmrig {
 
 
-class Config;
-class ControllerPrivate;
-class IControllerListener;
-
-
-class Controller : public IWatcherListener
+class BasicCpuInfo : public ICpuInfo
 {
 public:
-    Controller();
-    ~Controller();
-
-    bool isReady() const;
-    bool oclInit();
-    Config *config() const;
-    int init(int argc, char **argv);
-    Network *network() const;
-    void addListener(IControllerListener *listener);
+    BasicCpuInfo();
 
 protected:
-    void onNewConfig(IConfig *config) override;
+    size_t optimalThreadsCount(size_t memSize, int maxCpuUsage) const override;
+
+    inline Assembly assembly() const override       { return ASM_NONE; }
+    inline bool hasAES() const override             { return m_aes; }
+    inline bool isSupported() const override        { return true; }
+    inline const char *brand() const override       { return m_brand; }
+    inline int32_t cores() const override           { return -1; }
+    inline int32_t L2() const override              { return -1; }
+    inline int32_t L3() const override              { return -1; }
+    inline int32_t nodes() const override           { return -1; }
+    inline int32_t sockets() const override         { return 1; }
+    inline int32_t threads() const override         { return m_threads; }
+
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
+    inline bool isX64() const override { return true; }
+#   else
+    inline bool isX64() const override { return false; }
+#   endif
 
 private:
-    ControllerPrivate *d_ptr;
+    bool m_aes;
+    char m_brand[64];
+    int32_t m_threads;
 };
+
 
 } /* namespace xmrig */
 
-#endif /* XMRIG_CONTROLLER_H */
+
+#endif /* XMRIG_BASICCPUINFO_H */

@@ -1,3 +1,12 @@
+# v2.8.0
+- **[#753](https://github.com/xmrig/xmrig/issues/753) Added new algorithm [CryptoNight variant 2](https://github.com/xmrig/xmrig/issues/753) for Monero fork, thanks [@SChernykh](https://github.com/SChernykh).**
+- [#758](https://github.com/xmrig/xmrig/issues/758) **Added SSL/TLS support for secure connections to pools.**
+  - Added per pool options `"tls"` and `"tls-fingerprint"` and command line equivalents.
+- [#162](https://github.com/xmrig/xmrig-amd/issues/162) Extended `opencl-platform` option.
+- [#767](https://github.com/xmrig/xmrig/issues/767) Added `autosave` config option.
+- [#245](https://github.com/xmrig/xmrig-proxy/issues/245) Fixed API ID collision when run multiple miners on same machine.
+- [#757](https://github.com/xmrig/xmrig/issues/757) Fixed send buffer overflow.
+
 # v2.7.3-beta
 - [#145](https://github.com/xmrig/xmrig-amd/issues/145) Added runtime linking with OpenCL ICD, **AMD APP SDK not required anymore**.
 - [#140](https://github.com/xmrig/xmrig-amd/issues/140) `cryptonight-lite/ipbc` replaced to `cryptonight-heavy/tube` for **Bittube (TUBE)**.

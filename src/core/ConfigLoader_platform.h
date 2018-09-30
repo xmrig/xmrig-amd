@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIGLOADER_PLATFORM_H__
-#define __CONFIGLOADER_PLATFORM_H__
+#ifndef XMRIG_CONFIGLOADER_PLATFORM_H
+#define XMRIG_CONFIGLOADER_PLATFORM_H
 
 
 #ifdef _MSC_VER
@@ -85,6 +85,7 @@ Options:\n\
       --api-port=N         port for the miner API\n\
       --api-access-token=T access token for API\n\
       --api-worker-id=ID   custom worker-id for API\n\
+      --api-id=ID          custom instance ID for API\n\
       --api-ipv6           enable IPv6 support for API\n\
       --api-no-restricted  enable full remote access (only if API token set)\n\
   -h, --help               display this help and exit\n\
@@ -96,41 +97,49 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:T:o:u:O:Vl:S";
 
 
 static struct option const options[] = {
-    { "algo",              1, nullptr, xmrig::IConfig::AlgorithmKey      },
-    { "api-access-token",  1, nullptr, xmrig::IConfig::ApiAccessTokenKey },
-    { "api-port",          1, nullptr, xmrig::IConfig::ApiPort           },
-    { "api-worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
-    { "api-ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
-    { "api-no-restricted", 0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
-    { "background",        0, nullptr, xmrig::IConfig::BackgroundKey     },
-    { "config",            1, nullptr, xmrig::IConfig::ConfigKey         },
-    { "donate-level",      1, nullptr, xmrig::IConfig::DonateLevelKey    },
-    { "dry-run",           0, nullptr, xmrig::IConfig::DryRunKey         },
-    { "help",              0, nullptr, xmrig::IConfig::HelpKey           },
-    { "keepalive",         0, nullptr, xmrig::IConfig::KeepAliveKey      },
-    { "log-file",          1, nullptr, xmrig::IConfig::LogFileKey        },
-    { "nicehash",          0, nullptr, xmrig::IConfig::NicehashKey       },
-    { "no-color",          0, nullptr, xmrig::IConfig::ColorKey          },
-    { "variant",           1, nullptr, xmrig::IConfig::VariantKey        },
-    { "pass",              1, nullptr, xmrig::IConfig::PasswordKey       },
-    { "print-time",        1, nullptr, xmrig::IConfig::PrintTimeKey      },
-    { "retries",           1, nullptr, xmrig::IConfig::RetriesKey        },
-    { "retry-pause",       1, nullptr, xmrig::IConfig::RetryPauseKey     },
-    { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey         },
-    { "url",               1, nullptr, xmrig::IConfig::UrlKey            },
-    { "user",              1, nullptr, xmrig::IConfig::UserKey           },
-    { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey      },
-    { "userpass",          1, nullptr, xmrig::IConfig::UserpassKey       },
-    { "rig-id",            1, nullptr, xmrig::IConfig::RigIdKey          },
-    { "version",           0, nullptr, xmrig::IConfig::VersionKey        },
-    { "opencl-affinity",   1, nullptr, xmrig::IConfig::OclAffinity       },
-    { "opencl-devices",    1, nullptr, xmrig::IConfig::OclDevices        },
-    { "opencl-launch",     1, nullptr, xmrig::IConfig::OclLaunch         },
-    { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform       },
-    { "no-cache",          0, nullptr, xmrig::IConfig::OclCache          },
-    { "print-platforms",   0, nullptr, xmrig::IConfig::OclPrint          },
-    { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoader         },
-    { 0, 0, 0, 0 }
+    { "algo",                 1, nullptr, xmrig::IConfig::AlgorithmKey      },
+    { "api-access-token",     1, nullptr, xmrig::IConfig::ApiAccessTokenKey },
+    { "api-port",             1, nullptr, xmrig::IConfig::ApiPort           },
+    { "api-worker-id",        1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
+    { "api-id",               1, nullptr, xmrig::IConfig::ApiIdKey          },
+    { "api-ipv6",             0, nullptr, xmrig::IConfig::ApiIPv6Key        },
+    { "api-no-restricted",    0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
+    { "background",           0, nullptr, xmrig::IConfig::BackgroundKey     },
+    { "config",               1, nullptr, xmrig::IConfig::ConfigKey         },
+    { "donate-level",         1, nullptr, xmrig::IConfig::DonateLevelKey    },
+    { "dry-run",              0, nullptr, xmrig::IConfig::DryRunKey         },
+    { "help",                 0, nullptr, xmrig::IConfig::HelpKey           },
+    { "keepalive",            0, nullptr, xmrig::IConfig::KeepAliveKey      },
+    { "log-file",             1, nullptr, xmrig::IConfig::LogFileKey        },
+    { "nicehash",             0, nullptr, xmrig::IConfig::NicehashKey       },
+    { "no-color",             0, nullptr, xmrig::IConfig::ColorKey          },
+    { "variant",              1, nullptr, xmrig::IConfig::VariantKey        },
+    { "pass",                 1, nullptr, xmrig::IConfig::PasswordKey       },
+    { "print-time",           1, nullptr, xmrig::IConfig::PrintTimeKey      },
+    { "retries",              1, nullptr, xmrig::IConfig::RetriesKey        },
+    { "retry-pause",          1, nullptr, xmrig::IConfig::RetryPauseKey     },
+    { "syslog",               0, nullptr, xmrig::IConfig::SyslogKey         },
+    { "url",                  1, nullptr, xmrig::IConfig::UrlKey            },
+    { "user",                 1, nullptr, xmrig::IConfig::UserKey           },
+    { "user-agent",           1, nullptr, xmrig::IConfig::UserAgentKey      },
+    { "userpass",             1, nullptr, xmrig::IConfig::UserpassKey       },
+    { "rig-id",               1, nullptr, xmrig::IConfig::RigIdKey          },
+    { "tls",                  0, nullptr, xmrig::IConfig::TlsKey            },
+    { "tls-fingerprint",      1, nullptr, xmrig::IConfig::FingerprintKey    },
+    { "version",              0, nullptr, xmrig::IConfig::VersionKey        },
+    { "opencl-affinity",      1, nullptr, xmrig::IConfig::OclAffinityKey    },
+    { "opencl-devices",       1, nullptr, xmrig::IConfig::OclDevicesKey     },
+    { "opencl-launch",        1, nullptr, xmrig::IConfig::OclLaunchKey      },
+    { "opencl-platform",      1, nullptr, xmrig::IConfig::OclPlatformKey    },
+    { "opencl-strided-index", 1, nullptr, xmrig::IConfig::OclSridedIndexKey },
+    { "opencl-mem-chunk",     1, nullptr, xmrig::IConfig::OclMemChunkKey    },
+    { "opencl-unroll-factor", 1, nullptr, xmrig::IConfig::OclUnrollKey      },
+    { "opencl-unroll",        1, nullptr, xmrig::IConfig::OclUnrollKey      },
+    { "opencl-comp-mode",     1, nullptr, xmrig::IConfig::OclCompModeKey    },
+    { "no-cache",             0, nullptr, xmrig::IConfig::OclCacheKey       },
+    { "print-platforms",      0, nullptr, xmrig::IConfig::OclPrintKey       },
+    { "opencl-loader",        1, nullptr, xmrig::IConfig::OclLoaderKey      },
+    { nullptr,                0, nullptr, 0 }
 };
 
 
@@ -146,23 +155,26 @@ static struct option const config_options[] = {
     { "retry-pause",       1, nullptr, xmrig::IConfig::RetryPauseKey  },
     { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey      },
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey   },
-    { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatform    },
-    { "cache",             0, nullptr, xmrig::IConfig::OclCache       },
-    { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoader      },
-    { 0, 0, 0, 0 }
+    { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatformKey },
+    { "cache",             0, nullptr, xmrig::IConfig::OclCacheKey    },
+    { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoaderKey   },
+    { "autosave",          0, nullptr, xmrig::IConfig::AutoSaveKey    },
+    { nullptr,             0, nullptr, 0 }
 };
 
 
 static struct option const pool_options[] = {
-    { "url",           1, nullptr, xmrig::IConfig::UrlKey        },
-    { "pass",          1, nullptr, xmrig::IConfig::PasswordKey   },
-    { "user",          1, nullptr, xmrig::IConfig::UserKey       },
-    { "userpass",      1, nullptr, xmrig::IConfig::UserpassKey   },
-    { "nicehash",      0, nullptr, xmrig::IConfig::NicehashKey   },
-    { "keepalive",     2, nullptr, xmrig::IConfig::KeepAliveKey  },
-    { "variant",       1, nullptr, xmrig::IConfig::VariantKey    },
-    { "rig-id",        1, nullptr, xmrig::IConfig::RigIdKey      },
-    { 0, 0, 0, 0 }
+    { "url",             1, nullptr, xmrig::IConfig::UrlKey         },
+    { "pass",            1, nullptr, xmrig::IConfig::PasswordKey    },
+    { "user",            1, nullptr, xmrig::IConfig::UserKey        },
+    { "userpass",        1, nullptr, xmrig::IConfig::UserpassKey    },
+    { "nicehash",        0, nullptr, xmrig::IConfig::NicehashKey    },
+    { "keepalive",       2, nullptr, xmrig::IConfig::KeepAliveKey   },
+    { "variant",         1, nullptr, xmrig::IConfig::VariantKey     },
+    { "rig-id",          1, nullptr, xmrig::IConfig::RigIdKey       },
+    { "tls",             0, nullptr, xmrig::IConfig::TlsKey         },
+    { "tls-fingerprint", 1, nullptr, xmrig::IConfig::FingerprintKey },
+    { nullptr,           0, nullptr, 0 }
 };
 
 
@@ -172,10 +184,11 @@ static struct option const api_options[] = {
     { "worker-id",     1, nullptr, xmrig::IConfig::ApiWorkerIdKey    },
     { "ipv6",          0, nullptr, xmrig::IConfig::ApiIPv6Key        },
     { "restricted",    0, nullptr, xmrig::IConfig::ApiRestrictedKey  },
-    { 0, 0, 0, 0 }
+    { "id",            1, nullptr, xmrig::IConfig::ApiIdKey          },
+    { nullptr,         0, nullptr, 0 }
 };
 
 
 } /* namespace xmrig */
 
-#endif /* __CONFIGLOADER_PLATFORM_H__ */
+#endif /* XMRIG_CONFIGLOADER_PLATFORM_H */

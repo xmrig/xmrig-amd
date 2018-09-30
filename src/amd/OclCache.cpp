@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -31,11 +32,11 @@
 #include "amd/OclError.h"
 #include "amd/OclLib.h"
 #include "base32/base32.h"
+#include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
 #include "common/log/Log.h"
 #include "common/utils/timestamp.h"
 #include "core/Config.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 
 
@@ -55,7 +56,7 @@ bool OclCache::load()
     const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d",
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d -DUNROLL_FACTOR=%d",
              xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
@@ -63,7 +64,8 @@ bool OclCache::load()
              static_cast<int>(1u << m_ctx->memChunk),
              m_ctx->compMode,
              xmrig::cn_select_memory(algo),
-             static_cast<int>(algo)
+             static_cast<int>(algo),
+             m_ctx->unrollFactor
              );
 
     if (!prepare(options)) {
@@ -150,23 +152,32 @@ bool OclCache::load()
 
 bool OclCache::prepare(const char *options)
 {
-    uint8_t state[200] = { 0 };
-    char hash[65]      = { 0 };
+    uint8_t buf[200] = { 0 };
+    char hash[65]    = { 0 };
 
-    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_NAME, sizeof state, state) != CL_SUCCESS) {
+    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_NAME, sizeof buf, buf) != CL_SUCCESS) {
         return false;
     }
 
     std::string key(m_sourceCode);
     key += options;
-    key += reinterpret_cast<const char *>(state);
+    key += reinterpret_cast<const char *>(buf);
 
-    if (!Cpu::isX64()) {
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    if (OclLib::getPlatformInfo(platforms[m_config->platformIndex()], CL_PLATFORM_VERSION, sizeof buf, buf, nullptr) == CL_SUCCESS) {
+        key += reinterpret_cast<const char *>(buf);
+    }
+
+    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) == CL_SUCCESS) {
+        key += reinterpret_cast<const char *>(buf);
+    }
+
+    if (!xmrig::Cpu::info()->isX64()) {
         key += "x86";
     }
 
-    xmrig::keccak(key.c_str(), key.size(), state);
-    base32_encode(state, 32, reinterpret_cast<uint8_t *>(hash), sizeof hash);
+    xmrig::keccak(key.c_str(), key.size(), buf);
+    base32_encode(buf, 32, reinterpret_cast<uint8_t *>(hash), sizeof hash);
 
 #   ifdef _WIN32
     m_fileName = prefix() + "\\xmrig\\.cache\\" + hash + ".bin";
