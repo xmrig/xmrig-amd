@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef XMRIG_CONFIG_H
+#define XMRIG_CONFIG_H
 
 
 #include <stdint.h>
@@ -48,27 +48,29 @@ class Config : public CommonConfig
 {
 public:
     Config();
-    ~Config();
 
+    bool isCNv2() const;
     bool oclInit();
     bool reload(const char *json);
 
     void getJSON(rapidjson::Document &doc) const override;
 
     inline bool isOclCache() const                       { return m_cache; }
-    inline bool isShouldSave() const                     { return m_shouldSave; }
+    inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
     inline const char *loader() const                    { return m_loader.data(); }
     // access to m_threads taking into accoun that it is now separated for each perf algo
     inline const std::vector<IThread *> &threads(const xmrig::Algo algo = INVALID_ALGO) const {
         return m_threads[algo == INVALID_ALGO ? m_algorithm.algo() : algo];
     }
     inline int platformIndex() const                     { return m_platformIndex; }
+    inline xmrig::OclVendor vendor() const               { return m_vendor; }
 
     // access to perf algo results
     inline float get_algo_perf(const xmrig::PerfAlgo pa) const             { return m_algo_perf[pa]; }
     inline void set_algo_perf(const xmrig::PerfAlgo pa, const float value) { m_algo_perf[pa] = value; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
+    static const char *vendorName(xmrig::OclVendor vendor);
 
 protected:
     bool finalize() override;
@@ -81,6 +83,8 @@ protected:
 
 private:
     void parseThread(const rapidjson::Value &object, const xmrig::Algo);
+    void setPlatformIndex(const char *name);
+    void setPlatformIndex(int index);
 
     bool m_autoConf;
     bool m_cache;
@@ -92,10 +96,11 @@ private:
     // perf algo hashrate results
     float m_algo_perf[xmrig::PerfAlgo::PA_MAX];
     xmrig::c_str m_loader;
+    xmrig::OclVendor m_vendor;
 };
 
 extern Config* pconfig;
 
 } /* namespace xmrig */
 
-#endif /* __CONFIG_H__ */
+#endif /* XMRIG_CONFIG_H */

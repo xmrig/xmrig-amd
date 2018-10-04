@@ -33,7 +33,6 @@
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -47,16 +46,32 @@ namespace xmrig {
 };
 
 
+#ifdef _MSC_VER
+#   define strncasecmp _strnicmp
+#   define strcasecmp  _stricmp
+#endif
+
+
+static const char *vendors[] = {
+    "AMD",
+    "NVIDIA",
+    "Intel"
+};
+
+
 xmrig::Config::Config() : xmrig::CommonConfig(),
     m_autoConf(false),
     m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0),
-#   ifdef _WIN32
-    m_loader("OpenCL.dll")
+#   if defined(__APPLE__)
+    m_loader("/System/Library/Frameworks/OpenCL.framework/OpenCL"),
+#   elif defined(_WIN32)
+    m_loader("OpenCL.dll"),
 #   else
-    m_loader("libOpenCL.so")
+    m_loader("libOpenCL.so"),
 #   endif
+    m_vendor(xmrig::OCL_VENDOR_AMD)
 {
     // not defined algo performance is considered to be 0
     for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
@@ -66,8 +81,19 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
 }
 
 
-xmrig::Config::~Config()
+bool xmrig::Config::isCNv2() const
 {
+    if (algorithm().algo() != CRYPTONIGHT) {
+        return false;
+    }
+
+    for (const Pool pool : pools()) {
+        if (pool.algorithm().variant() == VARIANT_2 || pool.algorithm().variant() == VARIANT_AUTO) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
@@ -75,16 +101,29 @@ bool xmrig::Config::oclInit()
 {
     LOG_WARN("compiling code and initializing GPUs. This will take a while...");
 
+    if (m_vendor != OCL_VENDOR_MANUAL) {
+        m_platformIndex = OclGPU::findPlatformIdx(this);
+        if (m_platformIndex == -1) {
+            LOG_ERR("%s%s OpenCL platform NOT found.", isColors() ? "\x1B[1;31m" : "", vendorName(m_vendor));
+            return false;
+        }
+    }
+
+    if (m_platformIndex >= static_cast<int>(OclLib::getNumPlatforms())) {
+        LOG_ERR("%sSelected OpenCL platform index %d doesn't exist.", isColors() ? "\x1B[1;31m" : "", m_platformIndex);
+        return false;
+    }
+
     for (int a = 0; a != xmrig::Algo::ALGO_MAX; ++ a) {
         const xmrig::Algo algo = static_cast<xmrig::Algo>(a);
         if (m_threads[algo].empty() && !m_oclCLI.setup(m_threads[algo])) {
             m_autoConf   = true;
             m_shouldSave = true;
-            m_oclCLI.autoConf(m_threads[algo], &m_platformIndex, xmrig::Algorithm(algo), this);
+            m_oclCLI.autoConf(m_threads[algo], xmrig::Algorithm(algo), this);
         }
     }
 
-    return true;
+    return !m_threads.empty();
 }
 
 
@@ -105,19 +144,21 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("algo", StringRef(algorithm().name()), allocator);
 
     Value api(kObjectType);
-    api.AddMember("port",         apiPort(), allocator);
-    api.AddMember("access-token", apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("worker-id",    apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
-    api.AddMember("ipv6",         isApiIPv6(), allocator);
-    api.AddMember("restricted",   isApiRestricted(), allocator);
-    doc.AddMember("api",          api, allocator);
+    api.AddMember("port",            apiPort(), allocator);
+    api.AddMember("access-token",    apiToken() ? Value(StringRef(apiToken())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("id",              apiId() ? Value(StringRef(apiId())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("worker-id",       apiWorkerId() ? Value(StringRef(apiWorkerId())).Move() : Value(kNullType).Move(), allocator);
+    api.AddMember("ipv6",            isApiIPv6(), allocator);
+    api.AddMember("restricted",      isApiRestricted(), allocator);
+    doc.AddMember("api",             api, allocator);
+    doc.AddMember("autosave",        isAutoSave(), allocator);
 
-    doc.AddMember("background",   isBackground(), allocator);
-    doc.AddMember("cache",        isOclCache(), allocator);
-    doc.AddMember("colors",       isColors(), allocator);
-    doc.AddMember("donate-level", donateLevel(), allocator);
-    doc.AddMember("log-file",     logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
-    doc.AddMember("opencl-platform", platformIndex(), allocator);
+    doc.AddMember("background",      isBackground(), allocator);
+    doc.AddMember("cache",           isOclCache(), allocator);
+    doc.AddMember("colors",          isColors(), allocator);
+    doc.AddMember("donate-level",    donateLevel(), allocator);
+    doc.AddMember("log-file",        logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
+    doc.AddMember("opencl-platform", vendor() == OCL_VENDOR_MANUAL ? Value(platformIndex()).Move() : Value(StringRef(vendorName(vendor()))).Move(), allocator);
     doc.AddMember("opencl-loader",   StringRef(loader()), allocator);
 
     Value pools(kArrayType);
@@ -168,6 +209,16 @@ xmrig::Config *xmrig::Config::load(int argc, char **argv, IWatcherListener *list
 }
 
 
+const char *xmrig::Config::vendorName(xmrig::OclVendor vendor)
+{
+    if (vendor == xmrig::OCL_VENDOR_MANUAL) {
+        return "manual";
+    }
+
+    return vendors[vendor];
+}
+
+
 bool xmrig::Config::finalize()
 {
     if (m_state != NoneState) {
@@ -189,7 +240,7 @@ bool xmrig::Config::parseBoolean(int key, bool enable)
     }
 
     switch (key) {
-    case OclCache: /* cache */
+    case OclCacheKey: /* cache */
         m_cache = enable;
         break;
 
@@ -208,31 +259,48 @@ bool xmrig::Config::parseString(int key, const char *arg)
     }
 
     switch (key) {
-    case OclDevices: /* --opencl-devices */
+    case OclDevicesKey: /* --opencl-devices */
         m_oclCLI.parseDevices(arg);
         break;
 
-    case OclLaunch: /* --opencl-launch */
+    case OclLaunchKey: /* --opencl-launch */
         m_oclCLI.parseLaunch(arg);
         break;
 
-    case OclAffinity: /* --opencl-affinity */
+    case OclAffinityKey: /* --opencl-affinity */
         m_oclCLI.parseAffinity(arg);
         break;
 
-    case OclCache: /* --no-cache */
+    case OclSridedIndexKey: /* --opencl-srided-index */
+        m_oclCLI.parseStridedIndex(arg);
+        break;
+
+    case OclMemChunkKey: /* --opencl-mem-chunk */
+        m_oclCLI.parseMemChunk(arg);
+        break;
+
+    case OclUnrollKey: /* --opencl-unroll-factor */
+        m_oclCLI.parseUnrollFactor(arg);
+        break;
+
+    case OclCompModeKey: /* --opencl-comp-mode */
+        m_oclCLI.parseCompMode(arg);
+        break;
+
+    case OclCacheKey: /* --no-cache */
         return parseBoolean(key, false);
 
-    case OclPrint: /* --print-platforms */
+    case OclPrintKey: /* --print-platforms */
         if (OclLib::init(loader())) {
             printPlatforms();
         }
         return false;
 
-    case OclPlatform: /* --opencl-platform */
-        return parseUint64(key, strtol(arg, nullptr, 10));
+    case OclPlatformKey: /* --opencl-platform */
+        setPlatformIndex(arg);
+        break;
 
-    case OclLoader: /* --opencl-loader */
+    case OclLoaderKey: /* --opencl-loader */
         m_loader = arg;
         break;
 
@@ -251,8 +319,8 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
     }
 
     switch (key) {
-    case OclPlatform: /* --opencl-platform */
-        m_platformIndex = static_cast<int>(arg);
+    case OclPlatformKey: /* --opencl-platform */
+        setPlatformIndex(static_cast<int>(arg));
         break;
 
     default:
@@ -312,4 +380,30 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 void xmrig::Config::parseThread(const rapidjson::Value &object, const xmrig::Algo algo)
 {
     m_threads[algo].push_back(new OclThread(object));
+}
+
+
+void xmrig::Config::setPlatformIndex(const char *name)
+{
+    constexpr size_t size = sizeof(vendors) / sizeof((vendors)[0]);
+
+    for (size_t i = 0; i < size; i++) {
+        if (strcasecmp(name, vendors[i]) == 0) {
+            m_vendor = static_cast<OclVendor>(i);
+            return;
+        }
+    }
+
+    setPlatformIndex(strtol(name, nullptr, 10));
+}
+
+
+void xmrig::Config::setPlatformIndex(int index)
+{
+    if (index < 0) {
+        return;
+    }
+
+    m_platformIndex = index;
+    m_vendor        = xmrig::OCL_VENDOR_MANUAL;
 }

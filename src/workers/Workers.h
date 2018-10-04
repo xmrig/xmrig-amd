@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
@@ -22,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKERS_H__
-#define __WORKERS_H__
+#ifndef XMRIG_WORKERS_H
+#define XMRIG_WORKERS_H
 
 
 #include <atomic>
@@ -100,4 +101,4 @@ private:
 };
 
 
-#endif /* __WORKERS_H__ */
+#endif /* XMRIG_WORKERS_H */

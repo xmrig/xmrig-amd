@@ -60,7 +60,10 @@ static const char *kReleaseCommandQueue              = "clReleaseCommandQueue";
 static const char *kReleaseMemObject                 = "clReleaseMemObject";
 static const char *kReleaseKernel                    = "clReleaseKernel";
 
+#if defined(CL_VERSION_2_0)
 typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *);
+#endif
+
 typedef cl_command_queue (CL_API_CALL *createCommandQueue_t)(cl_context, cl_device_id, cl_command_queue_properties, cl_int *);
 typedef cl_context (CL_API_CALL *createContext_t)(const cl_context_properties *, cl_uint, const cl_device_id *, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *, cl_int *);
 typedef cl_int (CL_API_CALL *buildProgram_t)(cl_program, cl_uint, const cl_device_id *, const char *, void (CL_CALLBACK *pfn_notify)(cl_program, void *), void *);
@@ -85,7 +88,10 @@ typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
 typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
 typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
 
+#if defined(CL_VERSION_2_0)
 static createCommandQueueWithProperties_t pCreateCommandQueueWithProperties = nullptr;
+#endif
+
 static createCommandQueue_t pCreateCommandQueue                             = nullptr;
 static createContext_t pCreateContext                                       = nullptr;
 static buildProgram_t  pBuildProgram                                        = nullptr;
@@ -150,7 +156,9 @@ bool OclLib::load()
     DLSYM(ReleaseMemObject);
     DLSYM(ReleaseKernel);
 
+#   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
+#   endif
 
     return true;
 }
@@ -160,14 +168,18 @@ cl_command_queue OclLib::createCommandQueue(cl_context context, cl_device_id dev
 {
     cl_command_queue result;
 
+#   if defined(CL_VERSION_2_0)
     if (pCreateCommandQueueWithProperties) {
         const cl_queue_properties commandQueueProperties[] = { 0, 0, 0 };
         result = pCreateCommandQueueWithProperties(context, device, commandQueueProperties, errcode_ret);
     }
     else {
+#   endif
         const cl_command_queue_properties commandQueueProperties = { 0 };
         result = pCreateCommandQueue(context, device, commandQueueProperties, errcode_ret);
+#   if defined(CL_VERSION_2_0)
     }
+#   endif
 
     if (*errcode_ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(*errcode_ret), kCreateCommandQueueWithProperties);
@@ -394,4 +406,33 @@ cl_int OclLib::releaseKernel(cl_kernel kernel)
     assert(pReleaseKernel != nullptr);
 
     return pReleaseKernel(kernel);
+}
+
+std::vector<cl_platform_id> OclLib::getPlatformIDs()
+{
+    const uint32_t count = getNumPlatforms();
+    std::vector<cl_platform_id> platforms(count);
+
+    if (count) {
+        OclLib::getPlatformIDs(count, platforms.data(), nullptr);
+    }
+
+    return platforms;
+}
+
+
+uint32_t OclLib::getNumPlatforms()
+{
+    cl_uint count = 0;
+    cl_int ret;
+
+    if ((ret = OclLib::getPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
+        LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", OclError::toString(ret));
+    }
+
+    if (count == 0) {
+        LOG_ERR("No OpenCL platform found.");
+    }
+
+    return count;
 }

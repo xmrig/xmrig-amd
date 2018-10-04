@@ -21,21 +21,21 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef XMRIG_VERSION_H
+#define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
+#define APP_ID        "xmrig-amd"
+#define APP_NAME      "XMRig-AMD"
 #define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.7.3-beta"
+#define APP_VERSION   "2.8.0-rc"
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
 #define APP_KIND      "amd"
 
 #define APP_VER_MAJOR  2
-#define APP_VER_MINOR  7
-#define APP_VER_PATCH  3
+#define APP_VER_MINOR  8
+#define APP_VER_PATCH  0
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)
@@ -53,4 +53,4 @@
 #   endif
 #endif
 
-#endif /* __VERSION_H__ */
+#endif /* XMRIG_VERSION_H */
