@@ -120,7 +120,7 @@ bool xmrig::Config::oclInit()
             m_autoConf   = true;
             m_shouldSave = true;
             m_oclCLI.autoConf(m_threads[algo], xmrig::Algorithm(algo), this);
-            if (m_threads.empty()) return false;
+            if (m_threads[algo].empty()) return false;
         }
     }
 
