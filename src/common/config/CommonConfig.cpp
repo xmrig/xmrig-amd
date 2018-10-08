@@ -218,7 +218,7 @@ bool xmrig::CommonConfig::save()
     rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
     doc.Accept(writer);
 
-    fclose(fp);
+    fflush(fp);
 
     uv_fs_close(uv_default_loop(), &req, fd, nullptr);
     uv_fs_req_cleanup(&req);
