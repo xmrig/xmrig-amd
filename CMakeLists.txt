@@ -6,6 +6,7 @@ option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 option(WITH_TLS       "Enable OpenSSL support" ON)
+option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 
 include (CheckIncludeFile)
@@ -201,6 +202,10 @@ CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
+endif()
+
+if (STRICT_CACHE)
+    add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
 endif()
 
 if (NOT WITH_AEON)
