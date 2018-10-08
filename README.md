@@ -48,35 +48,53 @@ Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share 
 
 ### Command line options
 ```
-  -a, --algo=ALGO           cryptonight (default) or cryptonight-lite
-  -o, --url=URL             URL of mining server
-  -O, --userpass=U:P        username:password pair for mining server
-  -u, --user=USERNAME       username for mining server
-  -p, --pass=PASSWORD       password for mining server
-  -k, --keepalive           send keepalived for prevent timeout (need pool support)
-  -r, --retries=N           number of times to retry before switch to backup server (default: 5)
-  -R, --retry-pause=N       time to pause between retries (default: 5)
-      --opencl-devices=N    list of OpenCL devices to use.
-      --opencl-launch=IxW   list of launch config, intensity and worksize
-      --opencl-affinity=N   affine GPU threads to a CPU
-      --opencl-platform=N   OpenCL platform index
-      --no-color            disable colored output
-      --donate-level=N      donate level, default 5% (5 minutes in 100 minutes)
-      --user-agent          set custom user-agent string for pool
-  -B, --background          run the miner in the background
-  -c, --config=FILE         load a JSON-format configuration file
-  -l, --log-file=FILE       log all output to a file
-      --nicehash            enable nicehash support
-      --print-time=N        print hashrate report every N seconds
-      --api-port=N          port for the miner API
-      --api-access-token=T  access token for API
-      --api-worker-id=ID    custom worker-id for API
-  -h, --help                display this help and exit
-  -V, --version             output version information and exit
+-a, --algo=ALGO              specify the algorithm to use
+                                 cryptonight
+                                 cryptonight-lite
+                                 cryptonight-heavy
+  -o, --url=URL                URL of mining server
+  -O, --userpass=U:P           username:password pair for mining server
+  -u, --user=USERNAME          username for mining server
+  -p, --pass=PASSWORD          password for mining server
+      --rig-id=ID              rig identifier for pool-side statistics (needs pool support)
+  -k, --keepalive              send keepalived for prevent timeout (needs pool support)
+      --nicehash               enable nicehash.com support
+      --tls                    enable SSL/TLS support (needs pool support)
+      --tls-fingerprint=F      pool TLS certificate fingerprint, if set enable strict certificate pinning
+  -r, --retries=N              number of times to retry before switch to backup server (default: 5)
+  -R, --retry-pause=N          time to pause between retries (default: 5)
+      --opencl-devices=N       list of OpenCL devices to use.
+      --opencl-launch=IxW      list of launch config, intensity and worksize
+      --opencl-strided-index=N list of strided_index option values for each thread
+      --opencl-mem-chunk=N     list of mem_chunk option values for each thread
+      --opencl-comp-mode=N     list of comp_mode option values for each thread
+      --opencl-affinity=N      list of affinity GPU threads to a CPU
+      --opencl-platform=N      OpenCL platform index
+      --opencl-loader=N        path to OpenCL-ICD-Loader (OpenCL.dll or libOpenCL.so)
+      --print-platforms        print available OpenCL platforms and exit
+      --no-cache               disable OpenCL cache
+      --no-color               disable colored output
+      --variant                algorithm PoW variant
+      --donate-level=N         donate level, default 5% (5 minutes in 100 minutes)
+      --user-agent             set custom user-agent string for pool
+  -B, --background             run the miner in the background
+  -c, --config=FILE            load a JSON-format configuration file
+  -l, --log-file=FILE          log all output to a file
+  -S, --syslog                 use system log for output messages
+      --print-time=N           print hashrate report every N seconds
+      --api-port=N             port for the miner API
+      --api-access-token=T     access token for API
+      --api-worker-id=ID       custom worker-id for API
+      --api-id=ID              custom instance ID for API
+      --api-ipv6               enable IPv6 support for API
+      --api-no-restricted      enable full remote access (only if API token set)
+      --dry-run                test configuration and exit
+  -h, --help                   display this help and exit
+  -V, --version                output version information and exit
 ```
 
 ## Donations
-Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`.
+Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level`.
 
 * XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
 * BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
