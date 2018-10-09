@@ -163,6 +163,7 @@ bool OclCache::prepare(const char *options)
     key += options;
     key += reinterpret_cast<const char *>(buf);
 
+#   ifdef XMRIG_STRICT_OPENCL_CACHE
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
     if (OclLib::getPlatformInfo(platforms[m_config->platformIndex()], CL_PLATFORM_VERSION, sizeof buf, buf, nullptr) == CL_SUCCESS) {
         key += reinterpret_cast<const char *>(buf);
@@ -171,6 +172,7 @@ bool OclCache::prepare(const char *options)
     if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) == CL_SUCCESS) {
         key += reinterpret_cast<const char *>(buf);
     }
+#   endif
 
     if (!xmrig::Cpu::info()->isX64()) {
         key += "x86";
