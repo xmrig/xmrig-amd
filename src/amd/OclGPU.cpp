@@ -118,7 +118,7 @@ inline static int cnKernelOffset(xmrig::Variant variant)
 }
 
 
-size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
+size_t InitOpenCLGpu(int index, cl_context* opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
 {
     size_t MaximumWorkSize;
     cl_int ret;
@@ -135,66 +135,66 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
                                 : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
         index, ctx->deviceIdx, buf, ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
 
-    ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);
+    ctx->CommandQueues = OclLib::createCommandQueue(*opencl_ctx, ctx->DeviceID, &ret);
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
     }
 
-    ctx->InputBuffer = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_ONLY, 88, nullptr, &ret);
+    ctx->InputBuffer = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_ONLY, 88, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create input buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     size_t g_thd = ctx->rawIntensity;
-    ctx->ExtraBuffers[0] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, xmrig::cn_select_memory(config->algorithm().algo()) * g_thd, nullptr, &ret);
+    ctx->ExtraBuffers[0] = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, xmrig::cn_select_memory(config->algorithm().algo()) * g_thd, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create hash scratchpads buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
-    ctx->ExtraBuffers[1] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
+    ctx->ExtraBuffers[1] = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, 200 * g_thd, nullptr, &ret);
     if(ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create hash states buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // Blake-256 branches
-    ctx->ExtraBuffers[2] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+    ctx->ExtraBuffers[2] = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
     if (ret != CL_SUCCESS){
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 0 buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // Groestl-256 branches
-    ctx->ExtraBuffers[3] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+    ctx->ExtraBuffers[3] = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
     if(ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 1 buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // JH-256 branches
-    ctx->ExtraBuffers[4] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+    ctx->ExtraBuffers[4] = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 2 buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // Skein-512 branches
-    ctx->ExtraBuffers[5] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
+    ctx->ExtraBuffers[5] = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * (g_thd + 2), nullptr, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create Branch 3 buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // Assume we may find up to 0xFF nonces in one run - it's reasonable
-    ctx->OutputBuffer = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
+    ctx->OutputBuffer = OclLib::createBuffer(*opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clCreateBuffer to create output buffer.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
-    OclCache cache(index, opencl_ctx, ctx, source_code, config);
+    OclCache cache(index, *opencl_ctx, ctx, source_code, config);
     if (!cache.load()) {
         return OCL_ERR_API;
     }
@@ -360,7 +360,7 @@ void printPlatforms()
 // RequestedDeviceIdxs is a list of OpenCL device indexes
 // NumDevicesRequested is number of devices in RequestedDeviceIdxs list
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
+size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_context* opencl_ctx)
 {
     const size_t platform_idx             = config->platformIndex();
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
@@ -411,7 +411,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
         TempDeviceList[i] = DeviceIDList[ctx[i].deviceIdx];
     }
 
-    cl_context opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
+    *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
     }
@@ -663,4 +663,25 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     ctx->Nonce += (uint32_t) g_intensity;
 
     return OCL_ERR_SUCCESS;
+}
+
+void ReleaseOpenCl(GpuContext* ctx){
+
+    OclLib::clReleaseMemObject(ctx->InputBuffer);
+    OclLib::clReleaseMemObject(ctx->OutputBuffer);
+
+    for(int b = 0; b < 6; ++b)
+        OclLib::clReleaseMemObject(ctx->ExtraBuffers[b]);
+
+    OclLib::clReleaseProgram(ctx->Program);
+
+    for(int k = 0; k < 8; ++k)
+        OclLib::clReleaseKernel(ctx->Kernels[k]);
+
+    OclLib::clReleaseCommandQueue(ctx->CommandQueues);
+
+}
+
+void ReleaseOpenClContext(cl_context* opencl_ctx){
+    OclLib::clReleaseContext(*opencl_ctx);
 }

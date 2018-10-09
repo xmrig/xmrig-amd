@@ -67,6 +67,7 @@ public:
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
+    static cl_context m_opencl_ctx;
 
 #   ifndef XMRIG_NO_API
     static void threadsSummary(rapidjson::Document &doc);
@@ -83,6 +84,7 @@ private:
     static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
+
     static size_t m_threadsCount;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
