@@ -1,6 +1,7 @@
 # v2.8.1
 - [#156](https://github.com/xmrig/xmrig-amd/issues/156) Added CMake option to disable strict OpenCL cache.
 - [#769](https://github.com/xmrig/xmrig/issues/769) Fixed regression, some ANSI escape sequences was in log with disabled colors.
+- [#777](https://github.com/xmrig/xmrig/issues/777) Better report about pool connection issues. 
 - Added missing options to `--help` output.
 
 # v2.8.0
