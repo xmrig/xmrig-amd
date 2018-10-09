@@ -102,8 +102,8 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `
 ## Release checksums
 ### SHA-256
 ```
-1fd095b3ebcd3b3ca01484296cbe14d7a5dd509d3fbdb5a2b1f12a237d4e7fd2 xmrig-amd-2.8.1-xenial-amd64.tar.gz/xmrig-amd-2.8.1/xmrig-amd
-edf69e61a6ac059144b8a3bdd140b4d1129570d6cab58661730894638bbcce13 xmrig-amd-2.8.1-xenial-amd64.tar.gz/xmrig-amd-2.8.1/xmrig-amd-notls
+df4c949a258f6ea3a0d1fd72a9d263bc0acf4f6e891a9186473f263215100f8b xmrig-amd-2.8.1-xenial-amd64.tar.gz/xmrig-amd-2.8.1/xmrig-amd
+8940a49402142b37d7e6888c3bd327ccffe37c076e9e6373f6dca12989ce08e3 xmrig-amd-2.8.1-xenial-amd64.tar.gz/xmrig-amd-2.8.1/xmrig-amd-notls
 3520ba8508644b675d956049ce1ef1649b9ffd651c95e2c647d9734571dc93d2 xmrig-amd-2.8.1-win64.zip/xmrig-amd.exe
 d210efe5ae7eca1300bd104b3c66092e823d16f34d6f90b0c67fd5879d270a68 xmrig-amd-2.8.1-win64.zip/xmrig-amd-notls.exe
 ```
