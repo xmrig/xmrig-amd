@@ -31,6 +31,12 @@
 #include <uv.h>
 #include <vector>
 
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
+
 #include "common/net/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"

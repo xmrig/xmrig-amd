@@ -667,21 +667,21 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
 
 void ReleaseOpenCl(GpuContext* ctx){
 
-    OclLib::clReleaseMemObject(ctx->InputBuffer);
-    OclLib::clReleaseMemObject(ctx->OutputBuffer);
+    OclLib::releaseMemObject(ctx->InputBuffer);
+    OclLib::releaseMemObject(ctx->OutputBuffer);
 
     for(int b = 0; b < 6; ++b)
-        OclLib::clReleaseMemObject(ctx->ExtraBuffers[b]);
+        OclLib::releaseMemObject(ctx->ExtraBuffers[b]);
 
-    OclLib::clReleaseProgram(ctx->Program);
+    OclLib::releaseProgram(ctx->Program);
 
     for(int k = 0; k < 8; ++k)
-        OclLib::clReleaseKernel(ctx->Kernels[k]);
+        OclLib::releaseKernel(ctx->Kernels[k]);
 
-    OclLib::clReleaseCommandQueue(ctx->CommandQueues);
+    OclLib::releaseCommandQueue(ctx->CommandQueues);
 
 }
 
 void ReleaseOpenClContext(cl_context* opencl_ctx){
-    OclLib::clReleaseContext(*opencl_ctx);
+    OclLib::releaseContext(*opencl_ctx);
 }

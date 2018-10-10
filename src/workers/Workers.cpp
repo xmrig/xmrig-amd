@@ -215,7 +215,7 @@ bool Workers::start(xmrig::Controller *controller)
                                  );
     }
 
-    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config(), m_opencl_ctx) != 0) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config(), &m_opencl_ctx) != 0) {
         return false;
     }
 

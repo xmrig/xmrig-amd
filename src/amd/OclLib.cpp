@@ -53,6 +53,11 @@ static const char *kGetPlatformInfo                  = "clGetPlatformInfo";
 static const char *kGetProgramBuildInfo              = "clGetProgramBuildInfo";
 static const char *kGetProgramInfo                   = "clGetProgramInfo";
 static const char *kSetKernelArg                     = "clSetKernelArg";
+static const char *kReleaseMemObject                 = "clReleaseMemObject";
+static const char *kReleaseProgram                   = "clReleaseProgram";
+static const char *kReleaseKernel                    = "clReleaseKernel";
+static const char *kReleaseCommandQueue              = "clReleaseCommandQueue";
+static const char *kReleaseContext                   = "clReleaseContext";
 
 #if defined(CL_VERSION_2_0)
 typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *);
@@ -76,6 +81,12 @@ typedef cl_kernel (CL_API_CALL *createKernel_t)(cl_program, const char *, cl_int
 typedef cl_mem (CL_API_CALL *createBuffer_t)(cl_context, cl_mem_flags, size_t, void *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithBinary_t)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithSource_t)(cl_context, cl_uint, const char **, const size_t *, cl_int *);
+typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
+typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
+typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
+typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
+typedef cl_int (CL_API_CALL *releaseContext_t)(cl_context);
+
 
 #if defined(CL_VERSION_2_0)
 static createCommandQueueWithProperties_t pCreateCommandQueueWithProperties = nullptr;
@@ -99,6 +110,11 @@ static createKernel_t pCreateKernel                                         = nu
 static createBuffer_t pCreateBuffer                                         = nullptr;
 static createProgramWithBinary_t pCreateProgramWithBinary                   = nullptr;
 static createProgramWithSource_t pCreateProgramWithSource                   = nullptr;
+static releaseMemObject_t pReleaseMemObject                                 = nullptr;
+static releaseProgram_t pReleaseProgram                                     = nullptr;
+static releaseKernel_t pReleaseKernel                                       = nullptr;
+static releaseCommandQueue_t pReleaseCommandQueue                           = nullptr;
+static releaseContext_t pReleaseContext                                     = nullptr;
 
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
 
@@ -134,6 +150,11 @@ bool OclLib::load()
     DLSYM(CreateBuffer);
     DLSYM(CreateProgramWithBinary);
     DLSYM(CreateProgramWithSource);
+    DLSYM(ReleaseMemObject);
+    DLSYM(ReleaseProgram);
+    DLSYM(ReleaseKernel);
+    DLSYM(ReleaseCommandQueue);
+    DLSYM(ReleaseContext);
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
@@ -346,6 +367,44 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
     }
 
     return result;
+}
+
+
+void OclLib::releaseMemObject(cl_mem mem_obj)
+{
+    if(pReleaseMemObject(mem_obj) != CL_SUCCESS)
+            LOG_WARN("Error when releasing OpenCL buffer");
+}
+
+
+void OclLib::releaseProgram(cl_program program)
+{
+    if(pReleaseProgram(program) != CL_SUCCESS)
+        LOG_WARN("Error when releasing OpenCL program");
+}
+
+
+void OclLib::releaseKernel(cl_kernel kernel)
+{
+    if(pReleaseKernel(kernel) != CL_SUCCESS)
+        LOG_WARN("Error when releasing OpenCL Kernel");
+
+}
+
+
+void OclLib::releaseCommandQueue(cl_command_queue command_queue)
+{
+    if(pReleaseCommandQueue(command_queue) != CL_SUCCESS)
+        LOG_WARN("Error when releasing OpenCL command queue");
+
+}
+
+
+void OclLib::releaseContext(cl_context context)
+{
+    if(pReleaseContext(context) != CL_SUCCESS)
+        LOG_WARN("Error when releasing OpenCL context");
+
 }
 
 
