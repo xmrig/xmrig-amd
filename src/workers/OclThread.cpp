@@ -56,7 +56,6 @@ OclThread::OclThread(const rapidjson::Value &object) :
     setIndex(object["index"].GetInt());
     setIntensity(object["intensity"].GetUint());
     setWorksize(object["worksize"].GetUint());
-	LOG_WARN("worksize %d intensity %d", m_worksize, m_intensity);
 
     const rapidjson::Value &affinity = object["affine_to_cpu"];
     if (affinity.IsInt64()) {

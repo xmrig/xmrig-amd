@@ -373,7 +373,7 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
 void OclLib::releaseMemObject(cl_mem mem_obj)
 {
     if(pReleaseMemObject(mem_obj) != CL_SUCCESS)
-            LOG_WARN("Error when releasing OpenCL buffer");
+        LOG_WARN("Error when releasing OpenCL buffer");
 }
 
 
@@ -388,7 +388,6 @@ void OclLib::releaseKernel(cl_kernel kernel)
 {
     if(pReleaseKernel(kernel) != CL_SUCCESS)
         LOG_WARN("Error when releasing OpenCL Kernel");
-
 }
 
 
@@ -396,7 +395,6 @@ void OclLib::releaseCommandQueue(cl_command_queue command_queue)
 {
     if(pReleaseCommandQueue(command_queue) != CL_SUCCESS)
         LOG_WARN("Error when releasing OpenCL command queue");
-
 }
 
 
@@ -404,7 +402,6 @@ void OclLib::releaseContext(cl_context context)
 {
     if(pReleaseContext(context) != CL_SUCCESS)
         LOG_WARN("Error when releasing OpenCL context");
-
 }
 
 
