@@ -240,17 +240,12 @@ bool Workers::start(xmrig::Controller *controller)
 
 void Workers::soft_stop() // stop current workers leaving uv stuff intact (used in switch_algo)
 {
-    if (m_hashrate) {
-        m_hashrate->stop();
-        delete m_hashrate;
-    }
-
     m_sequence = 0;
     m_paused   = 0;
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        m_workers[i]->join();
-        delete m_workers[i];
+    for (Handle *handle : m_workers) {
+        handle->join();
+        delete handle;
     }
     m_workers.clear();
 
@@ -282,7 +277,7 @@ bool Workers::switch_algo(const xmrig::Algorithm& algorithm)
     }
 
     m_threadsCount = threads.size();
-    m_hashrate = new Hashrate(m_threadsCount, m_controller);
+    m_hashrate->set_threads(m_threadsCount);
 
     contexts.resize(m_threadsCount);
 
@@ -332,8 +327,8 @@ void Workers::stop()
     m_paused   = 0;
     m_sequence = 0;
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        m_workers[i]->join();
+    for (Handle *handle : m_workers) {
+        handle->join();
     }
 }
 
