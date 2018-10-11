@@ -252,9 +252,10 @@ void Workers::stop()
     m_sequence = 0;
 
     for (size_t i = 0; i < m_workers.size(); ++i) {
-        ReleaseOpenCl(m_workers[i]->ctx());
         m_workers[i]->join();
+        ReleaseOpenCl(m_workers[i]->ctx());
     }
+    
     ReleaseOpenClContext(&m_opencl_ctx);
 }
 
