@@ -256,7 +256,7 @@ void Workers::stop()
         ReleaseOpenCl(m_workers[i]->ctx());
     }
     
-    ReleaseOpenClContext(&m_opencl_ctx);
+    ReleaseOpenClContext(m_opencl_ctx);
 }
 
 
