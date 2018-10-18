@@ -351,7 +351,7 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 
     if (threads.IsArray()) {
         // parse generic (old) threads
-        parseThreadsJSON(threads, m_algorithm.algo());
+        parseThreadsJSON(threads, m_algorithm.perf_algo());
     } else if (threads.IsObject()) {
         // parse new specific perf algo threads
         for (int a = 0; a != xmrig::PerfAlgo::PA_MAX; ++ a) {
