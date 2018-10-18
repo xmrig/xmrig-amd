@@ -56,7 +56,8 @@ bool OclCache::load()
     const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d -DUNROLL_FACTOR=%d",
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
+                                       "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
              xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
@@ -65,7 +66,8 @@ bool OclCache::load()
              m_ctx->compMode,
              xmrig::cn_select_memory(algo),
              static_cast<int>(algo),
-             m_ctx->unrollFactor
+             m_ctx->unrollFactor,
+             amdDriverMajorVersion()
              );
 
     if (!prepare(options)) {
@@ -231,6 +233,19 @@ cl_uint OclCache::numDevices() const
     OclLib::getProgramInfo(m_ctx->Program, CL_PROGRAM_NUM_DEVICES, sizeof(cl_uint), &num_devices);
 
     return num_devices;
+}
+
+
+int OclCache::amdDriverMajorVersion() const
+{
+    char buf[64] = { 0 };
+    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) != CL_SUCCESS) {
+        return 0;
+    }
+
+    const int version = strtol(buf, nullptr, 10);
+
+    return version >= 1400 ? version / 100 : 0;
 }
 
 
