@@ -70,11 +70,6 @@ ApiRouter::ApiRouter(xmrig::Controller *controller) :
 }
 
 
-ApiRouter::~ApiRouter()
-{
-}
-
-
 void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const
 {
     rapidjson::Document doc;
@@ -291,13 +286,16 @@ void ApiRouter::getThreads(rapidjson::Document &doc) const
     const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
     rapidjson::Value list(rapidjson::kArrayType);
 
+    size_t i = 0;
     for (const xmrig::IThread *thread : threads) {
         rapidjson::Value value = thread->toAPI(doc);
 
         rapidjson::Value hashrate(rapidjson::kArrayType);
-        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::LargeInterval)),  allocator);
+        hashrate.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+        hashrate.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+        hashrate.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+
+        i++;
 
         value.AddMember("hashrate", hashrate, allocator);
         list.PushBack(value, allocator);

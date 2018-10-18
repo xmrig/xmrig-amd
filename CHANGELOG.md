@@ -1,3 +1,7 @@
+# v2.8.2
+- [#167](https://github.com/xmrig/xmrig-amd/issues/167) Fixed wrong hashrate in `GET /1/threads` API endpoint.
+- [#168](https://github.com/xmrig/xmrig-amd/issues/168) Fixed broken AMD OpenCL compile (old driver bug).
+
 # v2.8.1
 - [#156](https://github.com/xmrig/xmrig-amd/issues/156) Added CMake option to disable strict OpenCL cache.
 - [#769](https://github.com/xmrig/xmrig/issues/769) Fixed regression, some ANSI escape sequences was in log with disabled colors.
