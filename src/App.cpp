@@ -35,7 +35,6 @@
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "net/Network.h"
 #include "Summary.h"
@@ -148,7 +147,7 @@ int App::exec()
 #   endif
 
     if (!m_controller->oclInit() || !Workers::start(m_controller)) {
-        LOG_ERR("Failed to start threads");
+        LOG_ERR("Failed to start threads.");
         return 1;
     }
 

@@ -25,6 +25,9 @@
 #define XMRIG_OCLLIB_H
 
 
+#include <vector>
+
+
 #if defined(__APPLE__)
 #   include <OpenCL/cl.h>
 #else
@@ -55,6 +58,8 @@ public:
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret);
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret);
+    static std::vector<cl_platform_id> getPlatformIDs();
+    static uint32_t getNumPlatforms();
 
 private:
     static bool load();

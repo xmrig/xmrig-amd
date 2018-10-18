@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef XMRIG_CONFIG_H
+#define XMRIG_CONFIG_H
 
 
 #include <stdint.h>
@@ -47,20 +47,22 @@ class Config : public CommonConfig
 {
 public:
     Config();
-    ~Config();
 
+    bool isCNv2() const;
     bool oclInit();
     bool reload(const char *json);
 
     void getJSON(rapidjson::Document &doc) const override;
 
     inline bool isOclCache() const                       { return m_cache; }
-    inline bool isShouldSave() const                     { return m_shouldSave; }
+    inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
     inline const char *loader() const                    { return m_loader.data(); }
     inline const std::vector<IThread *> &threads() const { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
+    inline xmrig::OclVendor vendor() const               { return m_vendor; }
 
     static Config *load(int argc, char **argv, IWatcherListener *listener);
+    static const char *vendorName(xmrig::OclVendor vendor);
 
 protected:
     bool finalize() override;
@@ -71,6 +73,8 @@ protected:
 
 private:
     void parseThread(const rapidjson::Value &object);
+    void setPlatformIndex(const char *name);
+    void setPlatformIndex(int index);
 
     bool m_autoConf;
     bool m_cache;
@@ -79,9 +83,10 @@ private:
     OclCLI m_oclCLI;
     std::vector<IThread *> m_threads;
     xmrig::c_str m_loader;
+    xmrig::OclVendor m_vendor;
 };
 
 
 } /* namespace xmrig */
 
-#endif /* __CONFIG_H__ */
+#endif /* XMRIG_CONFIG_H */

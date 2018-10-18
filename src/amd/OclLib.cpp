@@ -347,3 +347,33 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
 
     return result;
 }
+
+
+std::vector<cl_platform_id> OclLib::getPlatformIDs()
+{
+    const uint32_t count = getNumPlatforms();
+    std::vector<cl_platform_id> platforms(count);
+
+    if (count) {
+        OclLib::getPlatformIDs(count, platforms.data(), nullptr);
+    }
+
+    return platforms;
+}
+
+
+uint32_t OclLib::getNumPlatforms()
+{
+    cl_uint count = 0;
+    cl_int ret;
+
+    if ((ret = OclLib::getPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
+        LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", OclError::toString(ret));
+    }
+
+    if (count == 0) {
+        LOG_ERR("No OpenCL platform found.");
+    }
+
+    return count;
+}

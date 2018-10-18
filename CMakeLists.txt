@@ -1,16 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-
-option(WITH_AEON     "CryptoNight-Lite support" ON)
-option(WITH_SUMO     "CryptoNight-Heavy support" ON)
-option(WITH_HTTPD    "HTTP REST API" OFF)
-option(WITH_CC_CLIENT "CC Client" ON)
-option(WITH_TLS       "TLS support" ON)
-option(BUILD_STATIC  "Build static binary" OFF)
+option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
+option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 
 if(NOT MINER_EXECUTABLE_NAME)
     set(MINER_EXECUTABLE_NAME "xmrigMiner-amd" CACHE STRING "Miner executable file name")
@@ -38,6 +30,8 @@ set(HEADERS
     src/common/config/ConfigLoader.h
     src/common/config/ConfigWatcher.h
     src/common/Console.h
+    src/common/cpu/BasicCpuInfo.h
+    src/common/cpu/Cpu.h
     src/common/crypto/Algorithm.h
     src/common/crypto/keccak.h
     src/common/interfaces/IClientListener.h
@@ -45,6 +39,7 @@ set(HEADERS
     src/common/interfaces/IConfigCreator.h
     src/common/interfaces/IConsoleListener.h
     src/common/interfaces/IControllerListener.h
+    src/common/interfaces/ICpuInfo.h
     src/common/interfaces/ILogBackend.h
     src/common/interfaces/IStrategy.h
     src/common/interfaces/IStrategyListener.h
@@ -69,7 +64,6 @@ set(HEADERS
     src/common/xmrig.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
-    src/Cpu.h
     src/interfaces/IJobResultListener.h
     src/interfaces/IThread.h
     src/interfaces/IWorker.h
@@ -113,6 +107,8 @@ set(SOURCES
     src/amd/OclLib.cpp
     src/api/NetworkState.cpp
     src/App.cpp
+    src/common/cpu/BasicCpuInfo.cpp
+    src/common/cpu/Cpu.cpp
     src/common/crypto/Algorithm.cpp
     src/common/crypto/keccak.cpp
     src/common/net/Client.cpp
@@ -158,15 +154,11 @@ set(SOURCES_CRYPTO
 
 if (WIN32)
     set(SOURCES_OS
+        res/app.rc
         src/amd/OclCache_win.cpp
         src/App_win.cpp
         src/common/Platform_win.cpp
-        src/Cpu_win.cpp
         )
-
-    if (NOT CMAKE_CXX_COMPILER_ID MATCHES GNU)
-        set(SOURCES_OS ${SOURCES_OS} res/app.rc)
-    endif()
 
     add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv crypt32)
@@ -175,14 +167,12 @@ elseif (APPLE)
         src/amd/OclCache_unix.cpp
         src/App_unix.cpp
         src/common/Platform_mac.cpp
-        src/Cpu_mac.cpp
         )
 else()
     set(SOURCES_OS
         src/amd/OclCache_unix.cpp
         src/App_unix.cpp
         src/common/Platform_unix.cpp
-        src/Cpu_unix.cpp
         )
 
     set(EXTRA_LIBS pthread rt dl)
@@ -201,10 +191,10 @@ endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-#add_definitions(/DAPP_DEBUG)
 add_definitions(/DXMRIG_AMD_PROJECT)
 add_definitions(/DXMRIG_NO_LIBCPUID)
 add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
+add_definitions(/DXMRIG_NO_ASM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -215,16 +205,17 @@ include(cmake/flags.cmake)
 add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
 add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
-if (XMRIG_ARM)
-    set(SOURCES_CPUID src/Cpu_arm.cpp)
-else()
-    set(SOURCES_CPUID src/Cpu_stub.cpp)
-endif()
+
+include(cmake/OpenSSL.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
     set(SOURCES_SYSLOG src/common/log/SysLog.h src/common/log/SysLog.cpp)
+endif()
+
+if (STRICT_CACHE)
+    add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
 endif()
 
 if (NOT WITH_AEON)
@@ -260,6 +251,7 @@ if (WITH_HTTPD)
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
     endif()
 else()
+    set(HTTPD_SOURCES "")
     set(MHD_LIBRARY "")
     add_definitions(/DXMRIG_NO_HTTPD)
     add_definitions(/DXMRIG_NO_API)
@@ -306,9 +298,15 @@ if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
 endif()
 
+if (WITH_DEBUG_LOG)
+    add_definitions(/DAPP_DEBUG)
+endif()
 add_executable(xmrigMiner-amd ${HEADERS} ${SOURCES_CC_COMMON} ${SOURCES} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
 set_target_properties(xmrigMiner-amd PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 target_link_libraries(xmrigMiner-amd ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS} ${OpenCL_LIBRARY})
+
+add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
+target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})
 
 if (WITH_TLS)
     #target_link_libraries(xmrigMiner-amd xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
