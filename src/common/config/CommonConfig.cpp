@@ -159,9 +159,9 @@ void xmrig::CommonConfig::printVersions()
     snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
 #   endif
 
-    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s")
-                              : " * %-13s%s/%s %s",
-                   "ABOUT", APP_NAME, APP_VERSION, buf);
+    Log::i()->text(isColors() ? GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s") CYAN_BOLD(" (%s)")
+                              : " * %-13s%s/%s %s (%s)",
+                   "ABOUT", APP_NAME, APP_VERSION, buf, BUILD_TYPE);
 
 #   if defined(XMRIG_AMD_PROJECT)
 #   if CL_VERSION_2_0
