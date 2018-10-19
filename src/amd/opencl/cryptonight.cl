@@ -634,6 +634,7 @@ R"===(
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
 {
+#   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[4];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256], RCP[256];
     
@@ -785,6 +786,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #   undef SCRATCHPAD_CHUNK
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
+#   endif
 }
 
 )==="
