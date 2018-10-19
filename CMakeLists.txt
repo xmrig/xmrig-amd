@@ -206,8 +206,6 @@ add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
 add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
 
-include(cmake/OpenSSL.cmake)
-
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
     add_definitions(/DHAVE_SYSLOG_H)
@@ -264,7 +262,7 @@ if (WITH_TLS)
 
     if (OPENSSL_FOUND)
         include_directories(${OPENSSL_INCLUDE_DIR})
-        #set(SOURCES_SSL_TLS src/net/BoostTlsConnection.cpp)
+        set(SOURCES_SSL_TLS src/common/net/Tls.cpp)
     else()
         message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
     endif()
@@ -291,7 +289,7 @@ include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
 
 if (WITH_TLS)
-    #add_library(xmrig_tls STATIC ${SOURCES_SSL_TLS})
+    add_library(xmrig_tls STATIC ${SOURCES_SSL_TLS})
 endif (WITH_TLS)
 
 if (BUILD_STATIC)
@@ -309,7 +307,7 @@ add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRY
 target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})
 
 if (WITH_TLS)
-    #target_link_libraries(xmrigMiner-amd xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
+    target_link_libraries(xmrigMiner-amd xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
     target_link_libraries(xmrigMiner-amd ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif (WITH_TLS)
 

@@ -92,8 +92,8 @@ Options:\n\
       --api-worker-id=ID   custom worker-id for API\n\
       --api-id=ID          custom instance ID for API\n\
       --api-ipv6           enable IPv6 support for API\n\
-      --api-no-restricted  enable full remote access (only if API token set)\n"
-      --dry-run                test configuration and exit\n\
+      --api-no-restricted  enable full remote access (only if API token set)\n\
+      --dry-run                test configuration and exit\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url (host:port) of the CC Server\n\
@@ -101,8 +101,8 @@ Options:\n\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
-      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n"
-      --cc-use-remote-logging           enable remote logging on CC Server\n\
+      --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n\
+      --cc-use-remote-logging           enable remote logging on CC Server\n"
 # endif
 "\
   -h, --help               display this help and exit\n\
@@ -156,15 +156,15 @@ static struct option const options[] = {
     { "no-cache",             0, nullptr, xmrig::IConfig::OclCacheKey       },
     { "print-platforms",      0, nullptr, xmrig::IConfig::OclPrintKey       },
     { "opencl-loader",        1, nullptr, xmrig::IConfig::OclLoaderKey      },
-    { "cc-url",            1, nullptr, xmrig::IConfig::CCUrlKey },
-    { "cc-access-token",   1, nullptr, xmrig::IConfig::CCAccessTokenKey },
-    { "cc-worker-id",      1, nullptr, xmrig::IConfig::CCWorkerIdKey },
+    { "cc-url",               1, nullptr, xmrig::IConfig::CCUrlKey },
+    { "cc-access-token",      1, nullptr, xmrig::IConfig::CCAccessTokenKey },
+    { "cc-worker-id",         1, nullptr, xmrig::IConfig::CCWorkerIdKey },
     { "cc-update-interval-s", 1, nullptr, xmrig::IConfig::CCUpdateIntervalKey },
-    { "cc-use-tls",        0, nullptr, xmrig::IConfig::CCUseTlsKey },
+    { "cc-use-tls",           0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "cc-use-remote-logging",       0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
     { "cc-upload-config-on-startup", 0, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
-    { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey },
-    { nullptr,             0, nullptr, 0 }
+    { "daemonized",           0, nullptr, xmrig::IConfig::DaemonizedKey },
+    { nullptr,                0, nullptr, 0 }
 };
 
 
@@ -222,7 +222,7 @@ static struct option const cc_client_options[] = {
     { "update-interval-s",          1, nullptr, xmrig::IConfig::CCUpdateIntervalKey },
     { "use-tls",                    0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "use-remote-logging",         0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
-    { "cc-upload-config-on-startup",1, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
+    { "upload-config-on-startup",   1, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
     { 0, 0, 0, 0 }
 };
 

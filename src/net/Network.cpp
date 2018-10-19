@@ -179,7 +179,7 @@ void Network::setJob(Client *client, const Job &job, bool donate)
                         : "new job from %s:%d diff %d algo %s",
              client->host(), client->port(), job.diff(), job.algorithm().shortName());
 
-    m_state.powVariant = job.variant();
+    m_state.powVariant = job.algorithm().variant();
     m_state.diff = job.diff();
     Workers::setJob(job, donate);
 }
