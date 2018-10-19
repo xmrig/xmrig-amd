@@ -1,6 +1,6 @@
 # XMRig AMD
 
-:warning: **[Monero will change PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig-amd/releases/tag/v2.8.2)** :warning:
+:warning: **[Monero changed PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig-amd/releases/tag/v2.8.3)** :warning:
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
@@ -102,10 +102,10 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `
 ## Release checksums
 ### SHA-256
 ```
-cbbb044f0befc808dc7cbb7c1c552f11c94c0dfd588ed15c56577eb64de43719 xmrig-amd-2.8.2-xenial-amd64.tar.gz/xmrig-amd-2.8.2/xmrig-amd
-8830e0a7b3bc3fc8773a5dbe96e4acc635fdbf2a9afa5be1e1e56cc6ff9ea589 xmrig-amd-2.8.2-xenial-amd64.tar.gz/xmrig-amd-2.8.2/xmrig-amd-notls
-a6ea31cab7799019e4fd3cc919a0a7089cadb6e6946d8ad50a06b5e1f29bd2c8 xmrig-amd-2.8.2-win64.zip/xmrig-amd.exe
-1ead08e146d193b4ebd21a8f0e087aeaef297ec600a81c3b777855b6589e84ef xmrig-amd-2.8.2-win64.zip/xmrig-amd-notls.exe
+f83ba339f7316cb5a31ae3311abe8291ba3b578fae959e7c0639c1076c58c57b xmrig-amd-2.8.3-xenial-amd64.tar.gz/xmrig-amd-2.8.3/xmrig-amd
+12694a7a1e323ee5303e6eb3c3bbf2993e6469016c13cd75f9a1b876e36173b2 xmrig-amd-2.8.3-xenial-amd64.tar.gz/xmrig-amd-2.8.3/xmrig-amd-notls
+0f727ef07bef89e107966d004e4e57b41d473b29c085da9182aed2333a64a4f7 xmrig-amd-2.8.3-win64.zip/xmrig-amd.exe
+f5cff1cbad8ab43ea3506c54d6bb4e89b99540933dbd0b40282d9e76f8c9048a xmrig-amd-2.8.3-win64.zip/xmrig-amd-notls.exe
 ```
 
 ## Contacts
