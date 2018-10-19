@@ -1,3 +1,6 @@
+# v2.8.3
+- [#813](https://github.com/xmrig/xmrig/issues/813) Fixed critical bug witch Minergate pool with variant 2.
+
 # v2.8.2
 - [#167](https://github.com/xmrig/xmrig-amd/issues/167) Fixed wrong hashrate in `GET /1/threads` API endpoint.
 - [#168](https://github.com/xmrig/xmrig-amd/issues/168) Fixed broken AMD OpenCL compile (old driver bug).
