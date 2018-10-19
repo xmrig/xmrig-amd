@@ -35,12 +35,12 @@
 #include "api/ApiRouter.h"
 #include "common/api/HttpReply.h"
 #include "common/api/HttpRequest.h"
+#include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
 #include "common/net/Job.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
 #include "interfaces/IThread.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -67,11 +67,6 @@ ApiRouter::ApiRouter(xmrig::Controller *controller) :
 
     setWorkerId(controller->config()->apiWorkerId());
     genId(controller->config()->apiId());
-}
-
-
-ApiRouter::~ApiRouter()
-{
 }
 
 
@@ -241,10 +236,10 @@ void ApiRouter::getMiner(rapidjson::Document &doc) const
     auto &allocator = doc.GetAllocator();
 
     rapidjson::Value cpu(rapidjson::kObjectType);
-    cpu.AddMember("brand",   rapidjson::StringRef(Cpu::brand()), allocator);
-    cpu.AddMember("aes",     Cpu::hasAES(), allocator);
-    cpu.AddMember("x64",     Cpu::isX64(), allocator);
-    cpu.AddMember("sockets", Cpu::sockets(), allocator);
+    cpu.AddMember("brand",   rapidjson::StringRef(xmrig::Cpu::info()->brand()), allocator);
+    cpu.AddMember("aes",     xmrig::Cpu::info()->hasAES(), allocator);
+    cpu.AddMember("x64",     xmrig::Cpu::info()->isX64(), allocator);
+    cpu.AddMember("sockets", xmrig::Cpu::info()->sockets(), allocator);
 
     doc.AddMember("version",      APP_VERSION, allocator);
     doc.AddMember("kind",         APP_KIND, allocator);
@@ -291,13 +286,16 @@ void ApiRouter::getThreads(rapidjson::Document &doc) const
     const std::vector<xmrig::IThread *> &threads = m_controller->config()->threads();
     rapidjson::Value list(rapidjson::kArrayType);
 
+    size_t i = 0;
     for (const xmrig::IThread *thread : threads) {
         rapidjson::Value value = thread->toAPI(doc);
 
         rapidjson::Value hashrate(rapidjson::kArrayType);
-        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::ShortInterval)),  allocator);
-        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::MediumInterval)), allocator);
-        hashrate.PushBack(normalize(hr->calc(thread->index(), Hashrate::LargeInterval)),  allocator);
+        hashrate.PushBack(normalize(hr->calc(i, Hashrate::ShortInterval)),  allocator);
+        hashrate.PushBack(normalize(hr->calc(i, Hashrate::MediumInterval)), allocator);
+        hashrate.PushBack(normalize(hr->calc(i, Hashrate::LargeInterval)),  allocator);
+
+        i++;
 
         value.AddMember("hashrate", hashrate, allocator);
         list.PushBack(value, allocator);
