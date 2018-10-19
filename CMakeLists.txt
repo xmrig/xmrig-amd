@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+
+option(WITH_AEON     "CryptoNight-Lite support" ON)
+option(WITH_SUMO     "CryptoNight-Heavy support" ON)
+option(WITH_HTTPD    "HTTP REST API" OFF)
+option(WITH_CC_CLIENT "CC Client" ON)
+option(WITH_TLS       "TLS support" ON)
+option(BUILD_STATIC  "Build static binary" OFF)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 
