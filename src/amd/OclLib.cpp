@@ -315,6 +315,71 @@ cl_int OclLib::getProgramInfo(cl_program program, cl_program_info param_name, si
 }
 
 
+cl_int OclLib::releaseCommandQueue(cl_command_queue command_queue)
+{
+    assert(pReleaseCommandQueue != nullptr);
+
+    const cl_int ret = pReleaseCommandQueue(command_queue);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseCommandQueue);
+    }
+
+    return ret;
+}
+
+
+cl_int OclLib::releaseContext(cl_context context)
+{
+    assert(pReleaseContext != nullptr);
+
+    const cl_int ret = pReleaseContext(context);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseContext);
+    }
+
+    return ret;
+}
+
+
+cl_int OclLib::releaseKernel(cl_kernel kernel)
+{
+    assert(pReleaseKernel != nullptr);
+
+    const cl_int ret = pReleaseKernel(kernel);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseKernel);
+    }
+
+    return ret;
+}
+
+
+cl_int OclLib::releaseMemObject(cl_mem mem_obj)
+{
+    assert(pReleaseMemObject != nullptr);
+
+    const cl_int ret = pReleaseMemObject(mem_obj);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseMemObject);
+    }
+
+    return ret;
+}
+
+
+cl_int OclLib::releaseProgram(cl_program program)
+{
+    assert(pReleaseProgram != nullptr);
+
+    const cl_int ret = pReleaseProgram(program);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseProgram);
+    }
+
+    return ret;
+}
+
+
 cl_int OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value)
 {
     assert(pSetKernelArg != nullptr);
@@ -367,41 +432,6 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
     }
 
     return result;
-}
-
-
-void OclLib::releaseMemObject(cl_mem mem_obj)
-{
-    if(pReleaseMemObject(mem_obj) != CL_SUCCESS)
-        LOG_WARN("Error when releasing OpenCL buffer");
-}
-
-
-void OclLib::releaseProgram(cl_program program)
-{
-    if(pReleaseProgram(program) != CL_SUCCESS)
-        LOG_WARN("Error when releasing OpenCL program");
-}
-
-
-void OclLib::releaseKernel(cl_kernel kernel)
-{
-    if(pReleaseKernel(kernel) != CL_SUCCESS)
-        LOG_WARN("Error when releasing OpenCL Kernel");
-}
-
-
-void OclLib::releaseCommandQueue(cl_command_queue command_queue)
-{
-    if(pReleaseCommandQueue(command_queue) != CL_SUCCESS)
-        LOG_WARN("Error when releasing OpenCL command queue");
-}
-
-
-void OclLib::releaseContext(cl_context context)
-{
-    if(pReleaseContext(context) != CL_SUCCESS)
-        LOG_WARN("Error when releasing OpenCL context");
 }
 
 

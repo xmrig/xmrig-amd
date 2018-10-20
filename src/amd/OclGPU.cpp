@@ -411,8 +411,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
         TempDeviceList[i] = DeviceIDList[ctx[i].deviceIdx];
     }
 
-	*opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
-	
+    *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
 
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
@@ -667,24 +666,27 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     return OCL_ERR_SUCCESS;
 }
 
+
 void ReleaseOpenCl(GpuContext* ctx)
 {
-
     OclLib::releaseMemObject(ctx->InputBuffer);
     OclLib::releaseMemObject(ctx->OutputBuffer);
 
     int buffer_count = sizeof(ctx->ExtraBuffers) / sizeof(ctx->ExtraBuffers[0]);
-    for(int b = 0; b < buffer_count; ++b)
+    for (int b = 0; b < buffer_count; ++b) {
         OclLib::releaseMemObject(ctx->ExtraBuffers[b]);
+    }
 
     OclLib::releaseProgram(ctx->Program);
 
     int kernel_count = sizeof(ctx->Kernels) / sizeof(ctx->Kernels[0]);
-    for(int k = 0; k < kernel_count; ++k)
+    for (int k = 0; k < kernel_count; ++k) {
         OclLib::releaseKernel(ctx->Kernels[k]);
+    }
 
     OclLib::releaseCommandQueue(ctx->CommandQueues);
 }
+
 
 void ReleaseOpenClContext(cl_context opencl_ctx)
 {

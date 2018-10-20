@@ -90,7 +90,6 @@ private:
     static Hashrate *m_hashrate;
     static IJobResultListener *m_listener;
     static Job m_job;
-
     static size_t m_threadsCount;
     static std::atomic<int> m_paused;
     static std::atomic<uint64_t> m_sequence;
