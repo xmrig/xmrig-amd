@@ -242,6 +242,7 @@ cl_uint OclCache::numDevices() const
 
 int OclCache::amdDriverMajorVersion() const
 {
+#   ifdef XMRIG_STRICT_OPENCL_CACHE
     char buf[64] = { 0 };
     if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) != CL_SUCCESS) {
         return 0;
@@ -250,6 +251,9 @@ int OclCache::amdDriverMajorVersion() const
     const int version = strtol(buf, nullptr, 10);
 
     return version >= 1400 ? version / 100 : 0;
+#   else
+    return 0;
+#   endif
 }
 
 
