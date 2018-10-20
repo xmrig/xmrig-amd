@@ -31,6 +31,12 @@
 #include <uv.h>
 #include <vector>
 
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
+
 #include "common/net/Job.h"
 #include "net/JobResult.h"
 #include "rapidjson/fwd.h"
@@ -67,6 +73,7 @@ public:
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
+    static cl_context m_opencl_ctx;
 
 #   ifndef XMRIG_NO_API
     static void threadsSummary(rapidjson::Document &doc);
