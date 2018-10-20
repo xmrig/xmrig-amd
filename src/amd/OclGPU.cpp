@@ -280,9 +280,8 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
         ctx.freeMem = std::min(ctx.freeMem, maxMem);
 
         getDeviceName(ctx.DeviceID, buf, sizeof(buf));
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf);
 
-        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " WHITE_BOLD("%s") ", cu: " WHITE_BOLD("%d")
+        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
                                     : "found OpenCL GPU: %s, cu:",
                  buf, ctx.computeUnits);
 
