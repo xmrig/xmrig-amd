@@ -88,12 +88,7 @@ CCClient::CCClient(Options* config, uv_async_t* async)
 #ifdef TYPE_AMD_GPU
     m_clientStatus.setCpuBrand(xmrig::Cpu::info()->brand());
     m_clientStatus.setCpuAES(xmrig::Cpu::info()->hasAES());
-    m_clientStatus.setCpuSockets(static_cast<int>(xmrig::Cpu::info()->sockets()));
-    m_clientStatus.setCpuCores(static_cast<int>(xmrig::Cpu::info()->cores()));
-    m_clientStatus.setCpuThreads(static_cast<int>(xmrig::Cpu::info()->threads()));
     m_clientStatus.setCpuX64(xmrig::Cpu::info()->isX64());
-    m_clientStatus.setCpuL2(static_cast<int>(xmrig::Cpu::info()->L2()));
-    m_clientStatus.setCpuL3(static_cast<int>(xmrig::Cpu::info()->L3()));
     m_clientStatus.setCurrentThreads(static_cast<int>(config->threads().size()));
     m_clientStatus.setCurrentAlgoName(config->algorithm().name());
 #else

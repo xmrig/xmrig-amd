@@ -34,7 +34,7 @@
 #define APP_KIND      "amd"
 
 #define APP_VER_MAJOR  1
-#define APP_VER_MINOR  7
+#define APP_VER_MINOR  8
 #define APP_VER_PATCH  0
 
 #define TYPE_AMD_GPU
