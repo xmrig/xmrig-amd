@@ -73,7 +73,7 @@ inline uint2 fast_div_v2(const __local uint *RCP, ulong a, uint b)
     ulong q;
     ((uint*)&q)[0] = as_uint2(k).s1;
 
-#if defined(cl_amd_device_attribute_query) && (OPENCL_DRIVER_MAJOR == 14)
+#if defined(cl_amd_device_attribute_query) && (OPENCL_DRIVER_MAJOR > 0) && (OPENCL_DRIVER_MAJOR <= 14)
     /* The AMD driver 14.XX is not able to compile `(k < a)`
      * https://github.com/fireice-uk/xmr-stak/issues/1922
      * This is a workaround for the broken compiler.

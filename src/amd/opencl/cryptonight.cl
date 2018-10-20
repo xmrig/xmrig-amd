@@ -751,7 +751,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
             tmp.s0 ^= division_result.s0;
             tmp.s1 ^= division_result.s1 ^ sqrt_result;
 
-            division_result = fast_div_v2((__local uchar *) RCP, as_ulong2(c).s1, (c.s0 + (sqrt_result << 1)) | 0x80000001UL);
+            division_result = fast_div_v2((__local uint *) RCP, as_ulong2(c).s1, (c.s0 + (sqrt_result << 1)) | 0x80000001UL);
             sqrt_result = fast_sqrt_v2(as_ulong2(c).s0 + as_ulong(division_result));
         }
 
