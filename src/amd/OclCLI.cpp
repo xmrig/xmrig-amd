@@ -82,15 +82,14 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
         const int hints           = getHints(ctx, config);
         const size_t maxThreads   = getMaxThreads(ctx, config->algorithm().algo(), hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
+        const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
 
         size_t intensity = 0;
         if (hints & Vega) {
-            const size_t worksize = (hints & CNv2) ? 16 : 8;
-
-            intensity = maxIntensity / worksize * worksize;
+            intensity = maxIntensity / computeUnits * computeUnits;
         }
         else {
-            intensity = (maxIntensity / (8 * ctx.computeUnits)) * ctx.computeUnits * 8;
+            intensity = (maxIntensity / (8 * computeUnits)) * computeUnits * 8;
         }
 
         assert(intensity > 0);
