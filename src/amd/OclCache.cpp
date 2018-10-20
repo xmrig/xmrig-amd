@@ -189,6 +189,10 @@ bool OclCache::prepare(const char *options)
     m_fileName = prefix() + "/.cache/" + hash + ".bin";
 #   endif
 
+#   ifndef XMRIG_STRICT_OPENCL_CACHE
+    LOG_INFO("           CACHE: %s", m_fileName.c_str());
+#   endif
+
     return true;
 }
 
