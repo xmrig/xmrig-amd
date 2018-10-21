@@ -6,7 +6,6 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -87,6 +86,7 @@ typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
 typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
 typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
 typedef cl_int (CL_API_CALL *releaseContext_t)(cl_context);
+
 
 #if defined(CL_VERSION_2_0)
 static createCommandQueueWithProperties_t pCreateCommandQueueWithProperties = nullptr;
@@ -434,44 +434,6 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
     return result;
 }
 
-cl_int OclLib::releaseContext(cl_context context)
-{
-    assert(pReleaseContext != nullptr);
-
-    return pReleaseContext(context);
-}
-
-
-cl_int OclLib::releaseProgram(cl_program program)
-{
-    assert(pReleaseProgram != nullptr);
-
-    return pReleaseProgram(program);
-}
-
-
-cl_int OclLib::releaseCommandQueue(cl_command_queue command_queue)
-{
-    assert(pReleaseCommandQueue != nullptr);
-
-    return pReleaseCommandQueue(command_queue);
-}
-
-
-cl_int OclLib::releaseMemObject(cl_mem memobj)
-{
-    assert(pReleaseMemObject != nullptr);
-
-    return pReleaseMemObject(memobj);
-}
-
-
-cl_int OclLib::releaseKernel(cl_kernel kernel)
-{
-    assert(pReleaseKernel != nullptr);
-
-    return pReleaseKernel(kernel);
-}
 
 std::vector<cl_platform_id> OclLib::getPlatformIDs()
 {
