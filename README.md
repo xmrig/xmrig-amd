@@ -1,6 +1,6 @@
 # XMRigCC-amd (OpenCL)
 
-:warning: **Monero forked to cnv2 on block 1685555 (2018-10-18) make sure you upgrade to at least XMRigCC 1.8.0 to mine XMR**
+:warning: **Monero forked to cnv2 on block 1685555 (2018-10-18) make sure you upgrade to at least XMRigCC-amd 1.8.0 to mine XMR**
 
 :warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
 
