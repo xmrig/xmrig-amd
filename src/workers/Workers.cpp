@@ -59,7 +59,7 @@ uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
 xmrig::Controller *Workers::m_controller = nullptr;
-
+cl_context Workers::m_opencl_ctx;
 
 static std::vector<GpuContext> contexts;
 
@@ -216,7 +216,7 @@ bool Workers::start(xmrig::Controller *controller)
                                  );
     }
 
-    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != 0) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config(), &m_opencl_ctx) != 0) {
         return false;
     }
 
@@ -245,17 +245,19 @@ void Workers::soft_stop() // stop current workers leaving uv stuff intact (used 
 
     for (Handle *handle : m_workers) {
         handle->join();
+        ReleaseOpenCl(handle->ctx());
         delete handle;
     }
-    m_workers.clear();
 
-    for (size_t i = 0; i < contexts.size(); ++i) contexts[i].release();
+    ReleaseOpenClContext(m_opencl_ctx);
+
+    m_workers.clear();
 }
 
 // setups workers based on specified algorithm (or its basic perf algo more specifically)
 bool Workers::switch_algo(const xmrig::Algorithm& algorithm)
 {
-    if (m_controller->config()->algorithm().algo() == algorithm.algo()) return true;
+    if (m_controller->config()->algorithm().perf_algo() == algorithm.perf_algo()) return true;
 
     soft_stop();
 
@@ -327,9 +329,12 @@ void Workers::stop()
     m_paused   = 0;
     m_sequence = 0;
 
-    for (Handle *handle : m_workers) {
-        handle->join();
+    for (size_t i = 0; i < m_workers.size(); ++i) {
+        m_workers[i]->join();
+        ReleaseOpenCl(m_workers[i]->ctx());
     }
+
+    ReleaseOpenClContext(m_opencl_ctx);
 }
 
 

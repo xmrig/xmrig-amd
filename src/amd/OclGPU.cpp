@@ -281,9 +281,8 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
         ctx.freeMem = std::min(ctx.freeMem, maxMem);
 
         getDeviceName(ctx.DeviceID, buf, sizeof(buf));
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf);
 
-        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " WHITE_BOLD("%s") ", cu: " WHITE_BOLD("%d")
+        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
                                     : "found OpenCL GPU: %s, cu:",
                  buf, ctx.computeUnits);
 
@@ -361,7 +360,7 @@ void printPlatforms()
 // RequestedDeviceIdxs is a list of OpenCL device indexes
 // NumDevicesRequested is number of devices in RequestedDeviceIdxs list
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
+size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_context *opencl_ctx)
 {
     const size_t platform_idx             = config->platformIndex();
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
@@ -413,9 +412,9 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     }
 
     // we store previous OpenCL context in static variable to be able to release it next time we do algo switch
-    static cl_context opencl_ctx = nullptr;
-    if (opencl_ctx) OclLib::releaseContext(opencl_ctx);
-    opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
+    if (*opencl_ctx) OclLib::releaseContext(*opencl_ctx);
+    *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
+
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
     }
@@ -458,7 +457,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
             LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
         }
 
-        if ((ret = InitOpenCLGpu(i, opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }
@@ -667,4 +666,31 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     ctx->Nonce += (uint32_t) g_intensity;
 
     return OCL_ERR_SUCCESS;
+}
+
+
+void ReleaseOpenCl(GpuContext* ctx)
+{
+    OclLib::releaseMemObject(ctx->InputBuffer);
+    OclLib::releaseMemObject(ctx->OutputBuffer);
+
+    int buffer_count = sizeof(ctx->ExtraBuffers) / sizeof(ctx->ExtraBuffers[0]);
+    for (int b = 0; b < buffer_count; ++b) {
+        OclLib::releaseMemObject(ctx->ExtraBuffers[b]);
+    }
+
+    OclLib::releaseProgram(ctx->Program);
+
+    int kernel_count = sizeof(ctx->Kernels) / sizeof(ctx->Kernels[0]);
+    for (int k = 0; k < kernel_count; ++k) {
+        OclLib::releaseKernel(ctx->Kernels[k]);
+    }
+
+    OclLib::releaseCommandQueue(ctx->CommandQueues);
+}
+
+
+void ReleaseOpenClContext(cl_context opencl_ctx)
+{
+    OclLib::releaseContext(opencl_ctx);
 }

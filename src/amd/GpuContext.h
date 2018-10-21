@@ -7,7 +7,6 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +26,11 @@
 #define XMRIG_GPUCONTEXT_H
 
 
-#include "amd/OclLib.h"
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
 
 
 #include <stdint.h>
@@ -81,18 +84,6 @@ struct GpuContext
         computeUnits(0),
         Nonce(0)
     {}
-
-    void release() { // stops all opencl kernels and releases all opencl resources
-        if (CommandQueues) {
-            OclLib::finish(CommandQueues);
-            OclLib::releaseCommandQueue(CommandQueues);
-        }
-        if (InputBuffer) OclLib::releaseMemObject(InputBuffer);
-        if (OutputBuffer) OclLib::releaseMemObject(OutputBuffer);
-        for (int i = 0; i < 6; ++ i)  if (ExtraBuffers[i]) OclLib::releaseMemObject(ExtraBuffers[i]);
-        for (int i = 0; i < 11; ++ i) if (Kernels[i]) OclLib::releaseKernel(Kernels[i]);
-        if (Program) OclLib::releaseProgram(Program);
-    }
 
     /*Input vars*/
     size_t deviceIdx;
