@@ -206,6 +206,8 @@ endif()
 
 if (STRICT_CACHE)
     add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+else()
+    remove_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
 endif()
 
 if (NOT WITH_AEON)
