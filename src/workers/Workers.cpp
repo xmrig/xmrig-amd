@@ -301,7 +301,7 @@ bool Workers::switch_algo(const xmrig::Algorithm& algorithm)
                                  );
     }
 
-    if (InitOpenCL(contexts.data(), m_threadsCount, m_controller->config()) != 0) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, m_controller->config(), &m_opencl_ctx) != 0) {
         return false;
     }
 

@@ -81,7 +81,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, const xmrig::Algor
         }
 
         const int hints           = getHints(ctx, config);
-        const size_t maxThreads   = getMaxThreads(ctx, algorithm().algo(), hints);
+        const size_t maxThreads   = getMaxThreads(ctx, algorithm.algo(), hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
         const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
 
