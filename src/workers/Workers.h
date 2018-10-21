@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,14 +22,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __WORKERS_H__
-#define __WORKERS_H__
+#ifndef XMRIG_WORKERS_H
+#define XMRIG_WORKERS_H
 
 
 #include <atomic>
 #include <list>
 #include <uv.h>
 #include <vector>
+
+#if defined(__APPLE__)
+#   include <OpenCL/cl.h>
+#else
+#   include "3rdparty/CL/cl.h"
+#endif
 
 #include "common/net/Job.h"
 #include "net/JobResult.h"
@@ -66,6 +73,7 @@ public:
     static inline uint64_t sequence()                            { return m_sequence.load(std::memory_order_relaxed); }
     static inline void pause()                                   { m_active = false; m_paused = 1; m_sequence++; }
     static inline void setListener(IJobResultListener *listener) { m_listener = listener; }
+    static cl_context m_opencl_ctx;
 
 #   ifndef XMRIG_NO_API
     static void threadsSummary(rapidjson::Document &doc);
@@ -96,4 +104,4 @@ private:
 };
 
 
-#endif /* __WORKERS_H__ */
+#endif /* XMRIG_WORKERS_H */

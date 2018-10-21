@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -58,7 +59,7 @@ uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
 xmrig::Controller *Workers::m_controller = nullptr;
-
+cl_context Workers::m_opencl_ctx;
 
 static std::vector<GpuContext> contexts;
 
@@ -168,6 +169,14 @@ void Workers::setJob(const Job &job, bool donate)
 
 bool Workers::start(xmrig::Controller *controller)
 {
+#   ifdef APP_DEBUG
+    LOG_NOTICE("THREADS ------------------------------------------------------------------");
+    for (const xmrig::IThread *thread : controller->config()->threads()) {
+        thread->print();
+    }
+    LOG_NOTICE("--------------------------------------------------------------------------");
+#   endif
+
     m_controller = controller;
     const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     size_t ways = 0;
@@ -189,12 +198,25 @@ bool Workers::start(xmrig::Controller *controller)
 
     contexts.resize(m_threadsCount);
 
+    const bool isCNv2 = controller->config()->isCNv2();
     for (size_t i = 0; i < m_threadsCount; ++i) {
         const OclThread *thread = static_cast<OclThread *>(threads[i]);
-        contexts[i] = GpuContext(thread->index(), thread->intensity(), thread->worksize(), thread->stridedIndex(), thread->memChunk(), thread->isCompMode());
+        if (isCNv2 && thread->stridedIndex() == 1) {
+            LOG_WARN("%sTHREAD #%zu: \"strided_index\":1 is not compatible with CryptoNight variant 2",
+                     controller->config()->isColors() ? "\x1B[1;33m" : "", i);
+        }
+
+        contexts[i] = GpuContext(thread->index(),
+                                 thread->intensity(),
+                                 thread->worksize(),
+                                 thread->stridedIndex(),
+                                 thread->memChunk(),
+                                 thread->isCompMode(),
+                                 thread->unrollFactor()
+                                 );
     }
 
-    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != 0) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config(), &m_opencl_ctx) != 0) {
         return false;
     }
 
@@ -236,7 +258,10 @@ void Workers::stop()
 
     for (size_t i = 0; i < m_workers.size(); ++i) {
         m_workers[i]->join();
+        ReleaseOpenCl(m_workers[i]->ctx());
     }
+
+    ReleaseOpenClContext(m_opencl_ctx);
 }
 
 

@@ -27,15 +27,16 @@
 
 #include "CCClient.h"
 #include "App.h"
-#include "Cpu.h"
 #include "ControlCommand.h"
 
 #ifdef TYPE_AMD_GPU
+#include "common/cpu/Cpu.h"
 #include "common/log/Log.h"
 #include "common/log/RemoteLog.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #else
+#include "Cpu.h"
 #include "Mem.h"
 #include "log/Log.h"
 #include "log/RemoteLog.h"
@@ -82,6 +83,15 @@ CCClient::CCClient(Options* config, uv_async_t* async)
 
     m_clientStatus.setClientId(clientId);
     m_clientStatus.setVersion(Version::string());
+
+
+#ifdef TYPE_AMD_GPU
+    m_clientStatus.setCpuBrand(xmrig::Cpu::info()->brand());
+    m_clientStatus.setCpuAES(xmrig::Cpu::info()->hasAES());
+    m_clientStatus.setCpuX64(xmrig::Cpu::info()->isX64());
+    m_clientStatus.setCurrentThreads(static_cast<int>(config->threads().size()));
+    m_clientStatus.setCurrentAlgoName(config->algorithm().name());
+#else
     m_clientStatus.setCpuBrand(Cpu::brand());
     m_clientStatus.setCpuAES(Cpu::hasAES());
     m_clientStatus.setCpuSockets(static_cast<int>(Cpu::sockets()));
@@ -90,11 +100,6 @@ CCClient::CCClient(Options* config, uv_async_t* async)
     m_clientStatus.setCpuX64(Cpu::isX64());
     m_clientStatus.setCpuL2(static_cast<int>(Cpu::l2()));
     m_clientStatus.setCpuL3(static_cast<int>(Cpu::l3()));
-
-#ifdef TYPE_AMD_GPU
-    m_clientStatus.setCurrentThreads(static_cast<int>(config->threads().size()));
-    m_clientStatus.setCurrentAlgoName(config->algorithm().name());
-#else
     m_clientStatus.setCurrentThreads(static_cast<int>(config->threads()));
     m_clientStatus.setCurrentAlgoName(config->algoName());
 #endif

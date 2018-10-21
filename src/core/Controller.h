@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONTROLLER_H__
-#define __CONTROLLER_H__
+#ifndef XMRIG_CONTROLLER_H
+#define XMRIG_CONTROLLER_H
 
 
 #include "common/interfaces/IWatcherListener.h"
@@ -62,4 +62,4 @@ private:
 
 } /* namespace xmrig */
 
-#endif /* __CONTROLLER_H__ */
+#endif /* XMRIG_CONTROLLER_H */

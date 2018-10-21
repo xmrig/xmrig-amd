@@ -21,28 +21,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef XMRIG_VERSION_H
+#define XMRIG_VERSION_H
 
-
-#ifdef XMRIG_CC_SERVER
-#define APP_ID        "XMRigCC"
-#define APP_NAME      "XMRigCC"
-#define APP_DESC      "XMRigCC Command'n'Control Server"
-#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
-# else
 #define APP_ID        "XMRigCC-AMD"
 #define APP_NAME      "XMRigCC-AMD"
-#define APP_DESC      "XMRigCC-AMD OpenCL miner"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
-#endif
-#define APP_VERSION   "1.7.0 (based on XMRig)"
-#define APP_DOMAIN    ""
+#define APP_DESC      "XMRigCC-AMD OpenCL miner"
+#define APP_VERSION   "1.8.0 (based on XMRig)"
 #define APP_SITE      "https://github.com/Bendr0id/xmrigCC-amd"
+#define APP_DOMAIN    ""
 #define APP_KIND      "amd"
 
 #define APP_VER_MAJOR  1
-#define APP_VER_MINOR  7
+#define APP_VER_MINOR  8
 #define APP_VER_PATCH  0
 
 #define TYPE_AMD_GPU

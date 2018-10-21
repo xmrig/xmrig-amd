@@ -1,4 +1,4 @@
-/* XMRig
+/*
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __COMMONCONFIG_H__
-#define __COMMONCONFIG_H__
+#ifndef XMRIG_COMMONCONFIG_H
+#define XMRIG_COMMONCONFIG_H
 
 
 #include <vector>
@@ -41,26 +41,26 @@ class CommonConfig : public IConfig
 {
 public:
     CommonConfig();
-    ~CommonConfig();
 
-    inline bool isApiIPv6() const                   { return m_apiIPv6; }
-    inline bool isApiRestricted() const             { return m_apiRestricted; }
-    inline bool isBackground() const                { return m_background; }
-    inline bool isColors() const                    { return m_colors; }
-    inline bool isDryRun() const                    { return m_dryRun; }
-    inline bool isSyslog() const                    { return m_syslog; }
+    inline bool isApiIPv6() const                  { return m_apiIPv6; }
+    inline bool isApiRestricted() const            { return m_apiRestricted; }
+    inline bool isAutoSave() const                 { return m_autoSave; }
+    inline bool isBackground() const               { return m_background; }
+    inline bool isColors() const                   { return m_colors; }
+    inline bool isDryRun() const                   { return m_dryRun; }
+    inline bool isSyslog() const                   { return m_syslog; }
     inline bool ccUseTls() const                    { return m_ccUseTls; }
     inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
     inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
-    inline const char *apiToken() const             { return m_apiToken.data(); }
-    inline const char *apiId() const                { return m_apiId.data(); }
-    inline const char *apiWorkerId() const          { return m_apiWorkerId.data(); }
-    inline const char *logFile() const              { return m_logFile.data(); }
-    inline const char *userAgent() const            { return m_userAgent.data(); }
-    inline const char *ccUrl() const                { return m_ccUrl.data(); }
-    inline const char *ccHost() const               { return m_ccHost.data(); }
-    inline const char *ccToken() const              { return m_ccToken.data(); }
-    inline const char *ccWorkerId() const           { return m_ccWorkerId.data(); }
+    inline const char *apiId() const               { return m_apiId.data(); }
+    inline const char *apiToken() const            { return m_apiToken.data(); }
+    inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
+    inline const char *logFile() const             { return m_logFile.data(); }
+    inline const char *userAgent() const           { return m_userAgent.data(); }
+    inline const char *ccUrl() const               { return m_ccUrl.data(); }
+    inline const char *ccHost() const              { return m_ccHost.data(); }
+    inline const char *ccToken() const             { return m_ccToken.data(); }
+    inline const char *ccWorkerId() const          { return m_ccWorkerId.data(); }
 
     inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
@@ -78,6 +78,10 @@ public:
     inline const char *fileName() const override       { return m_fileName.data(); }
 
     bool save() override;
+
+    void printAPI();
+    void printPools();
+    void printVersions();
 
 protected:
     enum State {
@@ -97,6 +101,7 @@ protected:
     bool m_adjusted;
     bool m_apiIPv6;
     bool m_apiRestricted;
+    bool m_autoSave;
     bool m_background;
     bool m_colors;
     bool m_dryRun;

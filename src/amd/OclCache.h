@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __OCLCACHE_H__
-#define __OCLCACHE_H__
+#ifndef XMRIG_OCLCACHE_H
+#define XMRIG_OCLCACHE_H
 
 
 #include "amd/GpuContext.h"
@@ -44,6 +45,7 @@ private:
     bool prepare(const char *options);
     bool save(int dev_id, cl_uint num_devices) const;
     cl_uint numDevices() const;
+    int amdDriverMajorVersion() const;
     int devId(cl_uint num_devices) const;
     void createDirectory() const;
 
@@ -59,4 +61,4 @@ private:
 };
 
 
-#endif /* __OCLCACHE_H__ */
+#endif /* XMRIG_OCLCACHE_H */

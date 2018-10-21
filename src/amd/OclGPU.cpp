@@ -83,7 +83,7 @@ inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, 
 }
 
 
-inline static int cnKernelOffset(uint32_t variant)
+inline static int cnKernelOffset(xmrig::Variant variant)
 {
     switch (variant) {
     case xmrig::VARIANT_0:
@@ -104,6 +104,9 @@ inline static int cnKernelOffset(uint32_t variant)
 
     case xmrig::VARIANT_TUBE:
         return 10;
+
+    case xmrig::VARIANT_2:
+        return 11;
 
     default:
         break;
@@ -195,8 +198,8 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube"};
-    for (int i = 0; i < 11; ++i) {
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero"};
+    for (int i = 0; i < 12; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -208,50 +211,65 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 }
 
 
-cl_uint getNumPlatforms()
+int OclGPU::findPlatformIdx(xmrig::Config *config)
 {
-    cl_uint count = 0;
-    cl_int ret;
+    assert(config->vendor() > xmrig::OCL_VENDOR_MANUAL);
 
-    if ((ret = OclLib::getPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", err_to_str(ret));
+#   if !defined(__APPLE__)
+    char name[256]  = { 0 };
+    const int index = findPlatformIdx(config->vendor(), name, sizeof name);
+
+    if (index >= 0) {
+        LOG_INFO(config->isColors() ? GREEN_BOLD("found ") WHITE_BOLD("%s") " platform index: " WHITE_BOLD("%d") ", name: " WHITE_BOLD("%s")
+                                    : "found %s platform index: %d, name: %s",
+                 config->vendorName(config->vendor()), index , name);
     }
 
-    if (count == 0) {
-        LOG_ERR("No OpenCL platform found.");
-    }
-
-    return count;
+    return index;
+#   else
+    return 0;
+#   endif
 }
 
 
-std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
+std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
 {
-    const uint32_t numPlatforms = getNumPlatforms();
+    const int platformIndex               = config->platformIndex();
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    std::vector<GpuContext> ctxVec;
 
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    OclLib::getPlatformIDs(numPlatforms, platforms, nullptr);
-
-    cl_uint num_devices;
-    OclLib::getDeviceIDs(platforms[index], CL_DEVICE_TYPE_GPU, 0, nullptr, &num_devices);
+    cl_uint num_devices = 0;
+    OclLib::getDeviceIDs(platforms[platformIndex], CL_DEVICE_TYPE_GPU, 0, nullptr, &num_devices);
+    if (num_devices == 0) {
+        return ctxVec;
+    }
 
     cl_device_id *device_list = new cl_device_id[num_devices];
-    OclLib::getDeviceIDs(platforms[index], CL_DEVICE_TYPE_GPU, num_devices, device_list, nullptr);
+    OclLib::getDeviceIDs(platforms[platformIndex], CL_DEVICE_TYPE_GPU, num_devices, device_list, nullptr);
 
-    std::vector<GpuContext> ctxVec;
     char buf[256] = { 0 };
 
     for (cl_uint i = 0; i < num_devices; i++) {
         OclLib::getDeviceInfo(device_list[i], CL_DEVICE_VENDOR, sizeof(buf), buf);
-#       if !defined(__APPLE__)
-        if (strstr(buf, "Advanced Micro Devices") == nullptr) {
-            continue;
-        }
-#       endif
 
         GpuContext ctx;
         ctx.deviceIdx = i;
-        ctx.DeviceID = device_list[i];
+        ctx.DeviceID  = device_list[i];
+
+        if (strstr(buf, "Advanced Micro Devices") != nullptr || strstr(buf, "AMD") != nullptr) {
+            ctx.vendor = xmrig::OCL_VENDOR_AMD;
+        }
+        else if (strstr(buf, "NVIDIA") != nullptr) {
+            ctx.vendor = xmrig::OCL_VENDOR_NVIDIA;
+        }
+        else if (strstr(buf, "Intel") != nullptr) {
+            ctx.vendor = xmrig::OCL_VENDOR_INTEL;
+        }
+        else {
+            LOG_WARN("Unknown device vendor: %s", buf);
+            continue;
+        }
+
         ctx.computeUnits = getDeviceMaxComputeUnits(ctx.DeviceID);
 
         size_t maxMem;
@@ -262,123 +280,100 @@ std::vector<GpuContext> getAMDDevices(int index, xmrig::Config *config)
 
         getDeviceName(ctx.DeviceID, buf, sizeof(buf));
 
-        LOG_INFO(config->isColors() ? "\x1B[01;32mfound\x1B[0m OpenCL GPU: \x1B[01;37m%s\x1B[0m, cu: \x1B[01;37m%d" : "found OpenCL GPU: %s, cu:", buf, ctx.computeUnits);
+        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
+                                    : "found OpenCL GPU: %s, cu:",
+                 buf, ctx.computeUnits);
 
         OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf);
         ctx.name = buf;
 
         ctxVec.push_back(ctx);
     }
-    
+
 
     delete [] device_list;
-    delete [] platforms;
 
     return ctxVec;
 }
 
 
-void printPlatforms()
+int OclGPU::findPlatformIdx(xmrig::OclVendor vendor, char *name, size_t nameSize)
 {
-    const uint32_t numPlatforms = getNumPlatforms();
-    if (numPlatforms == 0) {
-        return;
-    }
-
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    OclLib::getPlatformIDs(numPlatforms, platforms, nullptr);
-
-    char buf[128] = { 0 };
-
-    for (uint32_t i = 0; i < numPlatforms; i++) {
-        if (OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr) != CL_SUCCESS) {
-            continue;
-        }
-
-        printf("#%d: %s\n", i, buf);
-    }
-
-    delete[] platforms;
-}
-
-
-int getAMDPlatformIdx(xmrig::Config *config)
-{
-    const uint32_t numPlatforms = getNumPlatforms();
-    if (numPlatforms == 0) {
+#   if !defined(__APPLE__)
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    if (platforms.empty()) {
         return -1;
     }
 
-#   if !defined(__APPLE__)
-    cl_platform_id *platforms = new cl_platform_id[numPlatforms];
-    OclLib::getPlatformIDs(numPlatforms, platforms, nullptr);
+    for (uint32_t i = 0; i < platforms.size(); i++) {
+        OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, nameSize, name, nullptr);
 
-    int platformIndex = -1;
-    char buf[256] = { 0 };
+        switch (vendor) {
+        case xmrig::OCL_VENDOR_AMD:
+            if (strstr(name, "Advanced Micro Devices") != nullptr) {
+                return i;
+            }
+            break;
 
-    for (uint32_t i = 0; i < numPlatforms; i++) {
-        OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr);
+        case xmrig::OCL_VENDOR_NVIDIA:
+            if (strstr(name, "NVIDIA") != nullptr) {
+                return i;
+            }
+            break;
 
-        if (strstr(buf, "Advanced Micro Devices") != nullptr) {
-            platformIndex = i;
-            LOG_INFO(config->isColors() ? "\x1B[01;32mfound\x1B[0m AMD platform index: \x1B[01;37m%d\x1B[0m, name: \x1B[01;37m%s" : "found AMD platform index: %d, name: %s", i , buf);
+        case xmrig::OCL_VENDOR_INTEL:
+            if (strstr(name, "Intel") != nullptr) {
+                return i;
+            }
+            break;
+
+        default:
             break;
         }
     }
 
-    delete [] platforms;
-    return platformIndex;
+    return -1;
 #   else
     return 0;
 #   endif
 }
 
 
+void printPlatforms()
+{
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+
+    char buf[128] = { 0 };
+
+    for (size_t i = 0; i < platforms.size(); i++) {
+        if (OclLib::getPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr) != CL_SUCCESS) {
+            continue;
+        }
+
+        printf("#%zu: %s\n", i, buf);
+    }
+}
+
+
 // RequestedDeviceIdxs is a list of OpenCL device indexes
 // NumDevicesRequested is number of devices in RequestedDeviceIdxs list
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
+size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_context *opencl_ctx)
 {
-    const size_t platform_idx = config->platformIndex();
-    cl_uint entries           = getNumPlatforms();
+    const size_t platform_idx             = config->platformIndex();
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    cl_uint entries                       = platforms.size();
+
     if (entries == 0) {
         return OCL_ERR_API;
     }
 
-    // The number of platforms naturally is the index of the last platform plus one.
     if (entries <= platform_idx) {
-        LOG_ERR("Selected OpenCL platform index %d doesn't exist.", platform_idx);
         return OCL_ERR_BAD_PARAMS;
     }
 
-    cl_platform_id *platforms = new cl_platform_id[entries];
-    OclLib::getPlatformIDs(entries, platforms, nullptr);
-
-    char buf[256] = { 0 };
-    OclLib::getPlatformInfo(platforms[platform_idx], CL_PLATFORM_VENDOR, sizeof(buf), buf, nullptr);
-
-#   if !defined(__APPLE__)
-    if (strstr(buf, "Advanced Micro Devices") == nullptr) {
-        LOG_WARN("using non AMD device: %s", buf);
-    }
-#   endif
-
-    delete [] platforms;
-
-    /*MSVC skimping on devel costs by shoehorning C99 to be a subset of C++? Noooo... can't be.*/
-#   ifdef __GNUC__
-    cl_platform_id PlatformIDList[entries];
-#   else
-    cl_platform_id* PlatformIDList = (cl_platform_id*)_alloca(entries * sizeof(cl_platform_id));
-#   endif
-
     cl_int ret;
-    if ((ret = OclLib::getPlatformIDs(entries, PlatformIDList, nullptr)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clGetPlatformIDs for platform ID information.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
-    if ((ret = OclLib::getDeviceIDs(PlatformIDList[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
+    if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceIDs for number of devices.", err_to_str(ret));
         return OCL_ERR_API;
     }
@@ -397,7 +392,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     cl_device_id* DeviceIDList = (cl_device_id*)_alloca(entries * sizeof(cl_device_id));
 #   endif
 
-    if((ret = OclLib::getDeviceIDs(PlatformIDList[platform_idx], CL_DEVICE_TYPE_GPU, entries, DeviceIDList, nullptr)) != CL_SUCCESS) {
+    if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, entries, DeviceIDList, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceIDs for device ID information.", err_to_str(ret));
         return OCL_ERR_API;
     }
@@ -414,8 +409,9 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
         TempDeviceList[i] = DeviceIDList[ctx[i].deviceIdx];
     }
 
-    cl_context opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
-    if(ret != CL_SUCCESS) {
+    *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
+
+    if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
     }
 
@@ -437,13 +433,17 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     const char *wolfSkeinCL =
             #include "./opencl/wolf-skein.cl"
     ;
+    const char *fastIntMathV2CL =
+        #include "./opencl/fast_int_math_v2.cl"
+    ;
 
     std::string source_code(cryptonightCL);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_AES"),   wolfAesCL);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_SKEIN"), wolfSkeinCL);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_JH"),         jhCL);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_BLAKE256"),   blake256CL);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_GROESTL256"), groestl256CL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_AES"),         wolfAesCL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_SKEIN"),       wolfSkeinCL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_JH"),               jhCL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_BLAKE256"),         blake256CL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_GROESTL256"),       groestl256CL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_INT_MATH_V2"), fastIntMathV2CL);
 
     for (size_t i = 0; i < num_gpus; ++i) {
         if (ctx[i].stridedIndex == 2 && (ctx[i].rawIntensity % ctx[i].workSize) != 0) {
@@ -453,7 +453,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
             LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
         }
 
-        if ((ret = InitOpenCLGpu(i, opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }
@@ -461,7 +461,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config)
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t target, uint32_t variant)
+size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant)
 {
     cl_int ret;
 
@@ -510,7 +510,8 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     }
 
     // variant
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &variant)) != CL_SUCCESS) {
+    const cl_uint v = static_cast<cl_uint>(variant);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &v)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
         return OCL_ERR_API;
     }
@@ -562,7 +563,7 @@ size_t XMRSetJob(GpuContext* ctx, uint8_t* input, size_t input_len, uint64_t tar
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant)
+size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
 {
     cl_int ret;
     cl_uint zero = 0;
@@ -661,4 +662,31 @@ size_t XMRRunJob(GpuContext* ctx, cl_uint* HashOutput, uint32_t variant)
     ctx->Nonce += (uint32_t) g_intensity;
 
     return OCL_ERR_SUCCESS;
+}
+
+
+void ReleaseOpenCl(GpuContext* ctx)
+{
+    OclLib::releaseMemObject(ctx->InputBuffer);
+    OclLib::releaseMemObject(ctx->OutputBuffer);
+
+    int buffer_count = sizeof(ctx->ExtraBuffers) / sizeof(ctx->ExtraBuffers[0]);
+    for (int b = 0; b < buffer_count; ++b) {
+        OclLib::releaseMemObject(ctx->ExtraBuffers[b]);
+    }
+
+    OclLib::releaseProgram(ctx->Program);
+
+    int kernel_count = sizeof(ctx->Kernels) / sizeof(ctx->Kernels[0]);
+    for (int k = 0; k < kernel_count; ++k) {
+        OclLib::releaseKernel(ctx->Kernels[k]);
+    }
+
+    OclLib::releaseCommandQueue(ctx->CommandQueues);
+}
+
+
+void ReleaseOpenClContext(cl_context opencl_ctx)
+{
+    OclLib::releaseContext(opencl_ctx);
 }
