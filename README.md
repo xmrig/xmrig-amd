@@ -1,6 +1,7 @@
 # XMRig AMD
 
 :warning: **[Monero changed PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig-amd/releases/tag/v2.8.4)** :warning:
+:warning: **This fork of xmrig-amd miner has known stability issues on some AMD hardware, so use it with caution** :warning:
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/MoneroOcean/xmrig-amd/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/MoneroOcean/xmrig-amd/releases)
