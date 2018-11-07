@@ -1,3 +1,8 @@
+# v2.8.5
+- [#185](https://github.com/xmrig/xmrig-amd/pull/185) **Improved `cn-heavy`, `cn-heavy/xhv` and `cn-heavy/tube` perfomance up to 8%, thanks [@SChernykh](https://github.com/SChernykh).**
+- [#271](https://github.com/xmrig/xmrig-proxy/issues/271) Fixed pool options cascading when use mixed configuration: config file and command line.
+- Improved AMD Vega 56 auto configuration for `cn/2`.
+
 # v2.8.4
 - **Improved AMD Vega autoconfig (double threads & higher intensity).**
 - Fixed broken OpenCL code for `cn-lite` and `cn-heavy` (regression since v2.8.2).
