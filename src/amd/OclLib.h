@@ -6,7 +6,6 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,12 +63,6 @@ public:
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret);
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret);
-    // we need to properly release OpenCL we created to be able to do algo switching
-    static cl_int releaseContext(cl_context context);
-    static cl_int releaseProgram(cl_program program);
-    static cl_int releaseCommandQueue(cl_command_queue command_queue);
-    static cl_int releaseMemObject(cl_mem memobj);
-    static cl_int releaseKernel(cl_kernel kernel);
     static std::vector<cl_platform_id> getPlatformIDs();
     static uint32_t getNumPlatforms();
 
