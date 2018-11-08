@@ -90,6 +90,8 @@ XMRIG_INCLUDE_BLAKE256
 XMRIG_INCLUDE_GROESTL256
 //#include "fast_int_math_v2.cl"
 XMRIG_INCLUDE_FAST_INT_MATH_V2
+//#include "fast_div_heavy.cl"
+XMRIG_INCLUDE_FAST_DIV_HEAVY
 
 
 #define VARIANT_0    0  // Original CryptoNight or CryptoNight-Heavy
@@ -965,7 +967,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
             {
                 long n = *((__global long*)(Scratchpad + (IDX((idx0 & MASK) >> 4))));
                 int d  = ((__global int*)(Scratchpad + (IDX((idx0 & MASK) >> 4))))[2];
-                long q = n / (d | 0x5);
+                long q = fast_div_heavy(n, d | 0x5);
                 *((__global long*)(Scratchpad + (IDX((idx0 & MASK) >> 4)))) = n ^ q;
                 idx0 = d ^ q;
             }
@@ -1054,7 +1056,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
             {
                 long n = *((__global long*)(Scratchpad + (IDX((idx0 & MASK) >> 4))));
                 int d  = ((__global int*)(Scratchpad + (IDX((idx0 & MASK) >> 4))))[2];
-                long q = n / (d | 0x5);
+                long q = fast_div_heavy(n, d | 0x5);
                 *((__global long*)(Scratchpad + (IDX((idx0 & MASK) >> 4)))) = n ^ q;
 
                 if (variant == VARIANT_XHV) {

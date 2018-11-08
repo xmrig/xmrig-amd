@@ -222,6 +222,10 @@ size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints)
     }
 
     if (hints & Vega) {
+        if ((hints & CNv2) && ctx.computeUnits == 56) {
+            return 1792u;
+        }
+
         return ratio * 2024u;
     }
 
