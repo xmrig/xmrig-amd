@@ -46,6 +46,7 @@ public:
     Controller();
     ~Controller();
 
+    bool isDone() const;
     bool isReady() const;
     bool oclInit();
     Config *config() const;
