@@ -596,7 +596,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
 
     OclLib::finish(ctx->CommandQueues);
 
-    size_t Nonce[2] = {ctx->Nonce, 1}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { w_size, 8 };
+    size_t Nonce[2] = {ctx->Nonce, 1}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { 8, 8 };
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[0], 2, Nonce, gthreads, lthreads, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 0);
         return OCL_ERR_API;
@@ -605,11 +605,13 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     size_t tmpNonce = ctx->Nonce;
     const int cn_kernel_offset = cnKernelOffset(variant);
 
+    lthreads[0] = w_size;
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[cn_kernel_offset], 1, &tmpNonce, &g_thd, &w_size, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1);
         return OCL_ERR_API;
     }
 
+    lthreads[0] = 8;
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[2], 2, Nonce, gthreads, lthreads, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 2);
         return OCL_ERR_API;
