@@ -1,6 +1,9 @@
 R"===(
-#ifndef FAST_INT_MATH_CL
-#define FAST_INT_MATH_CL
+/*
+ * @author SChernykh
+ */
+
+#if (ALGO==CRYPTONIGHT)
 
 inline uint get_reciprocal(uint a)
 {

@@ -1,7 +1,35 @@
+# v2.8.5
+- [#185](https://github.com/xmrig/xmrig-amd/pull/185) **Improved `cn-heavy`, `cn-heavy/xhv` and `cn-heavy/tube` perfomance up to 8%, thanks [@SChernykh](https://github.com/SChernykh).**
+- [#271](https://github.com/xmrig/xmrig-proxy/issues/271) Fixed pool options cascading when use mixed configuration: config file and command line.
+- Improved AMD Vega 56 auto configuration for `cn/2`.
+
+# v2.8.4
+- **Improved AMD Vega autoconfig (double threads & higher intensity).**
+- Fixed broken OpenCL code for `cn-lite` and `cn-heavy` (regression since v2.8.2).
+- [#166](https://github.com/xmrig/xmrig-amd/pull/166) Fixed graceful OpenCL shutdown.
+- Fixed OpenCL compile warnig with ROCm 1.9.1.
+- OpenCL cache file name now displayed in when strict cache disabled (`-DSTRICT_CACHE=OFF`).
+- Fixed wrong displayed GPU name in autoconfig phase.
+
+# v2.8.3
+- [#813](https://github.com/xmrig/xmrig/issues/813) Fixed critical bug with Minergate pool and variant 2.
+
+# v2.8.2
+- [#167](https://github.com/xmrig/xmrig-amd/issues/167) Fixed wrong hashrate in `GET /1/threads` API endpoint.
+- [#168](https://github.com/xmrig/xmrig-amd/issues/168) Fixed broken AMD OpenCL compile (old driver bug).
+
+# v2.8.1
+- [#156](https://github.com/xmrig/xmrig-amd/issues/156) Added CMake option to disable strict OpenCL cache.
+- [#769](https://github.com/xmrig/xmrig/issues/769) Fixed regression, some ANSI escape sequences was in log with disabled colors.
+- [#777](https://github.com/xmrig/xmrig/issues/777) Better report about pool connection issues. 
+- Added missing options to `--help` output.
+
 # v2.8.0
 - **[#753](https://github.com/xmrig/xmrig/issues/753) Added new algorithm [CryptoNight variant 2](https://github.com/xmrig/xmrig/issues/753) for Monero fork, thanks [@SChernykh](https://github.com/SChernykh).**
 - [#758](https://github.com/xmrig/xmrig/issues/758) **Added SSL/TLS support for secure connections to pools.**
+  - Added per pool options `"tls"` and `"tls-fingerprint"` and command line equivalents.
 - [#162](https://github.com/xmrig/xmrig-amd/issues/162) Extended `opencl-platform` option.
+- [#767](https://github.com/xmrig/xmrig/issues/767) Added `autosave` config option.
 - [#245](https://github.com/xmrig/xmrig-proxy/issues/245) Fixed API ID collision when run multiple miners on same machine.
 - [#757](https://github.com/xmrig/xmrig/issues/757) Fixed send buffer overflow.
 

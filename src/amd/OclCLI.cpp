@@ -79,14 +79,29 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
             continue;
         }
 
-        const size_t maxThreads        = getMaxThreads(ctx, config->algorithm().algo());
-        const size_t possibleIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
-        const size_t intensity         = (possibleIntensity / (8 * ctx.computeUnits)) * ctx.computeUnits * 8;
+        const int hints           = getHints(ctx, config);
+        const size_t maxThreads   = getMaxThreads(ctx, config->algorithm().algo(), hints);
+        const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
+        const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
 
-        OclThread *thread = new OclThread(ctx.deviceIdx, intensity, 8);
-        thread->setStridedIndex(ctx.vendor == xmrig::OCL_VENDOR_NVIDIA ? 0 : 2);
+        size_t intensity = 0;
+        if (hints & Vega) {
+            intensity = maxIntensity / computeUnits * computeUnits;
+        }
+        else {
+            intensity = (maxIntensity / (8 * computeUnits)) * computeUnits * 8;
+        }
 
-        threads.push_back(thread);
+        assert(intensity > 0);
+        if (intensity == 0) {
+            continue;
+        }
+
+        threads.push_back(createThread(ctx, intensity, hints));
+
+        if (hints & DoubleThreads) {
+           threads.push_back(createThread(ctx, intensity, hints));
+        }
     }
 }
 
@@ -143,6 +158,46 @@ int OclCLI::get(const std::vector<int> &vector, int index, int defaultValue) con
 }
 
 
+int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
+{
+    int hints = None;
+    if (config->isCNv2()) {
+        hints |= CNv2;
+    }
+
+    if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name.compare("gfx901") == 0 ||
+                                                ctx.name.compare("gfx904") == 0 ||
+                                                ctx.name.compare("gfx900") == 0 ||
+                                                ctx.name.compare("gfx903") == 0 ||
+                                                ctx.name.compare("gfx905") == 0))
+    {
+        hints |= Vega;
+        hints |= DoubleThreads;
+    }
+
+    return hints;
+}
+
+
+OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hints) const
+{
+    const size_t worksize = ((hints & Vega) && (hints & CNv2)) ? 16 : 8;
+
+    int stridedIndex = 1;
+    if (ctx.vendor == xmrig::OCL_VENDOR_NVIDIA) {
+        stridedIndex = 0;
+    }
+    else if (hints & CNv2) {
+        stridedIndex = 2;
+    }
+
+    OclThread *thread = new OclThread(ctx.deviceIdx, intensity, worksize);
+    thread->setStridedIndex(stridedIndex);
+
+    return thread;
+}
+
+
 void OclCLI::parse(std::vector<int> &vector, const char *arg) const
 {
     char *value = strdup(arg);
@@ -158,23 +213,18 @@ void OclCLI::parse(std::vector<int> &vector, const char *arg) const
 }
 
 
-size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo)
+size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints)
 {
     const size_t ratio = algo == xmrig::CRYPTONIGHT_LITE ? 2u : 1u;
     if (ctx.vendor == xmrig::OCL_VENDOR_INTEL) {
         return ratio * ctx.computeUnits * 8;
     }
 
-    if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name.compare("gfx901") == 0 ||
-                                                ctx.name.compare("gfx904") == 0 ||
-                                                ctx.name.compare("gfx900") == 0 ||
-                                                ctx.name.compare("gfx903") == 0 ||
-                                                ctx.name.compare("gfx905") == 0))
-    {
-        /* Increase the number of threads for AMD VEGA gpus.
-         * Limit the number of threads based on the issue: https://github.com/fireice-uk/xmr-stak/issues/5#issuecomment-339425089
-         * to avoid out of memory errors
-         */
+    if (hints & Vega) {
+        if ((hints & CNv2) && ctx.computeUnits == 56) {
+            return 1792u;
+        }
+
         return ratio * 2024u;
     }
 

@@ -61,7 +61,7 @@ Network::Network(xmrig::Controller *controller) :
     }
 
     if (controller->config()->donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm(), this);
+        m_donate = new DonateStrategy(controller->config()->donateLevel(), controller->config()->pools().front().user(), controller->config()->algorithm().algo(), this);
     }
 
     m_timer.data = this;
@@ -108,7 +108,7 @@ void Network::onActive(IStrategy *strategy, Client *client)
 
     const char *fingerprint = client->tlsFingerprint();
     if (fingerprint != nullptr) {
-        LOG_INFO("\x1B[1;30mfingerprint (SHA-256): \"%s\"", fingerprint);
+        LOG_INFO("%sfingerprint (SHA-256): \"%s\"", isColors() ? "\x1B[1;30m" : "", fingerprint);
     }
 }
 

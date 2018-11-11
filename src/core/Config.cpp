@@ -32,7 +32,6 @@
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "core/ConfigCreator.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
@@ -70,18 +69,13 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
 }
 
 
-xmrig::Config::~Config()
-{
-}
-
-
 bool xmrig::Config::isCNv2() const
 {
     if (algorithm().algo() != CRYPTONIGHT) {
         return false;
     }
 
-    for (const Pool pool : pools()) {
+    for (const Pool &pool : pools()) {
         if (pool.algorithm().variant() == VARIANT_2 || pool.algorithm().variant() == VARIANT_AUTO) {
             return true;
         }
@@ -142,6 +136,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     api.AddMember("ipv6",            isApiIPv6(), allocator);
     api.AddMember("restricted",      isApiRestricted(), allocator);
     doc.AddMember("api",             api, allocator);
+    doc.AddMember("autosave",        isAutoSave(), allocator);
 
     doc.AddMember("background",      isBackground(), allocator);
     doc.AddMember("cache",           isOclCache(), allocator);

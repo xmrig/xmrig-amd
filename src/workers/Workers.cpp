@@ -58,7 +58,7 @@ uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
 xmrig::Controller *Workers::m_controller = nullptr;
-
+cl_context Workers::m_opencl_ctx;
 
 static std::vector<GpuContext> contexts;
 
@@ -215,7 +215,7 @@ bool Workers::start(xmrig::Controller *controller)
                                  );
     }
 
-    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config()) != 0) {
+    if (InitOpenCL(contexts.data(), m_threadsCount, controller->config(), &m_opencl_ctx) != 0) {
         return false;
     }
 
@@ -253,7 +253,10 @@ void Workers::stop()
 
     for (size_t i = 0; i < m_workers.size(); ++i) {
         m_workers[i]->join();
+        ReleaseOpenCl(m_workers[i]->ctx());
     }
+
+    ReleaseOpenClContext(m_opencl_ctx);
 }
 
 

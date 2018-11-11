@@ -65,6 +65,7 @@ public:
         WatchKey          = 1105,
         TlsKey            = 1013,
         FingerprintKey    = 1014,
+        AutoSaveKey       = 1016,
 
         // xmrig common
         CPUPriorityKey    = 1021,
@@ -80,6 +81,7 @@ public:
         SafeKey           = 1005,
         ThreadsKey        = 't',
         HardwareAESKey    = 1011,
+        AssemblyKey       = 1015,
 
         // xmrig amd
         OclPlatformKey    = 1400,
@@ -95,16 +97,23 @@ public:
         OclCompModeKey    = 1410,
 
         // xmrig-proxy
-        AccessLogFileKey  = 'A',
-        BindKey           = 'b',
-        CoinKey           = 1104,
-        CustomDiffKey     = 1102,
-        DebugKey          = 1101,
-        ModeKey           = 'm',
-        PoolCoinKey       = 'C',
-        ReuseTimeoutKey   = 1106,
-        WorkersKey        = 1103,
-        WorkersAdvKey     = 1107,
+        AccessLogFileKey   = 'A',
+        BindKey            = 'b',
+        CoinKey            = 1104,
+        CustomDiffKey      = 1102,
+        DebugKey           = 1101,
+        ModeKey            = 'm',
+        PoolCoinKey        = 'C',
+        ReuseTimeoutKey    = 1106,
+        WorkersKey         = 1103,
+        WorkersAdvKey      = 1107,
+        TlsBindKey         = 1108,
+        TlsCertKey         = 1109,
+        TlsCertKeyKey      = 1110,
+        TlsDHparamKey      = 1111,
+        TlsCiphersKey      = 1112,
+        TlsCipherSuitesKey = 1113,
+        TlsProtocolsKey    = 1114,
 
         // xmrig nvidia
         CudaMaxThreadsKey = 1200,

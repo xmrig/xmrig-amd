@@ -59,6 +59,13 @@ public:
     inline void parseUnrollFactor(const char *arg) { parse(m_unrollFactor, arg); }
 
 private:
+    enum Hints {
+        None          = 0,
+        DoubleThreads = 1,
+        Vega          = 2,
+        CNv2          = 4
+    };
+
     inline bool isEmpty() const              { return m_devices.empty() && m_intensity.empty(); }
     inline int affinity(int index) const     { return get(m_affinity, index, -1); }
     inline int compMode(int index) const     { return get(m_compMode, index, 1); }
@@ -69,9 +76,11 @@ private:
     inline int worksize(int index) const     { return get(m_worksize, index, 8); }
 
     int get(const std::vector<int> &vector, int index, int defaultValue) const;
+    int getHints(const GpuContext &ctx, xmrig::Config *config) const;
+    OclThread *createThread(const GpuContext &ctx, size_t intensity, int hints) const;
     void parse(std::vector<int> &vector, const char *arg) const;
 
-    static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo);
+    static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints);
     static size_t getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, size_t hashMemSize);
 
     std::vector<int> m_affinity;

@@ -21,8 +21,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef XMRIG_CONFIG_H
+#define XMRIG_CONFIG_H
 
 
 #include <stdint.h>
@@ -47,7 +47,6 @@ class Config : public CommonConfig
 {
 public:
     Config();
-    ~Config() override;
 
     bool isCNv2() const;
     bool oclInit();
@@ -56,7 +55,7 @@ public:
     void getJSON(rapidjson::Document &doc) const override;
 
     inline bool isOclCache() const                       { return m_cache; }
-    inline bool isShouldSave() const                     { return m_shouldSave; }
+    inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
     inline const char *loader() const                    { return m_loader.data(); }
     inline const std::vector<IThread *> &threads() const { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
@@ -90,4 +89,4 @@ private:
 
 } /* namespace xmrig */
 
-#endif /* __CONFIG_H__ */
+#endif /* XMRIG_CONFIG_H */

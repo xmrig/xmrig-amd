@@ -32,11 +32,11 @@
 #include "amd/OclError.h"
 #include "amd/OclLib.h"
 #include "base32/base32.h"
+#include "common/cpu/Cpu.h"
 #include "common/crypto/keccak.h"
 #include "common/log/Log.h"
 #include "common/utils/timestamp.h"
 #include "core/Config.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight_constants.h"
 
 
@@ -56,7 +56,8 @@ bool OclCache::load()
     const int64_t timeStart = xmrig::currentMSecsSinceEpoch();
 
     char options[512] = { 0 };
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu -DALGO=%d -DUNROLL_FACTOR=%d",
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
+                                       "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
              xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
@@ -65,7 +66,8 @@ bool OclCache::load()
              m_ctx->compMode,
              xmrig::cn_select_memory(algo),
              static_cast<int>(algo),
-             m_ctx->unrollFactor
+             m_ctx->unrollFactor,
+             amdDriverMajorVersion()
              );
 
     if (!prepare(options)) {
@@ -163,6 +165,7 @@ bool OclCache::prepare(const char *options)
     key += options;
     key += reinterpret_cast<const char *>(buf);
 
+#   ifdef XMRIG_STRICT_OPENCL_CACHE
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
     if (OclLib::getPlatformInfo(platforms[m_config->platformIndex()], CL_PLATFORM_VERSION, sizeof buf, buf, nullptr) == CL_SUCCESS) {
         key += reinterpret_cast<const char *>(buf);
@@ -171,8 +174,9 @@ bool OclCache::prepare(const char *options)
     if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) == CL_SUCCESS) {
         key += reinterpret_cast<const char *>(buf);
     }
+#   endif
 
-    if (!Cpu::isX64()) {
+    if (!xmrig::Cpu::info()->isX64()) {
         key += "x86";
     }
 
@@ -183,6 +187,10 @@ bool OclCache::prepare(const char *options)
     m_fileName = prefix() + "\\xmrig\\.cache\\" + hash + ".bin";
 #   else
     m_fileName = prefix() + "/.cache/" + hash + ".bin";
+#   endif
+
+#   ifndef XMRIG_STRICT_OPENCL_CACHE
+    LOG_INFO("           CACHE: %s", m_fileName.c_str());
 #   endif
 
     return true;
@@ -229,6 +237,23 @@ cl_uint OclCache::numDevices() const
     OclLib::getProgramInfo(m_ctx->Program, CL_PROGRAM_NUM_DEVICES, sizeof(cl_uint), &num_devices);
 
     return num_devices;
+}
+
+
+int OclCache::amdDriverMajorVersion() const
+{
+#   ifdef XMRIG_STRICT_OPENCL_CACHE
+    char buf[64] = { 0 };
+    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) != CL_SUCCESS) {
+        return 0;
+    }
+
+    const int version = strtol(buf, nullptr, 10);
+
+    return version >= 1400 ? version / 100 : 0;
+#   else
+    return 0;
+#   endif
 }
 
 

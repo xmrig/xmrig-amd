@@ -53,6 +53,11 @@ public:
     static cl_int getPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret);
     static cl_int getProgramBuildInfo(cl_program program, cl_device_id device, cl_program_build_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret);
     static cl_int getProgramInfo(cl_program program, cl_program_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret = nullptr);
+    static cl_int releaseCommandQueue(cl_command_queue command_queue);
+    static cl_int releaseContext(cl_context context);
+    static cl_int releaseKernel(cl_kernel kernel);
+    static cl_int releaseMemObject(cl_mem mem_obj);
+    static cl_int releaseProgram(cl_program program);
     static cl_int setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value);
     static cl_kernel createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret);
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret);

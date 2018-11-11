@@ -33,7 +33,6 @@
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
-#include "Cpu.h"
 #include "crypto/CryptoNight.h"
 #include "net/Network.h"
 #include "Summary.h"
@@ -86,6 +85,10 @@ App::~App()
 
 int App::exec()
 {
+    if (m_controller->isDone()) {
+        return 0;
+    }
+
     if (!m_controller->isReady()) {
         return 2;
     }
