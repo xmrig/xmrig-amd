@@ -384,7 +384,7 @@ void AESExpandKey256(uint *keybuf)
 #if (STRIDED_INDEX == 0)
 #   define IDX(x)   (x)
 #elif (STRIDED_INDEX == 1)
-#   define IDX(x)   ((x) * (Threads))
+#   define IDX(x)   mul24(as_uint(x), Threads)
 #elif (STRIDED_INDEX == 2)
 #   define IDX(x)   (((x) % MEM_CHUNK) + ((x) / MEM_CHUNK) * WORKSIZE * MEM_CHUNK)
 #endif
@@ -399,13 +399,13 @@ inline ulong getIdx()
 #define mix_and_propagate(xin) (xin)[(get_local_id(1)) % 8][get_local_id(0)] ^ (xin)[(get_local_id(1) + 1) % 8][get_local_id(0)]
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, ulong Threads)
+__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
 {
     uint ExpandedKey1[40];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
     uint4 text;
 
-    const ulong gIdx = getIdx();
+    const uint gIdx = getIdx();
 
     for (int i = get_local_id(1) * 8 + get_local_id(0); i < 256; i += 8 * 8) {
         const uint tmp = AES0_C[i];
@@ -519,10 +519,11 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     if (gIdx < Threads)
 #   endif
     {
+        const uint local_id1 = get_local_id(1);
         #pragma unroll 2
-        for(int i = 0; i < (MEMORY >> 4); i += 8) {
+        for(uint i = 0; i < (MEMORY >> 4); i += 8) {
             #pragma unroll 10
-            for (int j = 0; j < 10; ++j) {
+            for (uint j = 0; j < 10; ++j) {
                 uint4 t = ((uint4 *)ExpandedKey1)[j];
                 t.s0 ^= AES0[BYTE(text.s0, 0)] ^ AES1[BYTE(text.s1, 1)] ^ AES2[BYTE(text.s2, 2)] ^ AES3[BYTE(text.s3, 3)];
                 t.s1 ^= AES0[BYTE(text.s1, 0)] ^ AES1[BYTE(text.s2, 1)] ^ AES2[BYTE(text.s3, 2)] ^ AES3[BYTE(text.s0, 3)];
@@ -531,7 +532,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
                 text = t;
             }
 
-            Scratchpad[IDX(i + get_local_id(1))] = text;
+            Scratchpad[IDX(i + local_id1)] = text;
         }
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
@@ -561,7 +562,7 @@ R"===(
         tweak1_2 ^= as_uint2(states[24])
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
+__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -614,15 +615,15 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
         for (int i = 0; i < ITERATIONS; ++i) {
             ulong c[2];
 
-            ((uint4 *)c)[0] = Scratchpad[IDX((a[0] & MASK) >> 4)];
+            ((uint4 *)c)[0] = Scratchpad[IDX((as_uint2(a[0]).s0 & MASK) >> 4)];
             ((uint4 *)c)[0] = AES_Round(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint4 *)a)[0]);
 
             b_x ^= ((uint4 *)c)[0];
             VARIANT1_1_XTL(b_x);
-            Scratchpad[IDX((a[0] & MASK) >> 4)] = b_x;
+            Scratchpad[IDX((as_uint2(a[0]).s0 & MASK) >> 4)] = b_x;
 
             uint4 tmp;
-            tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
+            tmp = Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)];
 
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
@@ -633,7 +634,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
             }
 
             VARIANT1_2(a[1]);
-            Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
+            Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)] = ((uint4 *)a)[0];
             VARIANT1_2(a[1]);
 
             ((uint4 *)a)[0] ^= tmp;
@@ -649,7 +650,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, ulo
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
+__kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
 {
 #   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[4];
@@ -709,7 +710,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #       if (STRIDED_INDEX == 0)
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
 #       elif (STRIDED_INDEX == 1)
-#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4)) * as_uint2(Threads).s0))
+#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + mul24(as_uint(idx ^ (N << 4)), Threads)))
 #       elif (STRIDED_INDEX == 2)
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % (MEM_CHUNK << 4)) + ((idx ^ (N << 4)) / (MEM_CHUNK << 4)) * WORKSIZE * (MEM_CHUNK << 4))))
 #       endif
@@ -727,12 +728,12 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
     for(int i = 0; i < ITERATIONS; ++i)
     {
 #       ifdef __NV_CL_C_VERSION
-            ulong idx  = a[0] & 0x1FFFC0;
-            ulong idx1 = a[0] & 0x30;
+            uint idx  = a[0] & 0x1FFFC0;
+            uint idx1 = a[0] & 0x30;
 
             *scratchpad_line = *(__global uint16*)((__global uchar*)(Scratchpad) + idx);
 #       else
-            ulong idx = a[0] & MASK;
+            uint idx = a[0] & MASK;
 #       endif
 
         uint4 c = SCRATCHPAD_CHUNK(0);
@@ -809,7 +810,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
+__kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
 {
 #   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[2];
@@ -863,15 +864,15 @@ __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, ulong 
         for (int i = 0; i < 0x40000; ++i) {
             ulong c[2];
 
-            ((uint4 *)c)[0] = Scratchpad[IDX((a[0] & MASK) >> 4)];
+            ((uint4 *)c)[0] = Scratchpad[IDX((as_uint2(a[0]).s0 & MASK) >> 4)];
             ((uint4 *)c)[0] = AES_Round(AES0, AES1, AES2, AES3, ((uint4 *)c)[0], ((uint4 *)a)[0]);
 
             b_x ^= ((uint4 *)c)[0];
             VARIANT1_1(b_x);
-            Scratchpad[IDX((a[0] & MASK) >> 4)] = b_x;
+            Scratchpad[IDX((as_uint2(a[0]).s0 & MASK) >> 4)] = b_x;
 
             uint4 tmp;
-            tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
+            tmp = Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)];
 
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
@@ -879,7 +880,7 @@ __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, ulong 
             uint2 tweak1_2_0 = tweak1_2;
 
             VARIANT1_2(a[1]);
-            Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
+            Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)] = ((uint4 *)a)[0];
             VARIANT1_2(a[1]);
 
             ((uint4 *)a)[0] ^= tmp;
@@ -895,7 +896,7 @@ __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, ulong 
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
+__kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
 {
 #   if (ALGO == CRYPTONIGHT_HEAVY)
     ulong a[2], b[2];
@@ -945,7 +946,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
     if (gIdx < Threads)
 #   endif
     {
-        ulong idx0 = a[0];
+        uint idx0 = a[0];
 
         #pragma unroll UNROLL_FACTOR
         for (int i = 0; i < ITERATIONS; ++i) {
@@ -959,7 +960,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
             Scratchpad[IDX((idx0 & MASK) >> 4)] = b_x;
 
             uint4 tmp;
-            tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
+            tmp = Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)];
 
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
@@ -968,7 +969,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
             tweak1_2_0 ^= ((uint2 *)&(a[0]))[0];
 
             VARIANT1_2(a[1]);
-            Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
+            Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)] = ((uint4 *)a)[0];
             VARIANT1_2(a[1]);
 
             ((uint4 *)a)[0] ^= tmp;
@@ -993,7 +994,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, ulong
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
+__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -1040,7 +1041,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
     if (gIdx < Threads)
 #   endif
     {
-        ulong idx0 = a[0];
+        uint idx0 = a[0];
 
         #pragma unroll UNROLL_FACTOR
         for (int i = 0; i < ITERATIONS; ++i) {
@@ -1052,12 +1053,12 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
             Scratchpad[IDX((idx0 & MASK) >> 4)] = b_x ^ ((uint4 *)c)[0];
 
             uint4 tmp;
-            tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
+            tmp = Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)];
 
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
 
-            Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
+            Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)] = ((uint4 *)a)[0];
 
             ((uint4 *)a)[0] ^= tmp;
             idx0 = a[0];
@@ -1086,7 +1087,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, ulong Thre
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, ulong Threads, uint variant, __global ulong *input)
+__kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
 {
 #   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[2];
@@ -1134,7 +1135,7 @@ __kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, ulong 
     if (gIdx < Threads)
 #   endif
     {
-        ulong idx0 = a[0];
+        uint idx0 = a[0];
 
         #pragma unroll 8
         for (int i = 0; i < 0x100000; ++i) {
@@ -1146,12 +1147,12 @@ __kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, ulong 
             Scratchpad[IDX((idx0 & MASK) >> 4)] = b_x ^ ((uint4 *)c)[0];
 
             uint4 tmp;
-            tmp = Scratchpad[IDX((c[0] & MASK) >> 4)];
+            tmp = Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)];
 
             a[1] += c[0] * as_ulong2(tmp).s0;
             a[0] += mul_hi(c[0], as_ulong2(tmp).s0);
 
-            Scratchpad[IDX((c[0] & MASK) >> 4)] = ((uint4 *)a)[0];
+            Scratchpad[IDX((as_uint2(c[0]).s0 & MASK) >> 4)] = ((uint4 *)a)[0];
 
             ((uint4 *)a)[0] ^= tmp;
             idx0 = a[0];
@@ -1167,7 +1168,7 @@ __kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, ulong 
 R"===(
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *Branch0, __global uint *Branch1, __global uint *Branch2, __global uint *Branch3, ulong Threads)
+__kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global uint *Branch0, __global uint *Branch1, __global uint *Branch2, __global uint *Branch3, uint Threads)
 {
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
     uint ExpandedKey2[40];
@@ -1260,12 +1261,13 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
         text ^= *xin2_load;
 
 #       else
+        const uint local_id1 = get_local_id(1);
         #pragma unroll 2
-        for (int i = 0; i < (MEMORY >> 7); ++i) {
-            text ^= Scratchpad[IDX((i << 3) + get_local_id(1))];
+        for (uint i = 0; i < (MEMORY >> 7); ++i) {
+            text ^= Scratchpad[IDX((i << 3) + local_id1)];
 
             #pragma unroll 10
-            for(int j = 0; j < 10; ++j)
+            for(uint j = 0; j < 10; ++j)
                 text = AES_Round(AES0, AES1, AES2, AES3, text, ((uint4 *)ExpandedKey2)[j]);
         }
 #       endif
@@ -1335,9 +1337,9 @@ R"===(
 
 #define VSWAP4(x)   ((((x) >> 24) & 0xFFU) | (((x) >> 8) & 0xFF00U) | (((x) << 8) & 0xFF0000U) | (((x) << 24) & 0xFF000000U))
 
-__kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, ulong Threads)
+__kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
-    const ulong idx = get_global_id(0) - get_global_offset(0);
+    const uint idx = get_global_id(0) - get_global_offset(0);
 
     // do not use early return here
     if(idx < Threads)
@@ -1416,7 +1418,7 @@ __kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global u
     h7h ^= input[6]; \
     h7l ^= input[7]
 
-__kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, ulong Threads)
+__kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
     const uint idx = get_global_id(0) - get_global_offset(0);
 
@@ -1470,7 +1472,7 @@ __kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint
 
 #define SWAP4(x)    as_uint(as_uchar4(x).s3210)
 
-__kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, ulong Threads)
+__kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
     const uint idx = get_global_id(0) - get_global_offset(0);
 
@@ -1546,7 +1548,7 @@ __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global u
     }
 }
 
-__kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, ulong Threads)
+__kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
     const uint idx = get_global_id(0) - get_global_offset(0);
 
