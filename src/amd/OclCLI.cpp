@@ -182,6 +182,7 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
 OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hints) const
 {
     const size_t worksize = ((hints & Vega) && (hints & CNv2)) ? 16 : 8;
+    intensity -= intensity % worksize;
 
     int stridedIndex = 1;
     if (ctx.vendor == xmrig::OCL_VENDOR_NVIDIA) {
@@ -193,6 +194,11 @@ OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hin
 
     OclThread *thread = new OclThread(ctx.deviceIdx, intensity, worksize);
     thread->setStridedIndex(stridedIndex);
+    thread->setCompMode(false);
+
+    if ((hints & Vega) && (hints & CNv2)) {
+        thread->setMemChunk(1);
+    }
 
     return thread;
 }
