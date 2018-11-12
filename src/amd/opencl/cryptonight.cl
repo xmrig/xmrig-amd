@@ -384,7 +384,7 @@ void AESExpandKey256(uint *keybuf)
 #if (STRIDED_INDEX == 0)
 #   define IDX(x)   (x)
 #elif (STRIDED_INDEX == 1)
-#   define IDX(x)   mul24(as_uint(x), Threads)
+#   define IDX(x)   ((x) * WORKSIZE)
 #elif (STRIDED_INDEX == 2)
 #   define IDX(x)   (((x) % MEM_CHUNK) + ((x) / MEM_CHUNK) * WORKSIZE * MEM_CHUNK)
 #endif
@@ -427,7 +427,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       elif (STRIDED_INDEX == 2)
         Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * (gIdx % WORKSIZE);
 #       endif
@@ -590,7 +590,7 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, uin
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       elif (STRIDED_INDEX == 2)
         Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #       endif
@@ -682,7 +682,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #           if (STRIDED_INDEX == 0)
                 Scratchpad += gIdx * (MEMORY >> 4);
 #           elif (STRIDED_INDEX == 1)
-                Scratchpad += gIdx;
+                Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #           elif (STRIDED_INDEX == 2)
                 Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #           endif
@@ -710,7 +710,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #       if (STRIDED_INDEX == 0)
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
 #       elif (STRIDED_INDEX == 1)
-#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + mul24(as_uint(idx ^ (N << 4)), Threads)))
+#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % 16) + ((idx ^ (N << 4)) / 16) * WORKSIZE * 16)))
 #       elif (STRIDED_INDEX == 2)
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % (MEM_CHUNK << 4)) + ((idx ^ (N << 4)) / (MEM_CHUNK << 4)) * WORKSIZE * (MEM_CHUNK << 4))))
 #       endif
@@ -839,7 +839,7 @@ __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, uint T
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
 #       elif (STRIDED_INDEX == 2)
         Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #       endif
@@ -925,7 +925,7 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, uint 
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
 #       elif (STRIDED_INDEX == 2)
         Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #       endif
@@ -1021,7 +1021,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint Threa
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
 #       elif(STRIDED_INDEX == 2)
         Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #       endif
@@ -1115,7 +1115,7 @@ __kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, uint T
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
 #       elif(STRIDED_INDEX == 2)
         Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #       endif
@@ -1195,7 +1195,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       if (STRIDED_INDEX == 0)
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
-        Scratchpad += gIdx;
+        Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       elif (STRIDED_INDEX == 2)
         Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * (gIdx % WORKSIZE);
 #       endif
