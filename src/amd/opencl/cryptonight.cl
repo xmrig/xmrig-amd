@@ -399,7 +399,11 @@ inline ulong getIdx()
 #define mix_and_propagate(xin) (xin)[(get_local_id(1)) % 8][get_local_id(0)] ^ (xin)[(get_local_id(1) + 1) % 8][get_local_id(0)]
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states, uint Threads)
+__kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ulong *states
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
     uint ExpandedKey1[40];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -562,7 +566,11 @@ R"===(
         tweak1_2 ^= as_uint2(states[24])
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
+__kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -650,7 +658,11 @@ __kernel void cn1_monero(__global uint4 *Scratchpad, __global ulong *states, uin
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
+__kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
 #   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[4];
@@ -810,7 +822,11 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
+__kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
 #   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[2];
@@ -896,7 +912,11 @@ __kernel void cn1_msr(__global uint4 *Scratchpad, __global ulong *states, uint T
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
+__kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
 #   if (ALGO == CRYPTONIGHT_HEAVY)
     ulong a[2], b[2];
@@ -994,7 +1014,11 @@ __kernel void cn1_tube(__global uint4 *Scratchpad, __global ulong *states, uint 
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
+__kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -1087,7 +1111,11 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint Threa
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, uint Threads, uint variant, __global ulong *input)
+__kernel void cn1_xao(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input
+#if (COMP_MODE == 1)
+, uint Threads
+#endif
+)
 {
 #   if (ALGO == CRYPTONIGHT)
     ulong a[2], b[2];
