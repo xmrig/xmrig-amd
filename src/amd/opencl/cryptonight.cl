@@ -694,11 +694,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #           if (STRIDED_INDEX == 0)
                 Scratchpad += gIdx * (MEMORY >> 4);
 #           elif (STRIDED_INDEX == 1)
-#           if (ALGO == CRYPTONIGHT_HEAVY)
-                Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
-#           else
                 Scratchpad += gIdx;
-#           endif
 #           elif (STRIDED_INDEX == 2)
                 Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * get_local_id(0);
 #           endif
@@ -726,11 +722,7 @@ __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #       if (STRIDED_INDEX == 0)
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (idx ^ (N << 4))))
 #       elif (STRIDED_INDEX == 1)
-#       if (ALGO == CRYPTONIGHT_HEAVY)
-#           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % 16) + ((idx ^ (N << 4)) / 16) * WORKSIZE * 16)))
-#       else
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + mul24(as_uint(idx ^ (N << 4)), Threads)))
-#       endif
 #       elif (STRIDED_INDEX == 2)
 #           define SCRATCHPAD_CHUNK(N) (*(__global uint4*)((__global uchar*)(Scratchpad) + (((idx ^ (N << 4)) % (MEM_CHUNK << 4)) + ((idx ^ (N << 4)) / (MEM_CHUNK << 4)) * WORKSIZE * (MEM_CHUNK << 4))))
 #       endif
