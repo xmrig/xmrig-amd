@@ -94,7 +94,6 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_XTL:
     case xmrig::VARIANT_RTO:
         return 7;
-        break;
 
     case xmrig::VARIANT_MSR:
         return 8;
@@ -456,6 +455,10 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
             ctx[i].rawIntensity = reduced_intensity;
 
             LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
+        }
+
+        if (ctx[i].rawIntensity % ctx[i].workSize == 0) {
+            ctx[i].compMode = 0;
         }
 
         if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
