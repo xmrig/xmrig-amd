@@ -94,7 +94,6 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_XTL:
     case xmrig::VARIANT_RTO:
         return 7;
-        break;
 
     case xmrig::VARIANT_MSR:
         return 8;
@@ -458,6 +457,10 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
             LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
         }
 
+        if (ctx[i].rawIntensity % ctx[i].workSize == 0) {
+            ctx[i].compMode = 0;
+        }
+
         if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
@@ -477,7 +480,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     input[input_len] = 0x01;
     memset(input + input_len + 1, 0, 88 - input_len - 1);
     
-    size_t numThreads = ctx->rawIntensity;
+	cl_uint numThreads = ctx->rawIntensity;
 
     if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->InputBuffer, CL_TRUE, 0, 88, input, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill input buffer.", err_to_str(ret));
@@ -495,7 +498,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // Threads
-    if((ret = OclLib::setKernelArg(ctx->Kernels[0], 3, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[0], 3, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 0, 3);
         return OCL_ERR_API;
     }
@@ -509,21 +512,21 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // Threads
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 4, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 4);
         return(OCL_ERR_API);
     }
 
     // variant
     const cl_uint v = static_cast<cl_uint>(variant);
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &v)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_uint), &v)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 2);
         return OCL_ERR_API;
     }
 
     // input
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 4);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
         return OCL_ERR_API;
     }
 
@@ -541,7 +544,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // Threads
-    if((ret = OclLib::setKernelArg(ctx->Kernels[2], 6, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+    if((ret = OclLib::setKernelArg(ctx->Kernels[2], 6, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 6);
         return OCL_ERR_API;
     }
@@ -638,7 +641,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     for (int i = 0; i < 4; ++i) {
         if (BranchNonces[i]) {
             // Threads
-            if ((OclLib::setKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_ulong), BranchNonces + i)) != CL_SUCCESS) {
+            if ((OclLib::setKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_uint), BranchNonces + i)) != CL_SUCCESS) {
                 LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 4);
                 return OCL_ERR_API;
             }
