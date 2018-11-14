@@ -421,6 +421,8 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
+    __local ulong State_buf[8 * 25];
+
 #   if (COMP_MODE == 1)
     // do not use early return here
     if (gIdx < Threads)
@@ -442,7 +444,6 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
 
         if (get_local_id(1) == 0)
         {
-            __local ulong State_buf[8 * 25];
             __local ulong* State = State_buf + get_local_id(0) * 25;
 
             ((__local ulong8 *)State)[0] = vload8(0, input);
@@ -1324,6 +1325,8 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
     barrier(CLK_GLOBAL_MEM_FENCE);
 
+    __local ulong State_buf[8 * 25];
+
 #   if (COMP_MODE == 1)
     // do not use early return here
     if (gIdx < Threads)
@@ -1331,7 +1334,6 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
     {
         if(!get_local_id(1))
         {
-            __local ulong State_buf[8 * 25];
             __local ulong* State = State_buf + get_local_id(0) * 25;
 
             for(int i = 0; i < 25; ++i) State[i] = states[i];
