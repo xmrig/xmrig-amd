@@ -79,7 +79,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
             continue;
         }
 
-        const int hints           = getHints(ctx, config);
+        int hints                 = getHints(ctx, config);
         const size_t maxThreads   = getMaxThreads(ctx, config->algorithm().algo(), hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
         const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
@@ -95,6 +95,22 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
         assert(intensity > 0);
         if (intensity == 0) {
             continue;
+        }
+
+        if (ctx.vendor == xmrig::OCL_VENDOR_AMD) {
+            const bool isSmall = ctx.name == "Lexa" || ctx.name == "Baffin" || computeUnits <= 16;
+            if (isSmall) {
+                intensity /= 2;
+
+                if (config->algorithm().algo() == xmrig::CRYPTONIGHT_HEAVY) {
+                    intensity /= 2;
+                }
+            }
+
+            constexpr const size_t byteToMiB = 1024u * 1024u;
+            if ((ctx.freeMem - intensity * 2 * hashMemSize) > 128 * byteToMiB) {
+                hints |= DoubleThreads;
+            }
         }
 
         threads.push_back(createThread(ctx, intensity, hints));
