@@ -52,25 +52,6 @@ inline static const char *err_to_str(cl_int ret)
 }
 
 
-inline static int getDeviceMaxComputeUnits(cl_device_id id)
-{
-    int count = 0;
-    OclLib::getDeviceInfo(id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(int), &count);
-
-    return count;
-}
-
-
-inline static void getDeviceName(cl_device_id id, char *buf, size_t size)
-{
-    if (OclLib::getDeviceInfo(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf) == CL_SUCCESS) {
-        return;
-    }
-
-    OclLib::getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
-}
-
-
 inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, cl_uint argument, size_t offset)
 {
     cl_int ret;
@@ -126,13 +107,20 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    char buf[128] = { 0 };
-    getDeviceName(ctx->DeviceID, buf, sizeof(buf));
-    ctx->computeUnits = getDeviceMaxComputeUnits(ctx->DeviceID);
+    ctx->name         = OclLib::getDeviceName(ctx->DeviceID);
+    ctx->board        = OclLib::getDeviceBoardName(ctx->DeviceID);
+    ctx->computeUnits = OclLib::getDeviceMaxComputeUnits(ctx->DeviceID);
 
-    LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") ", intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
-                                : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
-        index, ctx->deviceIdx, buf, ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+    if (ctx->name == ctx->board) {
+        LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") ", intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
+                                    : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
+            index, ctx->deviceIdx, ctx->board.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+    }
+    else {
+        LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") " (" CYAN_BOLD("%s") "), intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
+                                    : "#%d, GPU #%zu %s (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
+            index, ctx->deviceIdx, ctx->board.data(), ctx->name.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+    }
 
     ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);
     if (ret != CL_SUCCESS) {
@@ -234,7 +222,7 @@ int OclGPU::findPlatformIdx(xmrig::Config *config)
 
 std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
 {
-    const int platformIndex               = config->platformIndex();
+    const size_t platformIndex            = static_cast<size_t>(config->platformIndex());
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
     std::vector<GpuContext> ctxVec;
 
@@ -247,30 +235,16 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
     cl_device_id *device_list = new cl_device_id[num_devices];
     OclLib::getDeviceIDs(platforms[platformIndex], CL_DEVICE_TYPE_GPU, num_devices, device_list, nullptr);
 
-    char buf[256] = { 0 };
-
     for (cl_uint i = 0; i < num_devices; i++) {
-        OclLib::getDeviceInfo(device_list[i], CL_DEVICE_VENDOR, sizeof(buf), buf);
-
         GpuContext ctx;
-        ctx.deviceIdx = i;
-        ctx.DeviceID  = device_list[i];
+        ctx.deviceIdx    = i;
+        ctx.DeviceID     = device_list[i];
+        ctx.computeUnits = OclLib::getDeviceMaxComputeUnits(ctx.DeviceID);
+        ctx.vendor       = OclLib::getDeviceVendor(ctx.DeviceID);
 
-        if (strstr(buf, "Advanced Micro Devices") != nullptr || strstr(buf, "AMD") != nullptr) {
-            ctx.vendor = xmrig::OCL_VENDOR_AMD;
-        }
-        else if (strstr(buf, "NVIDIA") != nullptr) {
-            ctx.vendor = xmrig::OCL_VENDOR_NVIDIA;
-        }
-        else if (strstr(buf, "Intel") != nullptr) {
-            ctx.vendor = xmrig::OCL_VENDOR_INTEL;
-        }
-        else {
-            LOG_WARN("Unknown device vendor: %s", buf);
+        if (ctx.vendor == xmrig::OCL_VENDOR_UNKNOWN) {
             continue;
         }
-
-        ctx.computeUnits = getDeviceMaxComputeUnits(ctx.DeviceID);
 
         size_t maxMem;
         OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem));
@@ -278,14 +252,19 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
         // if environment variable GPU_SINGLE_ALLOC_PERCENT is not set we can not allocate the full memory
         ctx.freeMem = std::min(ctx.freeMem, maxMem);
 
-        getDeviceName(ctx.DeviceID, buf, sizeof(buf));
+        ctx.board = OclLib::getDeviceBoardName(ctx.DeviceID);
+        ctx.name  = OclLib::getDeviceName(ctx.DeviceID);
 
-        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
-                                    : "found OpenCL GPU: %s, cu:",
-                 buf, ctx.computeUnits);
-
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf);
-        ctx.name = buf;
+        if (ctx.board == ctx.name) {
+            LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
+                                        : "found OpenCL GPU: %s, cu:",
+                     ctx.name.data(), ctx.computeUnits);
+        }
+        else {
+            LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") " ("  CYAN_BOLD("%s") "), cu: " WHITE_BOLD("%d")
+                                        : "found OpenCL GPU: %s (%s), cu:",
+                     ctx.board.data(), ctx.name.data(), ctx.computeUnits);
+        }
 
         ctxVec.push_back(ctx);
     }

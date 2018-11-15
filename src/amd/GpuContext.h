@@ -37,6 +37,7 @@
 #include <string>
 
 
+#include "base/tools/String.h"
 #include "common/xmrig.h"
 
 
@@ -104,8 +105,9 @@ struct GpuContext
     cl_program Program;
     cl_kernel Kernels[12];
     size_t freeMem;
-    int computeUnits;
-    std::string name;
+    cl_uint computeUnits;
+    xmrig::String board;
+    xmrig::String name;
 
     uint32_t Nonce;
 };

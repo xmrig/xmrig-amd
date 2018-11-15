@@ -435,6 +435,15 @@ cl_program OclLib::createProgramWithSource(cl_context context, cl_uint count, co
 }
 
 
+cl_uint OclLib::getDeviceMaxComputeUnits(cl_device_id id)
+{
+    cl_uint count = 1;
+    OclLib::getDeviceInfo(id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &count);
+
+    return count;
+}
+
+
 std::vector<cl_platform_id> OclLib::getPlatformIDs()
 {
     const uint32_t count = getNumPlatforms();
@@ -462,4 +471,53 @@ uint32_t OclLib::getNumPlatforms()
     }
 
     return count;
+}
+
+
+xmrig::OclVendor OclLib::getDeviceVendor(cl_device_id id)
+{
+    static char buf[256] = { 0 };
+    if (getDeviceInfo(id, CL_DEVICE_VENDOR, sizeof(buf), buf) != CL_SUCCESS) {
+        return xmrig::OCL_VENDOR_UNKNOWN;
+    }
+
+    if (strstr(buf, "Advanced Micro Devices") != nullptr || strstr(buf, "AMD") != nullptr) {
+        return xmrig::OCL_VENDOR_AMD;
+    }
+
+    if (strstr(buf, "NVIDIA") != nullptr) {
+        return  xmrig::OCL_VENDOR_NVIDIA;
+    }
+
+    if (strstr(buf, "Intel") != nullptr) {
+        return xmrig::OCL_VENDOR_INTEL;
+    }
+
+    return xmrig::OCL_VENDOR_UNKNOWN;
+}
+
+
+xmrig::String OclLib::getDeviceBoardName(cl_device_id id)
+{
+    constexpr size_t size = 128;
+
+    char *buf = new char[size]();
+    if (getDeviceInfo(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf) == CL_SUCCESS) {
+        return buf;
+    }
+
+    getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
+
+    return buf;
+}
+
+
+xmrig::String OclLib::getDeviceName(cl_device_id id)
+{
+    constexpr size_t size = 128;
+
+    char *buf = new char[size]();
+    getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
+
+    return buf;
 }
