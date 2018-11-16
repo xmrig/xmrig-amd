@@ -24,7 +24,7 @@
 
 
 #include <thread>
-
+#include <mutex>
 
 #include "amd/OclGPU.h"
 #include "common/Platform.h"
@@ -52,25 +52,13 @@ OclWorker::OclWorker(Handle *handle) :
     }
 }
 
+static std::mutex PauseMutex;
 
 void OclWorker::start()
 {
     cl_uint results[0x100];
 
     while (Workers::sequence() > 0) {
-        if (Workers::isPaused()) {
-            do {
-                std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            }
-            while (Workers::isPaused());
-
-            if (Workers::sequence() == 0) {
-                break;
-            }
-
-            consumeJob();
-        }
-
         while (!Workers::isOutdated(m_sequence)) {
             memset(results, 0, sizeof(cl_uint) * (0x100));
 
@@ -85,6 +73,17 @@ void OclWorker::start()
 
             storeStats();
             std::this_thread::yield();
+        }
+
+        if (Workers::isPaused()) {
+            do {
+                std::lock_guard<std::mutex> guard(PauseMutex);
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            } while (Workers::isPaused());
+
+            if (Workers::sequence() == 0) {
+                break;
+            }
         }
 
         consumeJob();
