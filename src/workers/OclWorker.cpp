@@ -97,6 +97,9 @@ bool OclWorker::resume(const Job &job)
     if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedJob.id()) {
         m_job   = m_pausedJob;
         m_nonce = m_pausedNonce;
+
+        m_ctx->Nonce = m_nonce;
+
         return true;
     }
 
