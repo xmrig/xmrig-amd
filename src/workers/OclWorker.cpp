@@ -101,8 +101,8 @@ void OclWorker::start()
             }
 
             if (interleaveAdjustDelay > 0) {
-                if (interleaveAdjustDelay >= 200) {
-                    interleaveAdjustDelay = 100;
+                if (interleaveAdjustDelay >= 400) {
+                    interleaveAdjustDelay = 200;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(interleaveAdjustDelay));
                 LOG_INFO(m_config->isColors() ?
