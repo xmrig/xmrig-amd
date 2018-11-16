@@ -51,7 +51,8 @@ App *App::m_self = nullptr;
 
 App::App(int argc, char **argv) :
     m_console(nullptr),
-    m_httpd(nullptr)
+    m_httpd(nullptr),
+    m_timerRes(0)
 {
     m_self = this;
 
@@ -72,6 +73,8 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    restoreTimerResolution();
+
     uv_tty_reset_mode();
 
     delete m_console;
@@ -125,6 +128,8 @@ int App::exec()
 
     m_httpd->start();
 #   endif
+
+    setMaxTimerResolution();
 
     if (!m_controller->oclInit() || !Workers::start(m_controller)) {
         LOG_ERR("Failed to start threads.");
