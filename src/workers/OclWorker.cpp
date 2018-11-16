@@ -46,6 +46,7 @@ static struct SGPUThreadInterleaveData
     double averageRunTime;
     uint64_t lastRunTimeStamp;
     int threadCount;
+    int resumeCounter;
 } GPUThreadInterleaveData[MAX_DEVICE_COUNT];
 
 OclWorker::OclWorker(Handle *handle, xmrig::Config *config) :
@@ -138,12 +139,35 @@ void OclWorker::start()
         }
 
         if (Workers::isPaused()) {
+            {
+                std::lock_guard<std::mutex> g(interleaveData.m);
+                interleaveData.resumeCounter = 0;
+            }
+
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
             } while (Workers::isPaused());
 
             if (Workers::sequence() == 0) {
                 break;
+            }
+
+            int64_t resumeDelay = 0;
+            {
+                std::lock_guard<std::mutex> g(interleaveData.m);
+                resumeDelay = static_cast<int64_t>(interleaveData.resumeCounter * interleaveData.averageRunTime / interleaveData.threadCount);
+                ++interleaveData.resumeCounter;
+            }
+
+            if (resumeDelay > 1000) {
+                resumeDelay = 1000;
+            }
+
+            if (resumeDelay > 0) {
+                LOG_INFO(m_config->isColors() ?
+                    "Thread " WHITE_BOLD("#%zu") " will be paused for " YELLOW_BOLD("%lld") " ms before resuming" :
+                    "Thread #%zu will be paused for %lld ms to before resuming", m_id, resumeDelay);
+                std::this_thread::sleep_for(std::chrono::milliseconds(resumeDelay));
             }
         }
 
