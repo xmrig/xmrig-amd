@@ -46,6 +46,7 @@ static struct SGPUThreadInterleaveData
     double averageRunTime;
     uint64_t lastRunTimeStamp;
     int threadCount;
+    int resumeCounter;
 } GPUThreadInterleaveData[MAX_DEVICE_COUNT];
 
 OclWorker::OclWorker(Handle *handle, xmrig::Config *config) :
@@ -138,12 +139,37 @@ void OclWorker::start()
         }
 
         if (Workers::isPaused()) {
+            {
+                std::lock_guard<std::mutex> g(interleaveData.m);
+                interleaveData.resumeCounter = 0;
+            }
+
             do {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
             } while (Workers::isPaused());
 
             if (Workers::sequence() == 0) {
                 break;
+            }
+
+            int64_t resumeDelay = 0;
+            {
+                const double FirstThreadSpeedupCoeff = 1.25;
+
+                std::lock_guard<std::mutex> g(interleaveData.m);
+                resumeDelay = static_cast<int64_t>(interleaveData.resumeCounter * interleaveData.averageRunTime / interleaveData.threadCount / FirstThreadSpeedupCoeff);
+                ++interleaveData.resumeCounter;
+            }
+
+            if (resumeDelay > 1000) {
+                resumeDelay = 1000;
+            }
+
+            if (resumeDelay > 0) {
+                LOG_INFO(m_config->isColors() ?
+                    "Thread " WHITE_BOLD("#%zu") " will be paused for " YELLOW_BOLD("%lld") " ms before resuming" :
+                    "Thread #%zu will be paused for %lld ms to before resuming", m_id, resumeDelay);
+                std::this_thread::sleep_for(std::chrono::milliseconds(resumeDelay));
             }
         }
 
@@ -156,10 +182,8 @@ bool OclWorker::resume(const Job &job)
 {
     if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedJob.id()) {
         m_job   = m_pausedJob;
-        m_nonce = m_pausedNonce;
-
+        m_nonce = m_pausedNonce + m_ctx->rawIntensity;
         m_ctx->Nonce = m_nonce;
-
         return true;
     }
 
@@ -202,7 +226,7 @@ void OclWorker::save(const Job &job)
 {
     if (job.poolId() == -1 && m_job.poolId() >= 0) {
         m_pausedJob   = m_job;
-        m_pausedNonce = m_nonce;
+        m_pausedNonce = m_ctx->Nonce;
     }
 }
 
