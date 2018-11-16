@@ -33,9 +33,22 @@
 #include "workers/OclThread.h"
 #include "workers/OclWorker.h"
 #include "workers/Workers.h"
+#include "core/Config.h"
+#include "common/log/Log.h"
 
+#define MAX_DEVICE_COUNT 32
 
-OclWorker::OclWorker(Handle *handle) :
+static struct SGPUThreadInterleaveData
+{
+    std::mutex m;
+
+    double interleaveAdjustThreshold;
+    double averageRunTime;
+    uint64_t lastRunTimeStamp;
+    int threadCount;
+} GPUThreadInterleaveData[MAX_DEVICE_COUNT];
+
+OclWorker::OclWorker(Handle *handle, xmrig::Config *config) :
     m_id(handle->threadId()),
     m_threads(handle->totalWays()),
     m_ctx(handle->ctx()),
@@ -43,26 +56,62 @@ OclWorker::OclWorker(Handle *handle) :
     m_timestamp(0),
     m_count(0),
     m_sequence(0),
-    m_blob()
+    m_blob(),
+    m_config(config)
 {
     const int64_t affinity = handle->config()->affinity();
 
     if (affinity >= 0) {
         Platform::setThreadAffinity(affinity);
     }
-}
 
-static std::mutex PauseMutex;
+    SGPUThreadInterleaveData& interleaveData = GPUThreadInterleaveData[m_ctx->deviceIdx % MAX_DEVICE_COUNT];
+    {
+        std::lock_guard<std::mutex> g(interleaveData.m);
+        ++interleaveData.threadCount;
+        interleaveData.interleaveAdjustThreshold = 0.95;
+    }
+}
 
 void OclWorker::start()
 {
+    SGPUThreadInterleaveData& interleaveData = GPUThreadInterleaveData[m_ctx->deviceIdx % MAX_DEVICE_COUNT];
     cl_uint results[0x100];
 
     while (Workers::sequence() > 0) {
         while (!Workers::isOutdated(m_sequence)) {
             memset(results, 0, sizeof(cl_uint) * (0x100));
 
+            using namespace std::chrono;
+
+            const int64_t t0 = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
+            int64_t interleaveAdjustDelay = 0;
+            {
+                std::lock_guard<std::mutex> g(interleaveData.m);
+
+                const int64_t dt = static_cast<int64_t>(t0 - interleaveData.lastRunTimeStamp);
+                interleaveData.lastRunTimeStamp = t0;
+
+                // The perfect interleaving is when N threads on the same GPU start with T/N interval between each other
+                // If a thread starts earlier than 0.75*T/N ms after the previous thread, delay it to restore perfect interleaving
+                if ((interleaveData.threadCount > 1) && (dt > 0) && (dt < interleaveData.interleaveAdjustThreshold * (interleaveData.averageRunTime / interleaveData.threadCount))) {
+                    interleaveAdjustDelay = static_cast<int64_t>(interleaveData.averageRunTime / interleaveData.threadCount - dt);
+                    interleaveData.interleaveAdjustThreshold = 0.75;
+                }
+            }
+
+            if (interleaveAdjustDelay > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(interleaveAdjustDelay));
+                LOG_INFO(m_config->isColors() ?
+                    "Thread " WHITE_BOLD("#%zu") " was paused for " YELLOW_BOLD("%lld") " ms to adjust interleaving" :
+                    "Thread #%zu was paused for %lld ms to adjust interleaving", m_id, interleaveAdjustDelay);
+            }
+
+            const int64_t t1 = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
+
             XMRRunJob(m_ctx, results, m_job.algorithm().variant());
+
+            const int64_t t2 = time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count();
 
             for (size_t i = 0; i < results[0xFF]; i++) {
                 *m_job.nonce() = results[i];
@@ -71,14 +120,23 @@ void OclWorker::start()
 
             m_count += m_ctx->rawIntensity;
 
+            if (t2 > t1) {
+                // averagingBias = 1.0 - only the last delta time is taken into account
+                // averagingBias = 0.5 - the last delta time has the same weight as all the previous ones combined
+                // averagingBias = 0.125 - the last delta time has 12.5% weight of all the previous ones combined
+                const double averagingBias = 0.125;
+
+                std::lock_guard<std::mutex> g(interleaveData.m);
+                interleaveData.averageRunTime = interleaveData.averageRunTime * (1.0 - averagingBias) + (t2 - t1) * averagingBias;
+            }
+
             storeStats();
             std::this_thread::yield();
         }
 
         if (Workers::isPaused()) {
             do {
-                std::lock_guard<std::mutex> guard(PauseMutex);
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
             } while (Workers::isPaused());
 
             if (Workers::sequence() == 0) {
@@ -96,6 +154,9 @@ bool OclWorker::resume(const Job &job)
     if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedJob.id()) {
         m_job   = m_pausedJob;
         m_nonce = m_pausedNonce;
+
+        m_ctx->Nonce = m_nonce;
+
         return true;
     }
 

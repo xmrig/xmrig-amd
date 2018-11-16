@@ -294,7 +294,7 @@ void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
 
-    IWorker *worker = new OclWorker(handle);
+    IWorker *worker = new OclWorker(handle, m_controller->config());
     handle->setWorker(worker);
 
     start(worker);
