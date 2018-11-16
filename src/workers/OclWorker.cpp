@@ -154,8 +154,10 @@ void OclWorker::start()
 
             int64_t resumeDelay = 0;
             {
+                const double FirstThreadSpeedupCoeff = 1.25;
+
                 std::lock_guard<std::mutex> g(interleaveData.m);
-                resumeDelay = static_cast<int64_t>(interleaveData.resumeCounter * interleaveData.averageRunTime / interleaveData.threadCount);
+                resumeDelay = static_cast<int64_t>(interleaveData.resumeCounter * interleaveData.averageRunTime / interleaveData.threadCount / FirstThreadSpeedupCoeff);
                 ++interleaveData.resumeCounter;
             }
 
@@ -180,10 +182,8 @@ bool OclWorker::resume(const Job &job)
 {
     if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedJob.id()) {
         m_job   = m_pausedJob;
-        m_nonce = m_pausedNonce;
-
+        m_nonce = m_pausedNonce + m_ctx->rawIntensity;
         m_ctx->Nonce = m_nonce;
-
         return true;
     }
 
@@ -195,7 +195,7 @@ void OclWorker::consumeJob()
 {
     Job job = Workers::job();
     m_sequence = Workers::sequence();
-    if (m_job == job) {
+    if (m_job.id() == job.id() && m_job.clientId() == job.clientId()) {
         return;
     }
 
@@ -226,7 +226,7 @@ void OclWorker::save(const Job &job)
 {
     if (job.poolId() == -1 && m_job.poolId() >= 0) {
         m_pausedJob   = m_job;
-        m_pausedNonce = m_nonce;
+        m_pausedNonce = m_ctx->Nonce;
     }
 }
 
