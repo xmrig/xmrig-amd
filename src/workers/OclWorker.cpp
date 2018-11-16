@@ -93,14 +93,17 @@ void OclWorker::start()
                 interleaveData.lastRunTimeStamp = t0;
 
                 // The perfect interleaving is when N threads on the same GPU start with T/N interval between each other
-                // If a thread starts earlier than 0.75*T/N ms after the previous thread, delay it to restore perfect interleaving
+                // If a thread starts earlier than 0.8*T/N ms after the previous thread, delay it to restore perfect interleaving
                 if ((interleaveData.threadCount > 1) && (dt > 0) && (dt < interleaveData.interleaveAdjustThreshold * (interleaveData.averageRunTime / interleaveData.threadCount))) {
                     interleaveAdjustDelay = static_cast<int64_t>(interleaveData.averageRunTime / interleaveData.threadCount - dt);
-                    interleaveData.interleaveAdjustThreshold = 0.75;
+                    interleaveData.interleaveAdjustThreshold = 0.8;
                 }
             }
 
             if (interleaveAdjustDelay > 0) {
+                if (interleaveAdjustDelay >= 200) {
+                    interleaveAdjustDelay = 100;
+                }
                 std::this_thread::sleep_for(std::chrono::milliseconds(interleaveAdjustDelay));
                 LOG_INFO(m_config->isColors() ?
                     "Thread " WHITE_BOLD("#%zu") " was paused for " YELLOW_BOLD("%lld") " ms to adjust interleaving" :
