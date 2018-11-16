@@ -41,7 +41,7 @@ class Handle;
 class OclWorker : public IWorker
 {
 public:
-    OclWorker(Handle *handle);
+    OclWorker(Handle *handle, xmrig::Config *config);
 
 protected:
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
@@ -70,6 +70,8 @@ private:
     uint64_t m_count;
     uint64_t m_sequence;
     uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
+
+    xmrig::Config *m_config;
 };
 
 

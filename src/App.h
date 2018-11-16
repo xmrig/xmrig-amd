@@ -56,6 +56,8 @@ protected:
 private:
   void background();
   void close();
+  void setMaxTimerResolution();
+  void restoreTimerResolution();
 
   static void onSignal(uv_signal_t *handle, int signum);
 
@@ -67,6 +69,7 @@ private:
   uv_signal_t m_sigINT;
   uv_signal_t m_sigTERM;
   xmrig::Controller *m_controller;
+  unsigned int m_timerRes;
 };
 
 

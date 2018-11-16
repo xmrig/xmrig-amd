@@ -62,3 +62,11 @@ void App::background()
         LOG_ERR("chdir() failed (errno = %d)", errno);
     }
 }
+
+void App::setMaxTimerResolution()
+{
+}
+
+void App::restoreTimerResolution()
+{
+}

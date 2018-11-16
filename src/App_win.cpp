@@ -29,6 +29,8 @@
 #include "App.h"
 #include "core/Controller.h"
 #include "core/Config.h"
+#include "common/log/Log.h"
+#include <algorithm>
 
 
 void App::background()
@@ -44,5 +46,38 @@ void App::background()
         HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
         CloseHandle(h);
         FreeConsole();
+    }
+}
+
+void App::setMaxTimerResolution()
+{
+    TIMECAPS tc;
+    MMRESULT res = timeGetDevCaps(&tc, sizeof(TIMECAPS));
+    if (res == TIMERR_NOERROR) 
+    {
+        m_timerRes = std::min<unsigned int>(std::max<unsigned int>(tc.wPeriodMin, 1), tc.wPeriodMax);
+        res = timeBeginPeriod(m_timerRes);
+        if (res == TIMERR_NOERROR)
+        {
+            LOG_INFO(m_controller->config() ?
+                "System timer resolution set to " WHITE_BOLD("%u") " ms" :
+                "System timer resolution set to %u ms", m_timerRes);
+        }
+        else
+        {
+            LOG_ERR("Failed to set system timer resolution: timeBeginPeriod returned error %u", res);
+            m_timerRes = 0;
+        }
+    }
+    else
+    {
+        LOG_ERR("Failed to set system timer resolution: timeGetDevCaps returned error %u", res);
+    }
+}
+
+void App::restoreTimerResolution()
+{
+    if (m_timerRes) {
+        timeEndPeriod(m_timerRes); 
     }
 }
