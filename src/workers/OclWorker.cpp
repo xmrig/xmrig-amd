@@ -93,10 +93,10 @@ void OclWorker::start()
                 interleaveData.lastRunTimeStamp = t0;
 
                 // The perfect interleaving is when N threads on the same GPU start with T/N interval between each other
-                // If a thread starts earlier than 0.8*T/N ms after the previous thread, delay it to restore perfect interleaving
+                // If a thread starts earlier than 0.75*T/N ms after the previous thread, delay it to restore perfect interleaving
                 if ((interleaveData.threadCount > 1) && (dt > 0) && (dt < interleaveData.interleaveAdjustThreshold * (interleaveData.averageRunTime / interleaveData.threadCount))) {
                     interleaveAdjustDelay = static_cast<int64_t>(interleaveData.averageRunTime / interleaveData.threadCount - dt);
-                    interleaveData.interleaveAdjustThreshold = 0.8;
+                    interleaveData.interleaveAdjustThreshold = 0.75;
                 }
             }
 
@@ -126,8 +126,8 @@ void OclWorker::start()
             if (t2 > t1) {
                 // averagingBias = 1.0 - only the last delta time is taken into account
                 // averagingBias = 0.5 - the last delta time has the same weight as all the previous ones combined
-                // averagingBias = 0.125 - the last delta time has 12.5% weight of all the previous ones combined
-                const double averagingBias = 0.125;
+                // averagingBias = 0.1 - the last delta time has 10% weight of all the previous ones combined
+                const double averagingBias = 0.1;
 
                 std::lock_guard<std::mutex> g(interleaveData.m);
                 interleaveData.averageRunTime = interleaveData.averageRunTime * (1.0 - averagingBias) + (t2 - t1) * averagingBias;
