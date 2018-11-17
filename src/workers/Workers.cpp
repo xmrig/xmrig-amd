@@ -76,6 +76,20 @@ struct JobBaton
 };
 
 
+static size_t threadsCountByGPU(size_t index, const std::vector<xmrig::IThread *> &threads)
+{
+    size_t count = 0;
+
+    for (const xmrig::IThread *thread : threads) {
+        if (thread->index() == index) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+
 Job Workers::job()
 {
     uv_rwlock_rdlock(&m_rwlock);
@@ -208,6 +222,7 @@ bool Workers::start(xmrig::Controller *controller)
         contexts[i] = GpuContext(thread->index(),
                                  thread->intensity(),
                                  thread->worksize(),
+                                 threadsCountByGPU(thread->index(), threads),
                                  thread->stridedIndex(),
                                  thread->memChunk(),
                                  thread->isCompMode(),
@@ -294,7 +309,7 @@ void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
 
-    IWorker *worker = new OclWorker(handle, m_controller->config());
+    IWorker *worker = new OclWorker(handle);
     handle->setWorker(worker);
 
     start(worker);

@@ -53,7 +53,7 @@ OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
-    const int64_t timeStart = xmrig::timestamp();
+    const int64_t timeStart = xmrig::steadyTimestamp();
 
     char options[512] = { 0 };
     snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
@@ -122,7 +122,7 @@ bool OclCache::load()
         while(status == CL_BUILD_IN_PROGRESS);
 
         LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") ", elapsed time " WHITE_BOLD("%03.2fs") :
-                                        "GPU #%zu compilation completed, elapsed time %03.2fs", m_ctx->deviceIdx, (xmrig::timestamp() - timeStart) / 1000.0);
+                                        "GPU #%zu compilation completed, elapsed time %03.2fs", m_ctx->deviceIdx, (xmrig::steadyTimestamp() - timeStart) / 1000.0);
 
         return save(dev_id, num_devices);
     }

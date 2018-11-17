@@ -6,6 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -22,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __OCLWORKER_H__
-#define __OCLWORKER_H__
+#ifndef XMRIG_OCLWORKER_H
+#define XMRIG_OCLWORKER_H
 
 #include <atomic>
 
@@ -41,7 +42,7 @@ class Handle;
 class OclWorker : public IWorker
 {
 public:
-    OclWorker(Handle *handle, xmrig::Config *config);
+    OclWorker(Handle *handle);
 
 protected:
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
@@ -53,10 +54,12 @@ protected:
 
 private:
     bool resume(const Job &job);
+    int64_t interleaveAdjustDelay() const;
+    int64_t resumeDelay() const;
     void consumeJob();
     void save(const Job &job);
     void setJob();
-    void storeStats();
+    void storeStats(int64_t t);
 
     const size_t m_id;
     const size_t m_threads;
@@ -69,9 +72,7 @@ private:
     uint64_t m_count;
     uint64_t m_sequence;
     uint8_t m_blob[96]; // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
-
-    xmrig::Config *m_config;
 };
 
 
-#endif /* __OCLWORKER_H__ */
+#endif /* XMRIG_OCLWORKER_H */
