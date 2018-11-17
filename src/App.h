@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -21,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __APP_H__
-#define __APP_H__
+#ifndef XMRIG_APP_H
+#define XMRIG_APP_H
 
 
 #include <uv.h>
@@ -46,7 +47,7 @@ class App : public IConsoleListener
 {
 public:
   App(int argc, char **argv);
-  ~App();
+  ~App() override;
 
   int exec();
 
@@ -56,8 +57,6 @@ protected:
 private:
   void background();
   void close();
-  void setMaxTimerResolution();
-  void restoreTimerResolution();
 
   static void onSignal(uv_signal_t *handle, int signum);
 
@@ -69,8 +68,7 @@ private:
   uv_signal_t m_sigINT;
   uv_signal_t m_sigTERM;
   xmrig::Controller *m_controller;
-  unsigned int m_timerRes;
 };
 
 
-#endif /* __APP_H__ */
+#endif /* XMRIG_APP_H */

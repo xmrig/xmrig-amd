@@ -31,7 +31,7 @@
 namespace xmrig {
 
 
-static inline int64_t currentMSecsSinceEpoch()
+static inline int64_t timestamp()
 {
     using namespace std::chrono;
     if (high_resolution_clock::is_steady) {
