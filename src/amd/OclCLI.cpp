@@ -71,7 +71,8 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
         return;
     }
 
-    const size_t hashMemSize = xmrig::cn_select_memory(config->algorithm().algo());
+    const xmrig::Algo algo   = config->algorithm().algo();
+    const size_t hashMemSize = xmrig::cn_select_memory(algo);
 
     for (const GpuContext &ctx : devices) {
         // Vega APU slow and can cause BSOD, skip from autoconfig.
@@ -80,13 +81,19 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
         }
 
         int hints                 = getHints(ctx, config);
-        const size_t maxThreads   = getMaxThreads(ctx, config->algorithm().algo(), hints);
+
+        const size_t maxThreads   = getMaxThreads(ctx, algo, hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
         const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
 
         size_t intensity = 0;
         if (hints & Vega) {
-            intensity = maxIntensity / computeUnits * computeUnits;
+            if (algo == xmrig::CRYPTONIGHT_HEAVY && computeUnits == 64 && maxIntensity > 976) {
+                intensity = 976;
+            }
+            else {
+                intensity = maxIntensity / computeUnits * computeUnits;
+            }
         }
         else {
             intensity = (maxIntensity / (8 * computeUnits)) * computeUnits * 8;
@@ -102,7 +109,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
             if (isSmall) {
                 intensity /= 2;
 
-                if (config->algorithm().algo() == xmrig::CRYPTONIGHT_HEAVY) {
+                if (algo == xmrig::CRYPTONIGHT_HEAVY) {
                     intensity /= 2;
                 }
             }
