@@ -181,9 +181,9 @@ void OclWorker::start()
 bool OclWorker::resume(const Job &job)
 {
     if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedJob.id()) {
-        m_job   = m_pausedJob;
-        m_nonce = m_pausedNonce;
-        m_ctx->Nonce = m_nonce;
+        m_job        = m_pausedJob;
+        m_ctx->Nonce = m_pausedNonce;
+
         return true;
     }
 
@@ -210,13 +210,11 @@ void OclWorker::consumeJob()
     m_job.setThreadId(m_id);
 
     if (m_job.isNicehash()) {
-        m_nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
+        m_ctx->Nonce = (*m_job.nonce() & 0xff000000U) + (0xffffffU / m_threads * m_id);
     }
     else {
-        m_nonce = 0xffffffffU / m_threads * m_id;
+        m_ctx->Nonce = 0xffffffffU / m_threads * m_id;
     }
-
-    m_ctx->Nonce = m_nonce;
 
     setJob();
 }
@@ -226,7 +224,7 @@ void OclWorker::save(const Job &job)
 {
     if (job.poolId() == -1 && m_job.poolId() >= 0) {
         m_pausedJob   = m_job;
-        m_pausedNonce = m_nonce;
+        m_pausedNonce = m_ctx->Nonce;
     }
 }
 
