@@ -30,7 +30,6 @@
 #include "core/Controller.h"
 #include "core/Config.h"
 #include "common/log/Log.h"
-#include <algorithm>
 
 
 void App::background()
