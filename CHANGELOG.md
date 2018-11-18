@@ -1,9 +1,14 @@
 # v2.8.6
 - **Improved `cn-heavy`, `cn-heavy/xhv` perfomance up to 8% since v2.8.5 and up to 15% since v2.8.4, thanks [@SChernykh](https://github.com/SChernykh)**, pull requests [#187](https://github.com/xmrig/xmrig-amd/pull/187), [#189](https://github.com/xmrig/xmrig-amd/pull/189), [#190](https://github.com/xmrig/xmrig-amd/pull/190), [#191](https://github.com/xmrig/xmrig-amd/pull/191), [#192](https://github.com/xmrig/xmrig-amd/pull/192) and [#193](https://github.com/xmrig/xmrig-amd/pull/193).
-- **[#195](https://github.com/xmrig/xmrig-amd/pull/195) Fixed hashrate fluctuations.**
+- **[#195](https://github.com/xmrig/xmrig-amd/pull/195) Fixed hashrate fluctuations. It's no longer necessary to use different intensities per thread.**
 - Improved `cn-heavy/tube` perfomance up to 6% and `cn/2` perfomance up to 1%.
+- Reduced power consumption with `cn/2`
 - Fixed possible invalid shares right after donation finish.
 - Improved AMD Vega64 auto configuration.
+- It's now recommended to revise your config.json and try:
+  - Same intensities for both threads
+  - strided_index=2, mem_chunk=1 for `cn/2`
+  - strided_index=1 for other algorithms
 
 # v2.8.5
 - [#185](https://github.com/xmrig/xmrig-amd/pull/185) **Improved `cn-heavy`, `cn-heavy/xhv` and `cn-heavy/tube` perfomance up to 8%, thanks [@SChernykh](https://github.com/SChernykh).**
