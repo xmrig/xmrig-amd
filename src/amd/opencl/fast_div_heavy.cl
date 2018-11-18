@@ -10,12 +10,12 @@ inline long fast_div_heavy(long _a, int _b)
 	float rcp = native_recip(convert_float_rte(b));
 	float rcp2 = as_float(as_uint(rcp) + (32U << 23));
 
-	ulong q1 = convert_ulong_rte(convert_float_rte(as_int2(a).s1) * rcp2);
+	ulong q1 = convert_ulong(convert_float_rte(as_int2(a).s1) * rcp2);
 	a -= q1 * as_uint(b);
 
 	float q2f = convert_float_rte(as_int2(a >> 12).s0) * rcp;
 	q2f = as_float(as_uint(q2f) + (12U << 23));
-	long q2 = convert_long_rte(q2f);
+	long q2 = convert_long(q2f);
 	int a2 = as_int2(a).s0 - as_int2(q2).s0 * b;
 
 	int q3 = convert_int_rte(convert_float_rte(a2) * rcp);
