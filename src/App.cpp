@@ -5,6 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -72,6 +73,8 @@ App::App(int argc, char **argv) :
 
 App::~App()
 {
+    Platform::restoreTimerResolution();
+
     uv_tty_reset_mode();
 
     delete m_console;
@@ -85,6 +88,10 @@ App::~App()
 
 int App::exec()
 {
+    if (m_controller->isDone()) {
+        return 0;
+    }
+
     if (!m_controller->isReady()) {
         return 2;
     }
@@ -121,6 +128,10 @@ int App::exec()
 
     m_httpd->start();
 #   endif
+
+    if (Platform::setTimerResolution(1) == 0) {
+        LOG_WARN("Failed to set system timer resolution.");
+    }
 
     if (!m_controller->oclInit() || !Workers::start(m_controller)) {
         LOG_ERR("Failed to start threads.");

@@ -4,10 +4,12 @@ project(xmrig-amd)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
-option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 option(WITH_TLS       "Enable OpenSSL support" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
+
+option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
+option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" ON)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -154,7 +156,7 @@ if (WIN32)
         )
 
     add_definitions(/DWIN32)
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv winmm)
 elseif (APPLE)
     set(SOURCES_OS
         src/amd/OclCache_unix.cpp
@@ -263,5 +265,9 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})
+if (WITH_INTERLEAVE_DEBUG_LOG)
+    add_definitions(/DAPP_INTERLEAVE_DEBUG)
+endif()
+
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})

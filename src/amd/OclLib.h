@@ -35,6 +35,10 @@
 #endif
 
 
+#include "base/tools/String.h"
+#include "common/xmrig.h"
+
+
 class OclLib
 {
 public:
@@ -63,8 +67,12 @@ public:
     static cl_mem createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret);
     static cl_program createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret);
     static cl_program createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret);
+    static cl_uint getDeviceMaxComputeUnits(cl_device_id id);
     static std::vector<cl_platform_id> getPlatformIDs();
     static uint32_t getNumPlatforms();
+    static xmrig::OclVendor getDeviceVendor(cl_device_id id);
+    static xmrig::String getDeviceBoardName(cl_device_id id);
+    static xmrig::String getDeviceName(cl_device_id id);
 
 private:
     static bool load();

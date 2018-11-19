@@ -29,6 +29,7 @@
 #include "App.h"
 #include "core/Controller.h"
 #include "core/Config.h"
+#include "common/log/Log.h"
 
 
 void App::background()
