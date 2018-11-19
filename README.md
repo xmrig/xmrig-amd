@@ -18,7 +18,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 
 :warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
 
-<img src="https://i.imgur.com/TFncsi7.png" width="696" >
+<img src="https://xmrig.com/assets/img/screenshots/xmrig-amd-2.8.6.png" width="795" >
 
 #### Table of contents
 * [Features](#features)
