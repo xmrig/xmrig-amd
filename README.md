@@ -1,6 +1,6 @@
 # XMRig AMD
 
-:warning: **[Monero changed PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig-amd/releases/tag/v2.8.5)** :warning:
+:warning: **[Monero changed PoW algorithm on October 18](https://github.com/xmrig/xmrig/issues/753), all miners and proxy should be updated to [v2.8+](https://github.com/xmrig/xmrig-amd/releases/tag/v2.8.6)** :warning:
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
@@ -18,7 +18,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 
 :warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
 
-<img src="https://i.imgur.com/TFncsi7.png" width="696" >
+<img src="https://xmrig.com/assets/img/screenshots/xmrig-amd-2.8.6.png" width="795" >
 
 #### Table of contents
 * [Features](#features)
@@ -102,10 +102,10 @@ Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `
 ## Release checksums
 ### SHA-256
 ```
-6db86c76d245a5ab1f49c15ac7284d287349340032fb231ead7bd1064239dc66 xmrig-amd-2.8.5-xenial-amd64.tar.gz/xmrig-amd-2.8.5/xmrig-amd
-ab2e419467dd332ec2832a7bda1ffe15a50eb1c1d1ecd442d249284554fc2c54 xmrig-amd-2.8.5-xenial-amd64.tar.gz/xmrig-amd-2.8.5/xmrig-amd-notls
-af55fb2d4de756a7c7fe2d702807a7f9cf991c7463f347d13cc31dbb2d5a38c0 xmrig-amd-2.8.5-win64.zip/xmrig-amd.exe
-d09c35a06b00500ab07ad1b06da06e7cd0435964f76e777498bef79bc51a5719 xmrig-amd-2.8.5-win64.zip/xmrig-amd-notls.exe
+f2d00433a0cd51e8c788dbb476a56308b7144295bcd738d283d2ef12c3cf071e xmrig-amd-2.8.6-xenial-x64.tar.gz/xmrig-amd-2.8.6/xmrig-amd
+ccabefdea860437fd81b197482a80d48979f67c1ba6a200a5818cf4a7c772e8e xmrig-amd-2.8.6-xenial-x64.tar.gz/xmrig-amd-2.8.6/xmrig-amd-notls
+a4e7ed43e32bed11d5feffdc8642e97af67e4a8310ed777b308108b6b3152cd7 xmrig-amd-2.8.6-msvc-win64/xmrig-amd-2.8.6/xmrig-amd.exe
+83f8c26b5273ec4efbe8d62f51558d85b1921eabecb396e58f1a2f9f9738fbf7 xmrig-amd-2.8.6-msvc-win64/xmrig-amd-2.8.6/xmrig-amd-notls.exe
 ```
 
 ## Contacts
