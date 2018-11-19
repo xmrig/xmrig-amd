@@ -101,6 +101,7 @@ bool Platform::setThreadAffinity(uint64_t cpu_id)
 
 uint32_t Platform::setTimerResolution(uint32_t resolution)
 {
+#   ifdef XMRIG_AMD_PROJECT
     TIMECAPS tc;
 
     if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
@@ -110,14 +111,19 @@ uint32_t Platform::setTimerResolution(uint32_t resolution)
     timerResolution = std::min<uint32_t>(std::max<uint32_t>(tc.wPeriodMin, resolution), tc.wPeriodMax);
 
     return timeBeginPeriod(timerResolution) == TIMERR_NOERROR ? timerResolution : 0;
+#   else
+    return resolution;
+#   endif
 }
 
 
 void Platform::restoreTimerResolution()
 {
+#   ifdef XMRIG_AMD_PROJECT
     if (timerResolution) {
         timeEndPeriod(timerResolution);
     }
+#   endif
 }
 
 
