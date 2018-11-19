@@ -52,25 +52,6 @@ inline static const char *err_to_str(cl_int ret)
 }
 
 
-inline static int getDeviceMaxComputeUnits(cl_device_id id)
-{
-    int count = 0;
-    OclLib::getDeviceInfo(id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(int), &count);
-
-    return count;
-}
-
-
-inline static void getDeviceName(cl_device_id id, char *buf, size_t size)
-{
-    if (OclLib::getDeviceInfo(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */, size, buf) == CL_SUCCESS) {
-        return;
-    }
-
-    OclLib::getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
-}
-
-
 inline static bool setKernelArgFromExtraBuffers(GpuContext *ctx, size_t kernel, cl_uint argument, size_t offset)
 {
     cl_int ret;
@@ -94,7 +75,6 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_XTL:
     case xmrig::VARIANT_RTO:
         return 7;
-        break;
 
     case xmrig::VARIANT_MSR:
         return 8;
@@ -126,13 +106,20 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    char buf[128] = { 0 };
-    getDeviceName(ctx->DeviceID, buf, sizeof(buf));
-    ctx->name = buf;
-    ctx->computeUnits = getDeviceMaxComputeUnits(ctx->DeviceID);
+    ctx->name         = OclLib::getDeviceName(ctx->DeviceID);
+    ctx->board        = OclLib::getDeviceBoardName(ctx->DeviceID);
+    ctx->computeUnits = OclLib::getDeviceMaxComputeUnits(ctx->DeviceID);
 
-    LOG_INFO(config->isColors() ? "\x1B[01;37m#%d\x1B[0m, GPU \x1B[01;37m#%zu\x1B[0m \x1B[01;32m%s\x1B[0m, intensity: \x1B[01;37m%zu\x1B[0m (%zu/%zu), cu: \x1B[01;37m%d"  : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), cu: %d",
-        index, ctx->deviceIdx, buf, ctx->rawIntensity, ctx->workSize, ctx->maximumWorkSize, ctx->computeUnits);
+    if (ctx->name == ctx->board) {
+        LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") ", intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
+                                    : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
+            index, ctx->deviceIdx, ctx->board.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+    }
+    else {
+        LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") " (" CYAN_BOLD("%s") "), intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
+                                    : "#%d, GPU #%zu %s (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
+            index, ctx->deviceIdx, ctx->board.data(), ctx->name.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+    }
 
     ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);
     if (ret != CL_SUCCESS) {
@@ -234,7 +221,7 @@ int OclGPU::findPlatformIdx(xmrig::Config *config)
 
 std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
 {
-    const int platformIndex               = config->platformIndex();
+    const size_t platformIndex            = static_cast<size_t>(config->platformIndex());
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
     std::vector<GpuContext> ctxVec;
 
@@ -247,30 +234,16 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
     cl_device_id *device_list = new cl_device_id[num_devices];
     OclLib::getDeviceIDs(platforms[platformIndex], CL_DEVICE_TYPE_GPU, num_devices, device_list, nullptr);
 
-    char buf[256] = { 0 };
-
     for (cl_uint i = 0; i < num_devices; i++) {
-        OclLib::getDeviceInfo(device_list[i], CL_DEVICE_VENDOR, sizeof(buf), buf);
-
         GpuContext ctx;
-        ctx.deviceIdx = i;
-        ctx.DeviceID  = device_list[i];
+        ctx.deviceIdx    = i;
+        ctx.DeviceID     = device_list[i];
+        ctx.computeUnits = OclLib::getDeviceMaxComputeUnits(ctx.DeviceID);
+        ctx.vendor       = OclLib::getDeviceVendor(ctx.DeviceID);
 
-        if (strstr(buf, "Advanced Micro Devices") != nullptr || strstr(buf, "AMD") != nullptr) {
-            ctx.vendor = xmrig::OCL_VENDOR_AMD;
-        }
-        else if (strstr(buf, "NVIDIA") != nullptr) {
-            ctx.vendor = xmrig::OCL_VENDOR_NVIDIA;
-        }
-        else if (strstr(buf, "Intel") != nullptr) {
-            ctx.vendor = xmrig::OCL_VENDOR_INTEL;
-        }
-        else {
-            LOG_WARN("Unknown device vendor: %s", buf);
+        if (ctx.vendor == xmrig::OCL_VENDOR_UNKNOWN) {
             continue;
         }
-
-        ctx.computeUnits = getDeviceMaxComputeUnits(ctx.DeviceID);
 
         size_t maxMem;
         OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem));
@@ -278,14 +251,19 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
         // if environment variable GPU_SINGLE_ALLOC_PERCENT is not set we can not allocate the full memory
         ctx.freeMem = std::min(ctx.freeMem, maxMem);
 
-        getDeviceName(ctx.DeviceID, buf, sizeof(buf));
+        ctx.board = OclLib::getDeviceBoardName(ctx.DeviceID);
+        ctx.name  = OclLib::getDeviceName(ctx.DeviceID);
 
-        LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
-                                    : "found OpenCL GPU: %s, cu:",
-                 buf, ctx.computeUnits);
-
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_NAME, sizeof(buf), buf);
-        ctx.name = buf;
+        if (ctx.board == ctx.name) {
+            LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") ", cu: " WHITE_BOLD("%d")
+                                        : "found OpenCL GPU: %s, cu:",
+                     ctx.name.data(), ctx.computeUnits);
+        }
+        else {
+            LOG_INFO(config->isColors() ? GREEN_BOLD("found") " OpenCL GPU: " GREEN_BOLD("%s") " ("  CYAN_BOLD("%s") "), cu: " WHITE_BOLD("%d")
+                                        : "found OpenCL GPU: %s (%s), cu:",
+                     ctx.board.data(), ctx.name.data(), ctx.computeUnits);
+        }
 
         ctxVec.push_back(ctx);
     }
@@ -457,6 +435,10 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
             LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
         }
 
+        if (ctx[i].rawIntensity % ctx[i].workSize == 0) {
+            ctx[i].compMode = 0;
+        }
+
         if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
@@ -476,7 +458,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     input[input_len] = 0x01;
     memset(input + input_len + 1, 0, 88 - input_len - 1);
     
-    size_t numThreads = ctx->rawIntensity;
+	cl_uint numThreads = ctx->rawIntensity;
 
     if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->InputBuffer, CL_TRUE, 0, 88, input, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill input buffer.", err_to_str(ret));
@@ -494,7 +476,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // Threads
-    if((ret = OclLib::setKernelArg(ctx->Kernels[0], 3, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[0], 3, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 0, 3);
         return OCL_ERR_API;
     }
@@ -508,21 +490,21 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // Threads
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 2);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 4, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 1, 4);
         return(OCL_ERR_API);
     }
 
     // variant
     const cl_uint v = static_cast<cl_uint>(variant);
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_uint), &v)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_uint), &v)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 2);
         return OCL_ERR_API;
     }
 
     // input
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 4, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 4);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 3, sizeof(cl_mem), &ctx->InputBuffer)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 3);
         return OCL_ERR_API;
     }
 
@@ -540,7 +522,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // Threads
-    if((ret = OclLib::setKernelArg(ctx->Kernels[2], 6, sizeof(cl_ulong), &numThreads)) != CL_SUCCESS) {
+    if((ret = OclLib::setKernelArg(ctx->Kernels[2], 6, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 6);
         return OCL_ERR_API;
     }
@@ -595,7 +577,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
 
     OclLib::finish(ctx->CommandQueues);
 
-    size_t Nonce[2] = {ctx->Nonce, 1}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { w_size, 8 };
+    size_t Nonce[2] = {ctx->Nonce, 1}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { 8, 8 };
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[0], 2, Nonce, gthreads, lthreads, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 0);
         return OCL_ERR_API;
@@ -604,11 +586,13 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     size_t tmpNonce = ctx->Nonce;
     const int cn_kernel_offset = cnKernelOffset(variant);
 
+    lthreads[0] = w_size;
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[cn_kernel_offset], 1, &tmpNonce, &g_thd, &w_size, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1);
         return OCL_ERR_API;
     }
 
+    lthreads[0] = 8;
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[2], 2, Nonce, gthreads, lthreads, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 2);
         return OCL_ERR_API;
@@ -635,7 +619,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     for (int i = 0; i < 4; ++i) {
         if (BranchNonces[i]) {
             // Threads
-            if ((OclLib::setKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_ulong), BranchNonces + i)) != CL_SUCCESS) {
+            if ((OclLib::setKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_uint), BranchNonces + i)) != CL_SUCCESS) {
                 LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 4);
                 return OCL_ERR_API;
             }

@@ -37,6 +37,7 @@
 #include <string>
 
 
+#include "base/tools/String.h"
 #include "common/xmrig.h"
 
 
@@ -46,6 +47,7 @@ struct GpuContext
         deviceIdx(0),
         rawIntensity(0),
         workSize(0),
+        threads(0),
         maximumWorkSize(0),
         stridedIndex(1),
         memChunk(2),
@@ -65,10 +67,11 @@ struct GpuContext
     {}
 
 
-    inline GpuContext(size_t index, size_t intensity, size_t worksize, int stridedIndex, int memChunk, bool compMode, int unrollFactor) :
+    inline GpuContext(size_t index, size_t intensity, size_t worksize, size_t threads, int stridedIndex, int memChunk, bool compMode, int unrollFactor) :
         deviceIdx(index),
         rawIntensity(intensity),
         workSize(worksize),
+        threads(threads),
         maximumWorkSize(0),
         stridedIndex(stridedIndex),
         memChunk(memChunk),
@@ -91,6 +94,7 @@ struct GpuContext
     size_t deviceIdx;
     size_t rawIntensity;
     size_t workSize;
+    size_t threads;
     size_t maximumWorkSize;
     int stridedIndex;
     int memChunk;
@@ -107,8 +111,9 @@ struct GpuContext
     cl_program Program;
     cl_kernel Kernels[12];
     size_t freeMem;
-    int computeUnits;
-    std::string name;
+    cl_uint computeUnits;
+    xmrig::String board;
+    xmrig::String name;
 
     uint32_t Nonce;
 };
