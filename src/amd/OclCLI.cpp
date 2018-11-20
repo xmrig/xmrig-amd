@@ -72,23 +72,29 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, const xmrig::Algor
         return;
     }
 
-    const size_t hashMemSize = xmrig::cn_select_memory(algorithm.algo());
+    const xmrig::Algo algo   = algorithm.algo();
+    const size_t hashMemSize = xmrig::cn_select_memory(algo);
 
     for (const GpuContext &ctx : devices) {
         // Vega APU slow and can cause BSOD, skip from autoconfig.
-        if (ctx.name.compare("gfx902") == 0) {
+        if (ctx.name == "gfx902") {
             continue;
         }
 
         int hints           = getHints(ctx, config);
         if (algorithm.algo() == xmrig::CRYPTONIGHT && algorithm.variant() == xmrig::VARIANT_2) hints |= CNv2;
-        const size_t maxThreads   = getMaxThreads(ctx, algorithm.algo(), hints);
+        const size_t maxThreads   = getMaxThreads(ctx, algo, hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
         const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
 
         size_t intensity = 0;
         if (hints & Vega) {
-            intensity = maxIntensity / computeUnits * computeUnits;
+            if (algo == xmrig::CRYPTONIGHT_HEAVY && computeUnits == 64 && maxIntensity > 976) {
+                intensity = 976;
+            }
+            else {
+                intensity = maxIntensity / computeUnits * computeUnits;
+            }
         }
         else {
             intensity = (maxIntensity / (8 * computeUnits)) * computeUnits * 8;
@@ -97,6 +103,22 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, const xmrig::Algor
         assert(intensity > 0);
         if (intensity == 0) {
             continue;
+        }
+
+        if (ctx.vendor == xmrig::OCL_VENDOR_AMD) {
+            const bool isSmall = ctx.name == "Lexa" || ctx.name == "Baffin" || computeUnits <= 16;
+            if (isSmall) {
+                intensity /= 2;
+
+                if (algo == xmrig::CRYPTONIGHT_HEAVY) {
+                    intensity /= 2;
+                }
+            }
+
+            constexpr const size_t byteToMiB = 1024u * 1024u;
+            if ((ctx.freeMem - intensity * 2 * hashMemSize) > 128 * byteToMiB) {
+                hints |= DoubleThreads;
+            }
         }
 
         threads.push_back(createThread(ctx, intensity, hints));
@@ -167,11 +189,11 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
         hints |= CNv2;
     }
 
-    if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name.compare("gfx901") == 0 ||
-                                                ctx.name.compare("gfx904") == 0 ||
-                                                ctx.name.compare("gfx900") == 0 ||
-                                                ctx.name.compare("gfx903") == 0 ||
-                                                ctx.name.compare("gfx905") == 0))
+    if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name == "gfx901" ||
+                                                ctx.name == "gfx904" ||
+                                                ctx.name == "gfx900" ||
+                                                ctx.name == "gfx903" ||
+                                                ctx.name == "gfx905"))
     {
         hints |= Vega;
         hints |= DoubleThreads;
@@ -184,6 +206,7 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
 OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hints) const
 {
     const size_t worksize = ((hints & Vega) && (hints & CNv2)) ? 16 : 8;
+    intensity -= intensity % worksize;
 
     int stridedIndex = 1;
     if (ctx.vendor == xmrig::OCL_VENDOR_NVIDIA) {
@@ -195,6 +218,11 @@ OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hin
 
     OclThread *thread = new OclThread(ctx.deviceIdx, intensity, worksize);
     thread->setStridedIndex(stridedIndex);
+    thread->setCompMode(false);
+
+    if ((hints & Vega) && (hints & CNv2)) {
+        thread->setMemChunk(1);
+    }
 
     return thread;
 }
@@ -230,8 +258,8 @@ size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints)
         return ratio * 2024u;
     }
 
-    if (ctx.vendor == xmrig::OCL_VENDOR_NVIDIA && (ctx.name.find("P100") != std::string::npos ||
-                                                   ctx.name.find("V100") != std::string::npos))
+    if (ctx.vendor == xmrig::OCL_VENDOR_NVIDIA && (ctx.name.contains("P100") ||
+                                                   ctx.name.contains("V100")))
     {
         return 40000u;
     }

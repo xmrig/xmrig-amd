@@ -43,6 +43,7 @@ public:
     Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId);
     ~Job();
 
+    bool isEqual(const Job &other) const;
     bool setBlob(const char *blob);
     void setRawBlob(const uint8_t *blob, const size_t size); // for algo benchmarking
     bool setTarget(const char *target);
@@ -85,8 +86,8 @@ public:
     static char *toHex(const unsigned char* in, unsigned int len);
 #   endif
 
-    bool operator==(const Job &other) const;
-    bool operator!=(const Job &other) const;
+    inline bool operator==(const Job &other) const { return isEqual(other); }
+    inline bool operator!=(const Job &other) const { return !isEqual(other); }
 
 private:
     xmrig::Variant variant() const;

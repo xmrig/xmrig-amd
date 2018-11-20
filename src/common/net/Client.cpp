@@ -215,6 +215,10 @@ const char *Client::tlsVersion() const
 
 int64_t Client::submit(const JobResult &result)
 {
+    if (result.clientId != m_rpcId) {
+        return -1;
+    }
+
     using namespace rapidjson;
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -361,6 +365,8 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
 
     // retarget workers for possible new Algo profile (same algo profile is not reapplied)
     Workers::switch_algo(job.algorithm());
+
+    m_job.setClientId(m_rpcId);
 
     if (m_job != job) {
         m_jobs++;
