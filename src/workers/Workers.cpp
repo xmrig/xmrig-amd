@@ -309,6 +309,7 @@ bool Workers::switch_algo(const xmrig::Algorithm& algorithm)
         contexts[i] = GpuContext(thread->index(),
                                  thread->intensity(),
                                  thread->worksize(),
+                                 threadsCountByGPU(thread->index(), threads),
                                  thread->stridedIndex(),
                                  thread->memChunk(),
                                  thread->isCompMode(),
