@@ -113,12 +113,12 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     if (ctx->name == ctx->board) {
         LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") ", intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
                                     : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
-            index, ctx->deviceIdx, ctx->board.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+            index, ctx->deviceIdx, ctx->board.data(), ctx->rawIntensity, ctx->workSize, ctx->maximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
     }
     else {
         LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") " (" CYAN_BOLD("%s") "), intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
                                     : "#%d, GPU #%zu %s (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
-            index, ctx->deviceIdx, ctx->board.data(), ctx->name.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+            index, ctx->deviceIdx, ctx->board.data(), ctx->name.data(), ctx->rawIntensity, ctx->workSize, ctx->maximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
     }
 
     ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);

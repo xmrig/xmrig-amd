@@ -176,7 +176,7 @@ void CCClient::updateGpuInfo(const std::vector<GpuContext>& gpuContext)
 
         for (auto gpu : gpuContext) {
             GPUInfo gpuInfo;
-            gpuInfo.setName(gpu.name);
+            gpuInfo.setName(gpu.name.data());
             gpuInfo.setCompMode(gpu.compMode);
             gpuInfo.setComputeUnits(gpu.computeUnits);
             gpuInfo.setDeviceIdx(gpu.deviceIdx);
