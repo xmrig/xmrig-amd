@@ -88,6 +88,9 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_2:
         return 11;
 
+    case xmrig::VARIANT_SWAP:
+        return 12;
+
     default:
         break;
     }
@@ -185,8 +188,8 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero"};
-    for (int i = 0; i < 12; ++i) {
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_swap"};
+    for (int i = 0; i < 13; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -481,6 +484,13 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
         return OCL_ERR_API;
     }
 
+    // variant
+    const cl_uint v = static_cast<cl_uint>(variant);
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[0], 4, sizeof(cl_uint), &v)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 0, 4);
+        return OCL_ERR_API;
+    }
+
     // CN1 Kernel
     const int cn_kernel_offset = cnKernelOffset(variant);
 
@@ -496,7 +506,6 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
 
     // variant
-    const cl_uint v = static_cast<cl_uint>(variant);
     if ((ret = OclLib::setKernelArg(ctx->Kernels[cn_kernel_offset], 2, sizeof(cl_uint), &v)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn_kernel_offset, 2);
         return OCL_ERR_API;
@@ -524,6 +533,12 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     // Threads
     if((ret = OclLib::setKernelArg(ctx->Kernels[2], 6, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
         LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 6);
+        return OCL_ERR_API;
+    }
+
+    // variant
+    if ((ret = OclLib::setKernelArg(ctx->Kernels[2], 7, sizeof(cl_uint), &v)) != CL_SUCCESS) {
+        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 7);
         return OCL_ERR_API;
     }
 

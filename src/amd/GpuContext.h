@@ -109,7 +109,7 @@ struct GpuContext
     cl_mem OutputBuffer;
     cl_mem ExtraBuffers[6];
     cl_program Program;
-    cl_kernel Kernels[12];
+    cl_kernel Kernels[13];
     size_t freeMem;
     cl_uint computeUnits;
     xmrig::String board;

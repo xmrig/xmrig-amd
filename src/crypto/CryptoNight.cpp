@@ -93,6 +93,9 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_2>,
 
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_SWAP>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_SWAP>,
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
@@ -107,12 +110,13 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
+        nullptr, nullptr, // VARIANT_SWAP
 #       else
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr
 #       endif
 
 #       ifndef XMRIG_NO_SUMO
@@ -133,12 +137,13 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
+        nullptr, nullptr, // VARIANT_SWAP
 #       else
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr
+        nullptr, nullptr, nullptr, nullptr
 #       endif
     };
 
@@ -185,7 +190,8 @@ bool CryptoNight::selfTest() {
                verify(VARIANT_XTL, test_output_xtl) &&
                verify(VARIANT_MSR, test_output_msr) &&
                verify(VARIANT_XAO, test_output_xao) &&
-               verify(VARIANT_RTO, test_output_rto);
+               verify(VARIANT_RTO, test_output_rto) &&
+               verify(VARIANT_SWAP, test_output_swap);
     }
 
 #   ifndef XMRIG_NO_AEON
