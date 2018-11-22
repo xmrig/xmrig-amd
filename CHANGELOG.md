@@ -1,3 +1,17 @@
+# 1.8.4
+- Added XFH (Freehaven-project) support aka CN-Heavy-superfast (algo=cryptonight variant=xfh)
+- Fix memory leak in cc client component
+- Rebase from XMRig-amd 2.8.6 (Thanks xmrig)
+    - Improved cn-heavy, cn-heavy/xhv perfomance up to 8% since v2.8.5 and up to 16% since v2.8.4, thanks @SChernykh
+    - Fixed hashrate fluctuations. It's no longer necessary to use different intensities per thread.
+    - Improved cn-heavy/tube perfomance up to 6% and cn/2 perfomance up to 1%.
+    - Reduced power consumption with cn/2
+    - Fixed possible invalid shares right after donation finish.
+    - Improved AMD Vega64 auto configuration.
+    - It's now recommended to revise your config.json and try:
+    - Same intensities for both threads.
+    - strided_index=2, mem_chunk=1 for cn/2.
+    - strided_index=1 for other algorithms.   
 # 1.8.0
 - Rebase from XMRig-amd 2.8.4 (THX xmrig!)
     - Now we have full TLS support on Stratum+CC
