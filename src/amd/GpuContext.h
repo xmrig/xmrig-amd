@@ -61,6 +61,7 @@ struct GpuContext
         Program(nullptr),
         Kernels{ nullptr },
         freeMem(0),
+        globalMem(0),
         computeUnits(0),
         Nonce(0)
     {}
@@ -84,6 +85,7 @@ struct GpuContext
         Program(nullptr),
         Kernels{ nullptr },
         freeMem(0),
+        globalMem(0),
         computeUnits(0),
         Nonce(0)
     {}
@@ -108,6 +110,7 @@ struct GpuContext
     cl_program Program;
     cl_kernel Kernels[12];
     size_t freeMem;
+    size_t globalMem;
     cl_uint computeUnits;
     xmrig::String board;
     xmrig::String name;

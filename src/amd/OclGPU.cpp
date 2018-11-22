@@ -246,11 +246,10 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
             continue;
         }
 
-        size_t maxMem;
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem));
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &(ctx.freeMem));
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &ctx.freeMem);
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &ctx.globalMem);
         // if environment variable GPU_SINGLE_ALLOC_PERCENT is not set we can not allocate the full memory
-        ctx.freeMem = std::min(ctx.freeMem, maxMem);
+        ctx.freeMem = std::min(ctx.freeMem, ctx.globalMem);
 
         ctx.board = OclLib::getDeviceBoardName(ctx.DeviceID);
         ctx.name  = OclLib::getDeviceName(ctx.DeviceID);
