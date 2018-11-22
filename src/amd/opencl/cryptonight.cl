@@ -103,7 +103,7 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define VARIANT_XAO  6  // Modified CryptoNight variant 0 (Alloy only)
 #define VARIANT_RTO  7  // Modified CryptoNight variant 1 (Arto only)
 #define VARIANT_2    8  // CryptoNight variant 2
-#define VARIANT_SWAP 9  // CryptoNight variant swap aka cn-heavy-superfast
+#define VARIANT_XFH  9  // CryptoNight variant xfh aka cn-heavy-superfast
 
 #define CRYPTONIGHT       0 /* CryptoNight (Monero) */
 #define CRYPTONIGHT_LITE  1 /* CryptoNight-Lite (AEON) */
@@ -495,7 +495,7 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
 #   if (ALGO != CRYPTONIGHT_HEAVY)
-    if (variant == VARIANT_SWAP)
+    if (variant == VARIANT_XFH)
     {
 #   endif
 
@@ -1107,7 +1107,7 @@ __kernel void cn1(__global uint4 *Scratchpad, __global ulong *states, uint varia
 R"===(
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_swap(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
+__kernel void cn1_xfh(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
 {
     ulong a[2], b[2];
     __local uint AES0[256], AES1[256];
@@ -1334,7 +1334,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
     __local uint4* xin2_load;
 
 #   if (ALGO != CRYPTONIGHT_HEAVY)
-    if (variant == VARIANT_SWAP)
+    if (variant == VARIANT_XFH)
     {
 #   endif
 
@@ -1355,7 +1355,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #   endif
     {
 #       if (ALGO != CRYPTONIGHT_HEAVY)
-        if (variant == VARIANT_SWAP)
+        if (variant == VARIANT_XFH)
         {
 #       endif
 
@@ -1391,7 +1391,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 #       endif
 
 #       if (ALGO != CRYPTONIGHT_HEAVY)
-        if (variant != VARIANT_SWAP)
+        if (variant != VARIANT_XFH)
         {
             const uint local_id1 = get_local_id(1);
             #pragma unroll 2
@@ -1407,7 +1407,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
     }
 
 #   if (ALGO != CRYPTONIGHT_HEAVY)
-    if (variant == VARIANT_SWAP)
+    if (variant == VARIANT_XFH)
     {
 #   endif
     /* Also left over threads performe this loop.

@@ -93,8 +93,8 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_2>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_SWAP>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_SWAP>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XFH>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XFH>,
 
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
@@ -110,7 +110,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
-        nullptr, nullptr, // VARIANT_SWAP
+        nullptr, nullptr, // VARIANT_XFH
 #       else
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
@@ -137,7 +137,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
-        nullptr, nullptr, // VARIANT_SWAP
+        nullptr, nullptr, // VARIANT_XFH
 #       else
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
@@ -191,7 +191,7 @@ bool CryptoNight::selfTest() {
                verify(VARIANT_MSR, test_output_msr) &&
                verify(VARIANT_XAO, test_output_xao) &&
                verify(VARIANT_RTO, test_output_rto) &&
-               verify(VARIANT_SWAP, test_output_swap);
+               verify(VARIANT_XFH, test_output_xfh);
     }
 
 #   ifndef XMRIG_NO_AEON
