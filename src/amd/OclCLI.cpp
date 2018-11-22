@@ -105,7 +105,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
         }
 
         if (ctx.vendor == xmrig::OCL_VENDOR_AMD) {
-            const bool isSmall = ctx.name == "Lexa" || ctx.name == "Baffin" || computeUnits <= 16;
+            const bool isSmall = ctx.name == "gfx804" || ctx.name == "Baffin" || computeUnits <= 16;
             if (isSmall) {
                 intensity /= 2;
 
