@@ -102,7 +102,8 @@ Options:\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
       --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n\
-      --cc-use-remote-logging           enable remote logging on CC Server\n"
+      --cc-use-remote-logging           enable remote logging on CC Server\n\
+      --cc-reboot-cmd                   command/bat to execute to Reboot miner\n"
 # endif
 "\
   -h, --help               display this help and exit\n\
@@ -163,6 +164,7 @@ static struct option const options[] = {
     { "cc-use-tls",           0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "cc-use-remote-logging",       0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
     { "cc-upload-config-on-startup", 0, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
+    { "cc-reboot-cmd",        1, nullptr, xmrig::IConfig::CCRebootCmdKey },
     { "daemonized",           0, nullptr, xmrig::IConfig::DaemonizedKey },
     { nullptr,                0, nullptr, 0 }
 };
@@ -223,6 +225,7 @@ static struct option const cc_client_options[] = {
     { "use-tls",                    0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "use-remote-logging",         0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
     { "upload-config-on-startup",   1, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
+    { "reboot-cmd",                 1, nullptr, xmrig::IConfig::CCRebootCmdKey },
     { 0, 0, 0, 0 }
 };
 

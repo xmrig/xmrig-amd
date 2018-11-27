@@ -225,6 +225,14 @@ void App::shutdown()
     m_self->stop(false);
 }
 
+void App::reboot()
+{
+    auto rebootCmd = m_self->m_controller->config()->ccRebootCmd();
+    if (rebootCmd) {
+        system(rebootCmd);
+        shutdown();
+    }
+}
 
 void App::onSignal(uv_signal_t *handle, int signum)
 {
@@ -268,6 +276,8 @@ void App::onCommandReceived(uv_async_t* async)
         case ControlCommand::SHUTDOWN:
             App::shutdown();
             break;
+        case ControlCommand::REBOOT:
+            App::reboot();
         case ControlCommand::PUBLISH_CONFIG:;
             break;
     }

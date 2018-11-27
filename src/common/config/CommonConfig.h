@@ -61,6 +61,7 @@ public:
     inline const char *ccHost() const              { return m_ccHost.data(); }
     inline const char *ccToken() const             { return m_ccToken.data(); }
     inline const char *ccWorkerId() const          { return m_ccWorkerId.data(); }
+    inline const char *ccRebootCmd() const         { return m_ccRebootCmd.data(); }
 
     inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
@@ -131,6 +132,7 @@ protected:
     xmrig::c_str m_ccHost;
     xmrig::c_str m_ccToken;
     xmrig::c_str m_ccWorkerId;
+    xmrig::c_str m_ccRebootCmd;
 
 private:
     bool parseInt(int key, int arg);

@@ -30,13 +30,13 @@
 #endif
 
 ControlCommand::ControlCommand()
-    : m_command(Command::START)
+        : m_command(Command::START)
 {
 
 }
 
 ControlCommand::ControlCommand(Command command)
-    : m_command(command)
+        : m_command(command)
 {
 
 }
@@ -97,5 +97,6 @@ bool ControlCommand::isOneTimeCommand() const {
     return m_command == ControlCommand::UPDATE_CONFIG ||
            m_command == ControlCommand::PUBLISH_CONFIG ||
            m_command == ControlCommand::RESTART ||
-           m_command == ControlCommand::SHUTDOWN;
+           m_command == ControlCommand::SHUTDOWN ||
+           m_command == ControlCommand::REBOOT;
 }
