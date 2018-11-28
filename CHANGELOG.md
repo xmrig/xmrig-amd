@@ -1,3 +1,7 @@
+# 1.8.5
+- Add remote reboot (machine) feature to Dashboard, Server & Miner
+- Integrated Pushover push notifications for Offline miners and periodical status notifications on iOS and Android
+- Fixed XFH algo recognition send by Pool/Proxy
 # 1.8.4
 - Added XFH (Freehaven-project) support aka CN-Heavy-superfast (algo=cryptonight variant=xfh)
 - Fix memory leak in cc client component
