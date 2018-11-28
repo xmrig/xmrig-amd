@@ -109,7 +109,7 @@ static const char *variants[] = {
     "xao",
     "rto",
     "2",
-    "xfh"
+    "xfh",
 };
 
 

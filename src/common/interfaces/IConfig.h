@@ -132,7 +132,8 @@ public:
         CCUseTlsKey                 = 6004,
         CCUseRemoteLoggingKey       = 6005,
         CCUploadConfigOnStartupKey  = 6006,
-        DaemonizedKey               = 6007
+        CCRebootCmdKey              = 6007,
+        DaemonizedKey               = 6008,
     };
 
     virtual ~IConfig() {}

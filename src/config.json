@@ -23,7 +23,7 @@
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
-            "variant": -1,
+            "variant": "auto",
             "tls": false,
             "tls-fingerprint": null
         }
@@ -42,6 +42,7 @@
         "worker-id": null,
         "update-interval-s": 10,
         "use-remote-logging" : true,
-        "upload-config-on-startup" : true
+        "upload-config-on-startup" : true,
+        "reboot-cmd" : ""
     }
 }

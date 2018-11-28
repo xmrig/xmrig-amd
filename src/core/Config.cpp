@@ -168,12 +168,15 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("watch",      m_watch, allocator);
 
     Value cc(kObjectType);
-
     cc.AddMember("url",          ccUrl() ? Value(StringRef(ccUrl())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("access-token", ccToken() ? Value(StringRef(ccToken())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("worker-id",    ccWorkerId() ? Value(StringRef(ccWorkerId())).Move() : Value(kNullType).Move(), allocator);
     cc.AddMember("update-interval-s", ccUpdateInterval(), allocator);
     cc.AddMember("use-tls",   ccUseTls(), allocator);
+    cc.AddMember("use-remote-logging",   ccUseRemoteLogging(), allocator);
+    cc.AddMember("upload-config-on-startup",   ccUploadConfigOnStartup(), allocator);
+    cc.AddMember("reboot-cmd",    ccRebootCmd() ? Value(StringRef(ccRebootCmd())).Move() : Value(kNullType).Move(), allocator);
+
     doc.AddMember("cc-client",   cc, allocator);
 }
 

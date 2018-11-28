@@ -425,17 +425,21 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_userAgent = arg;
         break;
 
-    case CCUrlKey:
+    case CCUrlKey: /* --cc-url */
         m_ccUrl = arg;
         parseCCUrl(arg);
         break;
 
-    case CCAccessTokenKey:
+    case CCAccessTokenKey: /* --cc-access-token */
         m_ccToken = arg;
         break;
 
-    case CCWorkerIdKey:
+    case CCWorkerIdKey: /* --cc-worker-id */
         m_ccWorkerId = arg;
+        break;
+
+    case CCRebootCmdKey:/* --cc-reboot-cmd */
+        m_ccRebootCmd = arg;
         break;
 
     case RetriesKey:     /* --retries */
