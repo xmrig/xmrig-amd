@@ -25,9 +25,6 @@
 
 #include <stdlib.h>
 #include <uv.h>
-#include <cc/CCClient.h>
-#include <cc/ControlCommand.h>
-
 
 #include "api/Api.h"
 #include "App.h"
@@ -38,6 +35,8 @@
 #include "core/Controller.h"
 #include "crypto/CryptoNight.h"
 #include "net/Network.h"
+#include "cc/CCClient.h"
+#include "cc/ControlCommand.h"
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
@@ -56,7 +55,8 @@ App::App(int argc, char **argv) :
     m_restart(false),
     m_console(nullptr),
     m_httpd(nullptr),
-    m_ccclient(nullptr)
+    m_ccclient(nullptr),
+    m_hashrateMonitor(nullptr)
 {
     m_self = this;
 
@@ -88,10 +88,10 @@ App::~App()
     delete m_httpd;
 #   endif
 
+    delete m_hashrateMonitor;
+
 #   ifndef XMRIG_NO_CC
-    if (m_ccclient) {
-      delete m_ccclient;
-    }
+    delete m_ccclient;
 #   endif
 }
 
@@ -104,6 +104,11 @@ int App::exec()
 
     if (!m_controller->isReady()) {
         return 2;
+    }
+
+    auto startCmd = m_controller->config()->startCmd();
+    if (startCmd) {
+        system(startCmd);
     }
 
     uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
@@ -138,6 +143,10 @@ int App::exec()
 
     m_httpd->start();
 #   endif
+
+    if (m_controller->config()->minRigHashrate()) {
+        m_hashrateMonitor = new HashrateMonitor(&m_async, m_controller);
+    }
 
 #   ifndef XMRIG_NO_CC
     if (m_controller->config()->ccHost() && m_controller->config()->ccPort() > 0) {
@@ -210,7 +219,7 @@ void App::stop(bool restart)
     m_restart = restart;
 
     m_controller->network()->stop();
-    Workers::stop();
+    Workers::stop(restart);
 
     uv_stop(uv_default_loop());
 }
@@ -227,7 +236,7 @@ void App::shutdown()
 
 void App::reboot()
 {
-    auto rebootCmd = m_self->m_controller->config()->ccRebootCmd();
+    auto rebootCmd = m_self->m_controller->config()->rebootCmd();
     if (rebootCmd) {
         system(rebootCmd);
         shutdown();

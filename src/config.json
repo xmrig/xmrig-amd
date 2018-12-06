@@ -35,7 +35,12 @@
     "user-agent": null,
     "syslog": false,
     "watch": false,
-    "cc-client": {
+    "start-cmd" : "",                       // command/bat to execute when the miner starts
+    "reboot-cmd" : "",                      // command/bat to execute to reboot miner
+    "rig-watchdog" : true,                  // enable rig monitor/watchdog
+    "reboot-on-cardcrash" : false,          // reboot the miner instead of restart on cardcrash/min rig hashrate error
+    "min-rig-hashrate" : 0,                 // minimum rig hashrate for last 60s, when below miner will restart/reboot
+    "cc-client": {                          // to disable CC at all just remove the whole cc-client block
         "url": "localhost:3344",
         "use-tls" : false,
         "access-token": "mySecret",
@@ -43,6 +48,5 @@
         "update-interval-s": 10,
         "use-remote-logging" : true,
         "upload-config-on-startup" : true,
-        "reboot-cmd" : ""
     }
 }

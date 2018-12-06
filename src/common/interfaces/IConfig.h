@@ -66,6 +66,11 @@ public:
         TlsKey            = 1013,
         FingerprintKey    = 1014,
         AutoSaveKey       = 1016,
+        StartCmdKey       = 6007,
+        RebootCmdKey      = 6008,
+        RigWatchdogKey    = 6009,
+        RebootOnCardcrashKey = 6010,
+        MinRigHashrateKey = 6011,
 
         // xmrig common
         CPUPriorityKey    = 1021,
@@ -132,8 +137,8 @@ public:
         CCUseTlsKey                 = 6004,
         CCUseRemoteLoggingKey       = 6005,
         CCUploadConfigOnStartupKey  = 6006,
-        CCRebootCmdKey              = 6007,
-        DaemonizedKey               = 6008,
+        //CCRebootCmdKey                = 6008,
+        DaemonizedKey               = 6012,
     };
 
     virtual ~IConfig() {}

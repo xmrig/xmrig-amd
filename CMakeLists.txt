@@ -141,6 +141,7 @@ set(SOURCES
     src/workers/OclThread.cpp
     src/workers/OclWorker.cpp
     src/workers/Workers.cpp
+    src/workers/HashrateMonitor.cpp
     src/xmrig.cpp
    )
 

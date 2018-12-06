@@ -41,8 +41,8 @@
 #include "core/Controller.h"
 #include "net/Network.h"
 #include "net/strategies/DonateStrategy.h"
+#include "workers/HashrateMonitor.h"
 #include "workers/Workers.h"
-
 
 Network::Network(xmrig::Controller *controller) :
     m_donate(nullptr),
@@ -202,6 +202,8 @@ void Network::tick()
 #   ifndef XMRIG_NO_CC
     CCClient::updateNetworkState(m_state);
 #   endif
+
+    HashrateMonitor::updateNetworkState(m_state);
 }
 
 

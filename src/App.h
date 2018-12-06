@@ -29,6 +29,7 @@
 #include <uv.h>
 
 #include "cc/CCClient.h"
+#include "workers/HashrateMonitor.h"
 #include "common/interfaces/IConsoleListener.h"
 
 
@@ -75,6 +76,7 @@ private:
   uv_signal_t m_sigTERM;
   xmrig::Controller *m_controller;
   CCClient *m_ccclient;
+  HashrateMonitor* m_hashrateMonitor;
   uv_async_t m_async;
 };
 
