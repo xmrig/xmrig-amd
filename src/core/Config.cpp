@@ -170,6 +170,8 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("rig-watchdog", hasRigWatchdog(), allocator);
     doc.AddMember("reboot-on-cardcrash", isRebootOnCardCrash(), allocator);
     doc.AddMember("min-rig-hashrate", minRigHashrate(), allocator);
+    doc.AddMember("start-cmd", startCmd() ? Value(StringRef(startCmd())).Move() : Value(kNullType).Move(), allocator);
+    doc.AddMember("reboot-cmd", rebootCmd() ? Value(StringRef(rebootCmd())).Move() : Value(kNullType).Move(), allocator);
 
     Value cc(kObjectType);
     cc.AddMember("url",          ccUrl() ? Value(StringRef(ccUrl())).Move() : Value(kNullType).Move(), allocator);
@@ -179,8 +181,6 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     cc.AddMember("use-tls",   ccUseTls(), allocator);
     cc.AddMember("use-remote-logging",   ccUseRemoteLogging(), allocator);
     cc.AddMember("upload-config-on-startup",   ccUploadConfigOnStartup(), allocator);
-    cc.AddMember("start-cmd", startCmd() ? Value(StringRef(startCmd())).Move() : Value(kNullType).Move(), allocator);
-    cc.AddMember("reboot-cmd", rebootCmd() ? Value(StringRef(rebootCmd())).Move() : Value(kNullType).Move(), allocator);
 
     doc.AddMember("cc-client",   cc, allocator);
 }
