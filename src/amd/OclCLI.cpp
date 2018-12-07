@@ -80,7 +80,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
             continue;
         }
 
-        int hints                 = getHints(ctx, config);
+        int hints = getHints(ctx, config);
 
         const size_t maxThreads   = getMaxThreads(ctx, algo, hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
@@ -105,7 +105,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
         }
 
         if (ctx.vendor == xmrig::OCL_VENDOR_AMD) {
-            const bool isSmall = ctx.name == "Lexa" || ctx.name == "Baffin" || computeUnits <= 16;
+            const bool isSmall = ctx.name == "gfx804" || ctx.name == "Baffin" || computeUnits <= 16;
             if (isSmall) {
                 intensity /= 2;
 
@@ -115,7 +115,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, xmrig::Config *con
             }
 
             constexpr const size_t byteToMiB = 1024u * 1024u;
-            if ((ctx.freeMem - intensity * 2 * hashMemSize) > 128 * byteToMiB) {
+            if ((ctx.globalMem - intensity * 2 * hashMemSize) > 128 * byteToMiB) {
                 hints |= DoubleThreads;
             }
         }

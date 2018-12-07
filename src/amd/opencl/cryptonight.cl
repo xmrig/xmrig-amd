@@ -1301,7 +1301,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
         Scratchpad += gIdx * (MEMORY >> 4);
 #       elif (STRIDED_INDEX == 1)
 #       if (ALGO == CRYPTONIGHT_HEAVY)
-            Scratchpad += get_group_id(0) * (MEMORY >> 4) * WORKSIZE + get_local_id(0);
+            Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
 #       else
             Scratchpad += gIdx;
 #       endif

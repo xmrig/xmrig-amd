@@ -35,7 +35,7 @@
 
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  8
-#define APP_VER_PATCH  6
+#define APP_VER_PATCH  7
 
 #define TYPE_AMD_GPU
 
