@@ -61,6 +61,7 @@ static inline char hf_bin2hex(unsigned char c)
 Job::Job() :
     m_autoVariant(false),
     m_nicehash(false),
+    m_donate(false),
     m_poolId(-2),
     m_threadId(-1),
     m_size(0),
@@ -74,6 +75,7 @@ Job::Job() :
 Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId) :
     m_autoVariant(algorithm.variant() == xmrig::VARIANT_AUTO),
     m_nicehash(nicehash),
+    m_donate(false),
     m_poolId(poolId),
     m_threadId(-1),
     m_size(0),

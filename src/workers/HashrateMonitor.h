@@ -30,6 +30,7 @@ class Hashrate;
 class NetworkState;
 
 #define TIMER_INTERVAL 10000
+#define MINUTE_IN_MS 60000
 
 class HashrateMonitor
 {
@@ -37,7 +38,7 @@ public:
     HashrateMonitor(uv_async_t* async, xmrig::Controller *controller);
     ~HashrateMonitor();
 
-    static void updateHashrate(const Hashrate *hashrate);
+    static void updateHashrate(const Hashrate *hashrate, bool isDonation);
     static void updateNetworkState(const NetworkState& network);
 
 private:
@@ -48,6 +49,7 @@ private:
     static uv_mutex_t m_mutex;
 
     int m_connectionTime;
+    std::time_t m_lastDonationTime;
     std::list<std::pair<double, double>> m_hashrates;
 
     uv_async_t* m_async;

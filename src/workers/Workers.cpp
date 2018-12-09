@@ -392,7 +392,7 @@ void Workers::onTick(uv_timer_t *handle)
     CCClient::updateHashrate(m_hashrate);
 #   endif
 
-    HashrateMonitor::updateHashrate(m_hashrate);
+    HashrateMonitor::updateHashrate(m_hashrate, m_job.isDonateJob());
 }
 
 

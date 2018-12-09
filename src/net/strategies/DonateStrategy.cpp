@@ -141,6 +141,7 @@ void DonateStrategy::onActive(IStrategy *strategy, Client *client)
 void DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
     if (isActive()) {
+        const_cast<Job*>(&job)->setDonateJob(true);
         m_listener->onJob(this, client, job);
     }
 }

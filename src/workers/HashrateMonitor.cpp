@@ -18,12 +18,11 @@
 
 #include <cstring>
 #include <sstream>
-#include <common/log/Log.h>
-#include <cc/ControlCommand.h>
 #include <math.h>
 
+#include "common/log/Log.h"
+#include "cc/ControlCommand.h"
 #include "api/NetworkState.h"
-
 #include "HashrateMonitor.h"
 #include "App.h"
 
@@ -37,6 +36,7 @@ uv_mutex_t HashrateMonitor::m_mutex;
 
 HashrateMonitor::HashrateMonitor(uv_async_t* async, xmrig::Controller *controller)
         : m_connectionTime(0),
+          m_lastDonationTime(0),
           m_async(async),
           m_controller(controller)
 {
@@ -53,15 +53,20 @@ HashrateMonitor::~HashrateMonitor()
     m_self = nullptr;
 }
 
-void HashrateMonitor::updateHashrate(const Hashrate* hashrate)
+void HashrateMonitor::updateHashrate(const Hashrate* hashrate, bool isDonation)
 {
     if (m_self){
         uv_mutex_lock(&m_mutex);
 
-        m_self->m_hashrates.clear();
+        if (!isDonation) {
+            m_self->m_hashrates.clear();
 
-        for (size_t i=0; i < hashrate->threads(); i++) {
-            m_self->m_hashrates.emplace_back(hashrate->calc(i, 10000), hashrate->calc(i, 60000));
+            for (size_t i=0; i < hashrate->threads(); i++) {
+                m_self->m_hashrates.emplace_back(hashrate->calc(i, TIMER_INTERVAL), hashrate->calc(i, MINUTE_IN_MS));
+            }
+        } else {
+            auto time_point = std::chrono::system_clock::now();
+            m_self->m_lastDonationTime = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point));
         }
 
         uv_mutex_unlock(&m_mutex);
@@ -112,9 +117,14 @@ void HashrateMonitor::onTick(uv_timer_t* handle)
                 }
 
                 if (totalHashrate < m_self->m_controller->config()->minRigHashrate()) {
-                    LOG_WARN("[WATCHDOG] Total hashrate (%.0f) is below minimum (%.0f)!", totalHashrate,
-                        m_self->m_controller->config()->minRigHashrate());
-                    error = true;
+                    auto time_point = std::chrono::system_clock::now();
+                    auto now = std::chrono::system_clock::to_time_t(time_point);
+
+                    if ((now - m_self->m_lastDonationTime) > (MINUTE_IN_MS + TIMER_INTERVAL)/1000) {
+                        LOG_WARN("[WATCHDOG] Total hashrate (%.0f) is below minimum (%d)!", totalHashrate,
+                                 m_self->m_controller->config()->minRigHashrate());
+                        error = true;
+                    }
                 }
 
                 if (error) {
