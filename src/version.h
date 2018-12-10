@@ -28,14 +28,14 @@
 #define APP_NAME      "XMRigCC-AMD"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 #define APP_DESC      "XMRigCC-AMD OpenCL miner"
-#define APP_VERSION   "1.8.5 (based on XMRig)"
+#define APP_VERSION   "1.8.6 (based on XMRig)"
 #define APP_SITE      "https://github.com/Bendr0id/xmrigCC-amd"
 #define APP_DOMAIN    ""
 #define APP_KIND      "amd"
 
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  8
-#define APP_VER_PATCH  5
+#define APP_VER_PATCH  6
 
 #define TYPE_AMD_GPU
 

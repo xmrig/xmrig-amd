@@ -81,7 +81,12 @@ Options:\n\
       --user-agent             set custom user-agent string for pool\n\
   -B, --background             run the miner in the background\n\
   -c, --config=FILE            load a JSON-format configuration file\n\
-  -l, --log-file=FILE          log all output to a file\n"
+  -l, --log-file=FILE          log all output to a file\n\
+      --start-cmd=CMD          command/bat to execute when the miner starts\n\
+      --reboot-cmd=CMD         command/bat to execute to reboot miner\n\
+      --rig-monitor            enable rig monitor/watchdog\n\
+      --reboot-on-cardcrash    reboot the miner instead of restart on cardcrash/min rig hashrate error\n\
+      --min-rig-hashrate=N     minimum rig hashrate for last 60s, when below miner will restart/reboot\n"
 # ifdef HAVE_SYSLOG_H
 "\
   -S, --syslog                 use system log for output messages\n"
@@ -102,8 +107,7 @@ Options:\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
       --cc-remote-logging-max-rows=N    maximum last n-log rows to send CC Server\n\
-      --cc-use-remote-logging           enable remote logging on CC Server\n\
-      --cc-reboot-cmd                   command/bat to execute to Reboot miner\n"
+      --cc-use-remote-logging           enable remote logging on CC Server\n"
 # endif
 "\
   -h, --help               display this help and exit\n\
@@ -164,7 +168,12 @@ static struct option const options[] = {
     { "cc-use-tls",           0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "cc-use-remote-logging",       0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
     { "cc-upload-config-on-startup", 0, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
-    { "cc-reboot-cmd",        1, nullptr, xmrig::IConfig::CCRebootCmdKey },
+    { "start-cmd",            1, nullptr, xmrig::IConfig::StartCmdKey },
+    { "reboot-cmd",           1, nullptr, xmrig::IConfig::RebootCmdKey },
+    { "cc-reboot-cmd",        1, nullptr, xmrig::IConfig::RebootCmdKey },
+    { "rig-watchdog",         0, nullptr, xmrig::IConfig::RigWatchdogKey },
+    { "reboot-on-cardcrash",  0, nullptr, xmrig::IConfig::RebootOnCardcrashKey },
+    { "min-rig-hashrate",     1, nullptr, xmrig::IConfig::MinRigHashrateKey },
     { "daemonized",           0, nullptr, xmrig::IConfig::DaemonizedKey },
     { nullptr,                0, nullptr, 0 }
 };
@@ -186,6 +195,11 @@ static struct option const config_options[] = {
     { "cache",             0, nullptr, xmrig::IConfig::OclCacheKey    },
     { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoaderKey   },
     { "autosave",          0, nullptr, xmrig::IConfig::AutoSaveKey    },
+    { "start-cmd",         1, nullptr, xmrig::IConfig::StartCmdKey    },
+    { "reboot-cmd",        1, nullptr, xmrig::IConfig::RebootCmdKey   },
+    { "rig-watchdog",      0, nullptr, xmrig::IConfig::RigWatchdogKey },
+    { "reboot-on-cardcrash",  0, nullptr, xmrig::IConfig::RebootOnCardcrashKey },
+    { "min-rig-hashrate",  1, nullptr, xmrig::IConfig::MinRigHashrateKey },
     { "daemonized",        0, nullptr, xmrig::IConfig::DaemonizedKey  },
     { nullptr,             0, nullptr, 0 }
 };
@@ -225,7 +239,8 @@ static struct option const cc_client_options[] = {
     { "use-tls",                    0, nullptr, xmrig::IConfig::CCUseTlsKey },
     { "use-remote-logging",         0, nullptr, xmrig::IConfig::CCUseRemoteLoggingKey },
     { "upload-config-on-startup",   1, nullptr, xmrig::IConfig::CCUploadConfigOnStartupKey },
-    { "reboot-cmd",                 1, nullptr, xmrig::IConfig::CCRebootCmdKey },
+    { "start-cmd",                  1, nullptr, xmrig::IConfig::StartCmdKey },
+    { "reboot-cmd",                 1, nullptr, xmrig::IConfig::RebootCmdKey },
     { 0, 0, 0, 0 }
 };
 

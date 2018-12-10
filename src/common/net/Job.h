@@ -49,6 +49,7 @@ public:
 
     inline bool isNicehash() const                    { return m_nicehash; }
     inline bool isValid() const                       { return m_size > 0 && m_diff > 0; }
+    inline bool isDonateJob() const                   { return m_donate; }
     inline bool setId(const char *id)                 { return m_id.setId(id); }
     inline const uint32_t *nonce() const              { return reinterpret_cast<const uint32_t*>(m_blob + 39); }
     inline const uint8_t *blob() const                { return m_blob; }
@@ -62,6 +63,7 @@ public:
     inline uint32_t diff() const                      { return static_cast<uint32_t>(m_diff); }
     inline uint64_t target() const                    { return m_target; }
     inline void reset()                               { m_size = 0; m_diff = 0; }
+    inline void setDonateJob(bool donate)             { m_donate = donate; }
     inline void setClientId(const xmrig::Id &id)      { m_clientId = id; }
     inline void setPoolId(int poolId)                 { m_poolId = poolId; }
     inline void setThreadId(int threadId)             { m_threadId = threadId; }
@@ -90,6 +92,7 @@ private:
 
     bool m_autoVariant;
     bool m_nicehash;
+    bool m_donate;
     int m_poolId;
     int m_threadId;
     size_t m_size;

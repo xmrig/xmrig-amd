@@ -63,7 +63,7 @@ public:
     static void setEnabled(bool enabled);
     static void setJob(const Job &job, bool donate);
     static bool start(xmrig::Controller *controller);
-    static void stop();
+    static void stop(bool forceStop);
     static void submit(const Job &result);
 
     static inline bool isEnabled()                               { return m_enabled; }

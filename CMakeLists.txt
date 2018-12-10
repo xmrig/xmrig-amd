@@ -14,6 +14,8 @@ option(BUILD_STATIC  "Build static binary" OFF)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 
+option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
+option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" ON)
 if(NOT MINER_EXECUTABLE_NAME)
     set(MINER_EXECUTABLE_NAME "xmrigMiner-amd" CACHE STRING "Miner executable file name")
 endif(NOT MINER_EXECUTABLE_NAME)
@@ -141,6 +143,7 @@ set(SOURCES
     src/workers/OclThread.cpp
     src/workers/OclWorker.cpp
     src/workers/Workers.cpp
+    src/workers/HashrateMonitor.cpp
     src/xmrig.cpp
    )
 

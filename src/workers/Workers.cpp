@@ -41,6 +41,7 @@
 #include "workers/OclThread.h"
 #include "workers/OclWorker.h"
 #include "workers/Workers.h"
+#include "workers/HashrateMonitor.h"
 
 
 bool Workers::m_active = false;
@@ -262,7 +263,7 @@ bool Workers::start(xmrig::Controller *controller)
 }
 
 
-void Workers::stop()
+void Workers::stop(bool forceStop)
 {
     uv_timer_stop(&m_timer);
     m_hashrate->stop();
@@ -271,9 +272,11 @@ void Workers::stop()
     m_paused   = 0;
     m_sequence = 0;
 
-    for (size_t i = 0; i < m_workers.size(); ++i) {
-        m_workers[i]->join();
-        ReleaseOpenCl(m_workers[i]->ctx());
+    if (!forceStop) {
+        for (size_t i = 0; i < m_workers.size(); ++i) {
+            m_workers[i]->join();
+            ReleaseOpenCl(m_workers[i]->ctx());
+        }
     }
 
     ReleaseOpenClContext(m_opencl_ctx);
@@ -388,6 +391,8 @@ void Workers::onTick(uv_timer_t *handle)
 #   ifndef XMRIG_NO_CC
     CCClient::updateHashrate(m_hashrate);
 #   endif
+
+    HashrateMonitor::updateHashrate(m_hashrate, m_job.isDonateJob());
 }
 
 

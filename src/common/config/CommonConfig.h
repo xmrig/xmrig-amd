@@ -49,19 +49,22 @@ public:
     inline bool isColors() const                   { return m_colors; }
     inline bool isDryRun() const                   { return m_dryRun; }
     inline bool isSyslog() const                   { return m_syslog; }
-    inline bool ccUseTls() const                    { return m_ccUseTls; }
-    inline bool ccUseRemoteLogging() const          { return m_ccUseRemoteLogging; }
-    inline bool ccUploadConfigOnStartup() const     { return m_ccUploadConfigOnStartup; }
+    inline bool hasRigWatchdog() const             { return m_rigWatchdog; }
+    inline bool isRebootOnCardCrash() const        { return m_rebootOnCardCrash; }
+    inline bool ccUseTls() const                   { return m_ccUseTls; }
+    inline bool ccUseRemoteLogging() const         { return m_ccUseRemoteLogging; }
+    inline bool ccUploadConfigOnStartup() const    { return m_ccUploadConfigOnStartup; }
     inline const char *apiId() const               { return m_apiId.data(); }
     inline const char *apiToken() const            { return m_apiToken.data(); }
     inline const char *apiWorkerId() const         { return m_apiWorkerId.data(); }
     inline const char *logFile() const             { return m_logFile.data(); }
     inline const char *userAgent() const           { return m_userAgent.data(); }
+    inline const char *startCmd() const            { return m_startCmd.size() > 0 ? m_startCmd.data() : nullptr; }
+    inline const char *rebootCmd() const           { return m_rebootCmd.size() > 0 ? m_rebootCmd.data() : nullptr; }
     inline const char *ccUrl() const               { return m_ccUrl.data(); }
     inline const char *ccHost() const              { return m_ccHost.data(); }
     inline const char *ccToken() const             { return m_ccToken.data(); }
     inline const char *ccWorkerId() const          { return m_ccWorkerId.data(); }
-    inline const char *ccRebootCmd() const         { return m_ccRebootCmd.data(); }
 
     inline const std::vector<Pool> &pools() const  { return m_activePools; }
     inline int apiPort() const                     { return m_apiPort; }
@@ -69,6 +72,7 @@ public:
     inline int printTime() const                   { return m_printTime; }
     inline int retries() const                     { return m_retries; }
     inline int retryPause() const                  { return m_retryPause; }
+    inline int minRigHashrate() const              { return m_minRigHashrate; }
     inline int ccUpdateInterval() const            { return m_ccUpdateInterval; }
     inline int ccPort() const                      { return m_ccPort; }
     inline void setColors(bool colors)             { m_colors = colors; }
@@ -108,6 +112,8 @@ protected:
     bool m_dryRun;
     bool m_syslog;
     bool m_watch;
+    bool m_rebootOnCardCrash;
+    bool m_rigWatchdog;
     bool m_daemonized;
     bool m_ccUseTls;
     bool m_ccUseRemoteLogging;
@@ -117,6 +123,7 @@ protected:
     int m_printTime;
     int m_retries;
     int m_retryPause;
+    int m_minRigHashrate;
     int m_ccUpdateInterval;
     int m_ccPort;
     State m_state;
@@ -132,7 +139,8 @@ protected:
     xmrig::c_str m_ccHost;
     xmrig::c_str m_ccToken;
     xmrig::c_str m_ccWorkerId;
-    xmrig::c_str m_ccRebootCmd;
+    xmrig::c_str m_startCmd;
+    xmrig::c_str m_rebootCmd;
 
 private:
     bool parseInt(int key, int arg);

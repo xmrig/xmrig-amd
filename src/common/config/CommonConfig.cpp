@@ -79,6 +79,8 @@ xmrig::CommonConfig::CommonConfig() :
 #   else
     m_watch(false), // TODO: enable config file watch by default when this feature propertly handled and tested.
 #   endif
+    m_rebootOnCardCrash(false),
+    m_rigWatchdog(true),
     m_daemonized(false),
     m_ccUseTls(false),
     m_ccUseRemoteLogging(true),
@@ -89,6 +91,7 @@ xmrig::CommonConfig::CommonConfig() :
     m_printTime(60),
     m_retries(5),
     m_retryPause(5),
+    m_minRigHashrate(0),
     m_ccUpdateInterval(10),
     m_ccPort(0),
     m_state(NoneState)
@@ -327,6 +330,14 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
         m_autoSave = enable;
         break;
 
+    case RigWatchdogKey: /* --rig-watchdog */
+        m_rigWatchdog = enable;
+        break;
+
+    case RebootOnCardcrashKey: /* --reboot-on-cardcrash */
+        m_rebootOnCardCrash = enable;
+        break;
+
     case DaemonizedKey: /* --daemonized */
         m_daemonized = enable;
         break;
@@ -438,14 +449,19 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
         m_ccWorkerId = arg;
         break;
 
-    case CCRebootCmdKey:/* --cc-reboot-cmd */
-        m_ccRebootCmd = arg;
+    case StartCmdKey:/* --cc-start-cmd && --start-cmd */
+        m_startCmd = arg;
+        break;
+
+    case RebootCmdKey:/* --cc-reboot-cmd && --reboot-cmd */
+        m_rebootCmd = arg;
         break;
 
     case RetriesKey:     /* --retries */
     case RetryPauseKey:  /* --retry-pause */
     case ApiPort:        /* --api-port */
     case PrintTimeKey:   /* --print-time */
+    case MinRigHashrateKey: /* --min-rig-hashrate */
         return parseUint64(key, strtol(arg, nullptr, 10));
 
     case BackgroundKey: /* --background */
@@ -458,6 +474,8 @@ bool xmrig::CommonConfig::parseString(int key, const char *arg)
     case CCUseTlsKey:                   /* --cc-use-tls-run */
     case CCUseRemoteLoggingKey:         /* --cc-use-remote-logging */
     case CCUploadConfigOnStartupKey:    /* --cc-upload-config-on-startup */
+    case RigWatchdogKey: /* --rig-watchdog */
+    case RebootOnCardcrashKey: /* --reboot-on-cardcrash */
     case DaemonizedKey:                 /* --daemonized */
         return parseBoolean(key, true);
 
@@ -533,6 +551,12 @@ bool xmrig::CommonConfig::parseInt(int key, int arg)
     case PrintTimeKey: /* --print-time */
         if (arg >= 0 && arg <= 3600) {
             m_printTime = arg;
+        }
+        break;
+
+    case MinRigHashrateKey: /* --min-rig-hashrate */
+        if (arg > 0) {
+            m_minRigHashrate = arg;
         }
         break;
 
