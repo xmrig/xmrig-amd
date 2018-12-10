@@ -1,6 +1,7 @@
 # 1.8.6
 - Integrated hashrate + cardcrash monitor to reboot/restart the miner
-- Fixed Restart of miner via Dashboard when a card crashed 
+- Fixed Restart of miner via Dashboard when a card crashed
+- Added start-cmd which is executed before the miner starts 
 - Rebase from XMRig-amd 2.8.7-dev (THX xmrig!)
 - Integrated Telegram push notifications
 - Fixed multi miner editor
