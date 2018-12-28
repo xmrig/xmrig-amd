@@ -1,3 +1,5 @@
+# 1.8.7
+- Implemented Template based mass config editor to simple swap configs on your rigs
 # 1.8.6
 - Integrated hashrate + cardcrash monitor to reboot/restart the miner
 - Fixed Restart of miner via Dashboard when a card crashed
