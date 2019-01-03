@@ -403,6 +403,7 @@ void Pool::rebuild()
     addVariant(xmrig::VARIANT_XAO);
     addVariant(xmrig::VARIANT_RTO);
     addVariant(xmrig::VARIANT_XFH);
+    addVariant(xmrig::VARIANT_XTL_V9);
     addVariant(xmrig::VARIANT_AUTO);
 #   endif
 }
