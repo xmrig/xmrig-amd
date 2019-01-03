@@ -70,7 +70,8 @@ enum Variant {
     VARIANT_RTO  = 7,       // Modified CryptoNight variant 1 (Arto only)
     VARIANT_2    = 8,       // CryptoNight variant 2
     VARIANT_XFH  = 9,       // CryptoNight variant xfh/swap aka cn-heavy-superfast
-    VARIANT_XTL_V9 = 10,    // Modified CryptoNight variant 1 (Stellite only)
+    VARIANT_XTL_V9 = 10,    // Modified CryptoNight variant xtl v9
+    VARIANT_UPX = 11,       // Modified CryptoNight-Lite variant upx
     VARIANT_MAX
 };
 
