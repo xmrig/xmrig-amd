@@ -1,3 +1,6 @@
+# 1.8.8
+- Added XLT v5/9 with autodetect(algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))
+- Added cn-lite variant UPX/uPlexa (algo: "cryptonight-lite", variant "upx")
 # 1.8.7
 - Implemented Template based mass config editor to simple swap configs on your rigs
 # 1.8.6
