@@ -62,12 +62,14 @@ static AlgoData const algorithms[] = {
     { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
     { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
     { "cryptonight/xfh",       "cn/xfh",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XFH  },
+    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL_V9  },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
     { "cryptonight-light",     "cn-light",     xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
     { "cryptonight-lite/0",    "cn-lite/0",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_0    },
     { "cryptonight-lite/1",    "cn-lite/1",    xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_1    },
+    { "cryptonight-lite/upx",  "cn-lite/upx",  xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_UPX  },
 #   endif
 
 #   ifndef XMRIG_NO_SUMO
@@ -110,6 +112,8 @@ static const char *variants[] = {
     "rto",
     "2",
     "xfh",
+    "xtlv9",
+    "upx"
 };
 
 

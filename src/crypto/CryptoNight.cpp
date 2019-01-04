@@ -96,6 +96,11 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XFH>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XFH>,
 
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XTL_V9>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XTL_V9>,
+
+        nullptr, nullptr, // VARIANT_UPX
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
@@ -111,12 +116,18 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
         nullptr, nullptr, // VARIANT_XFH
+        nullptr, nullptr, // VARIANT_XTL_V9
+
+        cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_UPX>,
+        cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_UPX>,
+
 #       else
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr, nullptr, nullptr
+        nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr,
 #       endif
 
 #       ifndef XMRIG_NO_SUMO
@@ -138,12 +149,16 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
         nullptr, nullptr, // VARIANT_XFH
+        nullptr, nullptr, // VARIANT_XTL_V9
+        nullptr, nullptr, // VARIANT_UPX
+
 #       else
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr, nullptr, nullptr
+        nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr,
 #       endif
     };
 
@@ -191,13 +206,15 @@ bool CryptoNight::selfTest() {
                verify(VARIANT_MSR, test_output_msr) &&
                verify(VARIANT_XAO, test_output_xao) &&
                verify(VARIANT_RTO, test_output_rto) &&
-               verify(VARIANT_XFH, test_output_xfh);
+               verify(VARIANT_XFH, test_output_xfh) &&
+               verify(VARIANT_XTL_V9, test_output_xtl_v9);
     }
 
 #   ifndef XMRIG_NO_AEON
     if (m_algorithm == xmrig::CRYPTONIGHT_LITE) {
         return verify(VARIANT_0, test_output_v0_lite) &&
-               verify(VARIANT_1, test_output_v1_lite);
+               verify(VARIANT_1, test_output_v1_lite) &&
+               verify(VARIANT_UPX, test_output_upx_lite);
     }
 #   endif
 

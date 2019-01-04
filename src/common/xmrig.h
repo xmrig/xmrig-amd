@@ -59,17 +59,19 @@ enum AlgoVariant {
 
 
 enum Variant {
-    VARIANT_AUTO = -1, // Autodetect
-    VARIANT_0    = 0,  // Original CryptoNight or CryptoNight-Heavy
-    VARIANT_1    = 1,  // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
-    VARIANT_TUBE = 2,  // Modified CryptoNight-Heavy (TUBE only)
-    VARIANT_XTL  = 3,  // Modified CryptoNight variant 1 (Stellite only)
-    VARIANT_MSR  = 4,  // Modified CryptoNight variant 1 (Masari only)
-    VARIANT_XHV  = 5,  // Modified CryptoNight-Heavy (Haven Protocol only)
-    VARIANT_XAO  = 6,  // Modified CryptoNight variant 0 (Alloy only)
-    VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
-    VARIANT_2    = 8,  // CryptoNight variant 2
-    VARIANT_XFH  = 9,  // CryptoNight variant xfh/swap aka cn-heavy-superfast
+    VARIANT_AUTO = -1,      // Autodetect
+    VARIANT_0    = 0,       // Original CryptoNight or CryptoNight-Heavy
+    VARIANT_1    = 1,       // CryptoNight variant 1 also known as Monero7 and CryptoNightV7
+    VARIANT_TUBE = 2,       // Modified CryptoNight-Heavy (TUBE only)
+    VARIANT_XTL  = 3,       // Modified CryptoNight variant 1 (Stellite only)
+    VARIANT_MSR  = 4,       // Modified CryptoNight variant 1 (Masari only)
+    VARIANT_XHV  = 5,       // Modified CryptoNight-Heavy (Haven Protocol only)
+    VARIANT_XAO  = 6,       // Modified CryptoNight variant 0 (Alloy only)
+    VARIANT_RTO  = 7,       // Modified CryptoNight variant 1 (Arto only)
+    VARIANT_2    = 8,       // CryptoNight variant 2
+    VARIANT_XFH  = 9,       // CryptoNight variant xfh/swap aka cn-heavy-superfast
+    VARIANT_XTL_V9 = 10,    // Modified CryptoNight variant xtl v9
+    VARIANT_UPX = 11,       // Modified CryptoNight-Lite variant upx
     VARIANT_MAX
 };
 
