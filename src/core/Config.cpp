@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -76,7 +76,9 @@ bool xmrig::Config::isCNv2() const
     }
 
     for (const Pool &pool : pools()) {
-        if (pool.algorithm().variant() == VARIANT_2 || pool.algorithm().variant() == VARIANT_AUTO) {
+        const Variant variant = pool.algorithm().variant();
+
+        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_HALF) {
             return true;
         }
     }
