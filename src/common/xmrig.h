@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
- * Copyright 2018 MoneroOcean      <https://github.com/MoneroOcean>, <support@moneroocean.stream>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 MoneroOcean <https://github.com/MoneroOcean>, <support@moneroocean.stream>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ enum PerfAlgo {
     PA_INVALID = -1,
     PA_CN,       /* CryptoNight (Monero) */
     PA_CN2,      /* CryptoNight/2 (Monero) */
-    PA_CN_FAST,  /* CryptoNight-Fast (Masari) */
+    PA_CN_HALF,  /* CryptoNight-Half (Masari) */
     PA_CN_LITE,  /* CryptoNight-Lite (AEON) */
     PA_CN_HEAVY, /* CryptoNight-Heavy (RYO) */
     PA_MAX
@@ -81,6 +81,7 @@ enum Variant {
     VARIANT_XAO  = 6,  // Modified CryptoNight variant 0 (Alloy only)
     VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
     VARIANT_2    = 8,  // CryptoNight variant 2
+    VARIANT_HALF = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
     VARIANT_MAX
 };
 

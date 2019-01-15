@@ -1,3 +1,7 @@
+# v2.9.1
+- [#899](https://github.com/xmrig/xmrig/issues/899) Added support for new algorithm `cn/half` for Masari and Stellite forks.
+- [#203](https://github.com/xmrig/xmrig-amd/pull/203) Fixed GPU errors with worksize != 8 on cn-heavy.
+
 # v2.8.6
 - **Improved `cn-heavy`, `cn-heavy/xhv` perfomance up to 8% since v2.8.5 and up to 16% since v2.8.4, thanks [@SChernykh](https://github.com/SChernykh)**, pull requests [#187](https://github.com/xmrig/xmrig-amd/pull/187), [#189](https://github.com/xmrig/xmrig-amd/pull/189), [#190](https://github.com/xmrig/xmrig-amd/pull/190), [#191](https://github.com/xmrig/xmrig-amd/pull/191), [#192](https://github.com/xmrig/xmrig-amd/pull/192) and [#193](https://github.com/xmrig/xmrig-amd/pull/193).
 - **[#195](https://github.com/xmrig/xmrig-amd/pull/195) Fixed hashrate fluctuations. It's no longer necessary to use different intensities per thread.**

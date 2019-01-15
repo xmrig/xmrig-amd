@@ -81,8 +81,9 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, const xmrig::Algor
             continue;
         }
 
-        int hints           = getHints(ctx, config);
+        int hints = getHints(ctx, config);
         if (algorithm.algo() == xmrig::CRYPTONIGHT && algorithm.variant() == xmrig::VARIANT_2) hints |= CNv2;
+
         const size_t maxThreads   = getMaxThreads(ctx, algo, hints);
         const size_t maxIntensity = getPossibleIntensity(ctx, maxThreads, hashMemSize);
         const size_t computeUnits = static_cast<size_t>(ctx.computeUnits);
@@ -106,7 +107,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, const xmrig::Algor
         }
 
         if (ctx.vendor == xmrig::OCL_VENDOR_AMD) {
-            const bool isSmall = ctx.name == "Lexa" || ctx.name == "Baffin" || computeUnits <= 16;
+            const bool isSmall = ctx.name == "gfx804" || ctx.name == "Baffin" || computeUnits <= 16;
             if (isSmall) {
                 intensity /= 2;
 
@@ -116,7 +117,7 @@ void OclCLI::autoConf(std::vector<xmrig::IThread *> &threads, const xmrig::Algor
             }
 
             constexpr const size_t byteToMiB = 1024u * 1024u;
-            if ((ctx.freeMem - intensity * 2 * hashMemSize) > 128 * byteToMiB) {
+            if ((ctx.globalMem - intensity * 2 * hashMemSize) > 128 * byteToMiB) {
                 hints |= DoubleThreads;
             }
         }
