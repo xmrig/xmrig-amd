@@ -63,6 +63,7 @@ static AlgoData const algorithms[] = {
     { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
     { "cryptonight/xfh",       "cn/xfh",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XFH  },
     { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL_V9  },
+    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_XTL_V9  },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -170,6 +171,10 @@ void xmrig::Algorithm::parseAlgorithm(const char *algo)
 void xmrig::Algorithm::parseVariant(const char *variant)
 {
     m_variant = VARIANT_AUTO;
+
+    if (strcasecmp(variant, "half") == 0) {
+        variant = "xtlv9";
+    }
 
     for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
         if (strcasecmp(variant, variants[i]) == 0) {
