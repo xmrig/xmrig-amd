@@ -128,7 +128,9 @@ void DonateStrategy::onActive(IStrategy *strategy, Client *client)
 
 void DonateStrategy::onJob(IStrategy *strategy, Client *client, const Job &job)
 {
-    m_listener->onJob(this, client, job);
+    if (isActive()) {
+        m_listener->onJob(this, client, job);
+    }
 }
 
 

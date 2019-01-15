@@ -88,6 +88,9 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_2:
         return 11;
 
+    case xmrig::VARIANT_HALF:
+        return 12;
+
     default:
         break;
     }
@@ -98,30 +101,47 @@ inline static int cnKernelOffset(xmrig::Variant variant)
 }
 
 
-size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
+static void printGPU(int index, GpuContext *ctx, xmrig::Config *config)
 {
-    size_t MaximumWorkSize;
-    cl_int ret;
+    const size_t memSize             = xmrig::cn_select_memory(config->algorithm().algo()) * ctx->rawIntensity;
+    constexpr const size_t byteToGiB = 1024u * 1024u * 1024u;
+    size_t maximumWorkSize           = 0;
 
-    if (OclLib::getDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &MaximumWorkSize) != CL_SUCCESS) {
-        return OCL_ERR_API;
-    }
+    OclLib::getDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maximumWorkSize);
 
     ctx->name         = OclLib::getDeviceName(ctx->DeviceID);
     ctx->board        = OclLib::getDeviceBoardName(ctx->DeviceID);
     ctx->computeUnits = OclLib::getDeviceMaxComputeUnits(ctx->DeviceID);
 
+    OclLib::getDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &ctx->freeMem);
+    OclLib::getDeviceInfo(ctx->DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &ctx->globalMem);
+
+    ctx->freeMem = std::min(ctx->freeMem, ctx->globalMem);
+
     if (ctx->name == ctx->board) {
-        LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") ", intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
-                                    : "#%d, GPU #%zu (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
-            index, ctx->deviceIdx, ctx->board.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+        LOG_INFO(config->isColors() ? WHITE_BOLD("#%02d") ", GPU " WHITE_BOLD("#%02zu") " " GREEN_BOLD("%s") ", i:" WHITE_BOLD("%zu") " " GRAY("(%zu/%zu)")
+                                      ", si:" WHITE_BOLD("%d/%d") ", u:" WHITE_BOLD("%d") ", cu:" WHITE_BOLD("%d")
+                                    : "#%02d, GPU #%02zu (%s), i:%zu (%zu/%zu), si:%d/%d, u:%d, cu:%d",
+                 index, ctx->deviceIdx, ctx->board.data(), ctx->rawIntensity, ctx->workSize, maximumWorkSize, ctx->stridedIndex, ctx->memChunk, ctx->unrollFactor, ctx->computeUnits);
     }
     else {
-        LOG_INFO(config->isColors() ? WHITE_BOLD("#%d") ", GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("%s") " (" CYAN_BOLD("%s") "), intensity: " WHITE_BOLD("%zu") " (%zu/%zu), unroll: " WHITE_BOLD("%d") ", cu: " WHITE_BOLD("%d")
-                                    : "#%d, GPU #%zu %s (%s), intensity: %zu (%zu/%zu), unroll: %d, cu: %d",
-            index, ctx->deviceIdx, ctx->board.data(), ctx->name.data(), ctx->rawIntensity, ctx->workSize, MaximumWorkSize, ctx->unrollFactor, ctx->computeUnits);
+        LOG_INFO(config->isColors() ? WHITE_BOLD("#%02d") ", GPU " WHITE_BOLD("#%02zu") " " GREEN_BOLD("%s") " (" CYAN_BOLD("%s") "), i:" WHITE_BOLD("%zu") " " GRAY("(%zu/%zu)")
+                                      ", si:" WHITE_BOLD("%d/%d") ", u:" WHITE_BOLD("%d") ", cu:" WHITE_BOLD("%d")
+                                    : "#%02d, GPU #%02zu %s (%s), i:%zu (%zu/%zu), si:%d/%d, u:%d, cu:%d",
+                 index, ctx->deviceIdx, ctx->board.data(), ctx->name.data(), ctx->rawIntensity, ctx->workSize, maximumWorkSize, ctx->stridedIndex, ctx->memChunk, ctx->unrollFactor, ctx->computeUnits);
     }
 
+    LOG_INFO(config->isColors() ? "             " CYAN("%1.2f/%1.2f/%1.0f") " GB"
+                                : "             %1.2f/%1.2f/%1.0f GB",
+             static_cast<double>(memSize) / byteToGiB, static_cast<double>(ctx->freeMem) / byteToGiB, static_cast<double>(ctx->globalMem) / byteToGiB);
+}
+
+
+size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
+{
+    printGPU(index, ctx, config);
+
+    cl_int ret;
     ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
@@ -186,8 +206,8 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero"};
-    for (int i = 0; i < 12; ++i) {
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_v2_half"};
+    for (int i = 0; i < 13; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -246,11 +266,10 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
             continue;
         }
 
-        size_t maxMem;
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &(maxMem));
-        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &(ctx.freeMem));
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(size_t), &ctx.freeMem);
+        OclLib::getDeviceInfo(ctx.DeviceID, CL_DEVICE_GLOBAL_MEM_SIZE,    sizeof(size_t), &ctx.globalMem);
         // if environment variable GPU_SINGLE_ALLOC_PERCENT is not set we can not allocate the full memory
-        ctx.freeMem = std::min(ctx.freeMem, maxMem);
+        ctx.freeMem = std::min(ctx.freeMem, ctx.globalMem);
 
         ctx.board = OclLib::getDeviceBoardName(ctx.DeviceID);
         ctx.name  = OclLib::getDeviceName(ctx.DeviceID);
