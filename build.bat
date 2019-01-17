@@ -13,6 +13,6 @@ cmake .. -G "Visual Studio 15 2017 Win64" -DXMRIG_DEPS=%~dp0\build\xmrig-deps\ms
 msbuild /p:Configuration=Release xmrig-amd.sln &&^
 cd Release &&^
 copy ..\..\src\config.json . &&^
-7za a -tzip -mx %~dp0\xmrig-amd-%1-win64.zip xmrig-amd.exe config.json &&^
+7z.exe a -tzip -mx %~dp0\xmrig-amd-%1-win64.zip xmrig-amd.exe config.json &&^
 cd %~dp0 &&^
 rmdir /S /Q build

@@ -9,7 +9,7 @@ option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 
 option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
-option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" ON)
+option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
