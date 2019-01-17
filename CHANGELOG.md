@@ -1,3 +1,7 @@
+# v2.9.3
+- [#211](https://github.com/xmrig/xmrig-amd/pull/211) Fixed `cn/half` compute errors.
+- Removed verbose messages about threads interleave.
+
 # v2.9.1
 - [#899](https://github.com/xmrig/xmrig/issues/899) Added support for new algorithm `cn/half` for Masari and Stellite forks.
 - [#203](https://github.com/xmrig/xmrig-amd/pull/203) Fixed GPU errors with worksize != 8 on cn-heavy.

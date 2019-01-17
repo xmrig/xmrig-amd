@@ -399,7 +399,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
 #   ifdef __GNUC__
     cl_device_id TempDeviceList[num_gpus];
 #   else
-    cl_device_id* TempDeviceList = (cl_device_id*)_alloca(entries * sizeof(cl_device_id));
+    cl_device_id* TempDeviceList = (cl_device_id*)_alloca(num_gpus * sizeof(cl_device_id));
 #   endif
 
     for (size_t i = 0; i < num_gpus; ++i) {
