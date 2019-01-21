@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -63,7 +63,8 @@ private:
         None          = 0,
         DoubleThreads = 1,
         Vega          = 2,
-        CNv2          = 4
+        CNv2          = 4,
+        Pico          = 8
     };
 
     inline bool isEmpty() const              { return m_devices.empty() && m_intensity.empty(); }
@@ -82,6 +83,7 @@ private:
 
     static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints);
     static size_t getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, size_t hashMemSize);
+    static size_t worksizeByHints(int hints);
 
     std::vector<int> m_affinity;
     std::vector<int> m_compMode;
