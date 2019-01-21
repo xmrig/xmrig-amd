@@ -3,8 +3,6 @@ R"===(
  * @author SChernykh
  */
 
-#if (ALGO==CRYPTONIGHT)
-
 inline uint get_reciprocal(uint a)
 {
     const float a_hi = as_float((a >> 8) + ((126U + 31U) << 23));
@@ -55,7 +53,5 @@ inline uint fast_sqrt_v2(const ulong n1)
 
     return result;
 }
-
-#endif
 
 )==="

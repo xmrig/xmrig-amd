@@ -3,6 +3,7 @@ project(xmrig-amd)
 
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
+option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_TLS       "Enable OpenSSL support" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
@@ -222,8 +223,8 @@ if (NOT WITH_SUMO)
     add_definitions(/DXMRIG_NO_SUMO)
 endif()
 
-if (NOT WITH_IPBC)
-    add_definitions(/DXMRIG_NO_IPBC)
+if (NOT WITH_CN_PICO)
+    add_definitions(/DXMRIG_NO_CN_PICO)
 endif()
 
 if (WITH_HTTPD)
