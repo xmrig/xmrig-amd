@@ -106,9 +106,10 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define VARIANT_XFH  9  // CryptoNight variant xfh aka cn-heavy-superfast
 #define VARIANT_XTL_V9  10  // CryptoNight variant xfh aka cn-heavy-superfast
 
-#define CRYPTONIGHT       0 /* CryptoNight (Monero) */
-#define CRYPTONIGHT_LITE  1 /* CryptoNight-Lite (AEON) */
-#define CRYPTONIGHT_HEAVY 2 /* CryptoNight-Heavy (RYO) */
+#define CRYPTONIGHT       0 /* CryptoNight (2 MB) */
+#define CRYPTONIGHT_LITE  1 /* CryptoNight (1 MB) */
+#define CRYPTONIGHT_HEAVY 2 /* CryptoNight (4 MB) */
+#define CRYPTONIGHT_PICO  3 /* CryptoNight (256 KB) */
 
 #if defined(__NV_CL_C_VERSION) && STRIDED_INDEX != 0
 #   undef STRIDED_INDEX
@@ -448,6 +449,11 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
             State[8]  = input[8];
             State[9]  = input[9];
             State[10] = input[10];
+            State[11] = input[11];
+            State[12] = input[12];
+            State[13] = input[13];
+            State[14] = input[14];
+            State[15] = input[15];
 
             ((__local uint *)State)[9]  &= 0x00FFFFFFU;
             ((__local uint *)State)[9]  |= (((uint)get_global_id(0)) & 0xFF) << 24;
@@ -459,12 +465,12 @@ __kernel void cn0(__global ulong *input, __global uint4 *Scratchpad, __global ul
              */
             ((__local uint *)State)[10] |= (((uint)get_global_id(0) >> 8));
 
-            for (int i = 11; i < 25; ++i) {
-                State[i] = 0x00UL;
-            }
-
             // Last bit of padding
             State[16] = 0x8000000000000000UL;
+
+            for (int i = 17; i < 25; ++i) {
+                State[i] = 0x00UL;
+            }
 
             keccakf1600_2(State);
 
@@ -777,7 +783,7 @@ R"===(
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_v2_monero(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
 {
-#   if (ALGO == CRYPTONIGHT)
+#   if (ALGO == CRYPTONIGHT || ALGO == CRYPTONIGHT_PICO)
     ulong a[2], b[4];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
     

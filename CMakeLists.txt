@@ -11,6 +11,7 @@ option(WITH_HTTPD    "HTTP REST API" ON)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_TLS       "TLS support" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
+option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(WITH_DEBUG_LOG "Enable debug log output" OFF)
 
@@ -245,8 +246,8 @@ if (NOT WITH_SUMO)
     add_definitions(/DXMRIG_NO_SUMO)
 endif()
 
-if (NOT WITH_IPBC)
-    add_definitions(/DXMRIG_NO_IPBC)
+if (NOT WITH_CN_PICO)
+    add_definitions(/DXMRIG_NO_CN_PICO)
 endif()
 
 if (WITH_HTTPD)

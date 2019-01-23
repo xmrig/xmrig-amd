@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -188,6 +188,10 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
         hints |= CNv2;
     }
 
+    if (config->algorithm().algo() == xmrig::CRYPTONIGHT_PICO) {
+        hints |= Pico;
+    }
+
     if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name == "gfx901" ||
                                                 ctx.name == "gfx904" ||
                                                 ctx.name == "gfx900" ||
@@ -204,7 +208,7 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
 
 OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hints) const
 {
-    const size_t worksize = ((hints & Vega) && (hints & CNv2)) ? 16 : 8;
+    const size_t worksize = worksizeByHints(hints);
     intensity -= intensity % worksize;
 
     int stridedIndex = 1;
@@ -244,7 +248,7 @@ void OclCLI::parse(std::vector<int> &vector, const char *arg) const
 
 size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints)
 {
-    const size_t ratio = algo == xmrig::CRYPTONIGHT_LITE ? 2u : 1u;
+    const size_t ratio = (algo == xmrig::CRYPTONIGHT_LITE || algo == xmrig::CRYPTONIGHT_PICO) ? 2u : 1u;
     if (ctx.vendor == xmrig::OCL_VENDOR_INTEL) {
         return ratio * ctx.computeUnits * 8;
     }
@@ -277,4 +281,20 @@ size_t OclCLI::getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, si
     const size_t maxIntensity = availableMem / perThread;
 
     return std::min(maxThreads, maxIntensity);
+}
+
+
+size_t OclCLI::worksizeByHints(int hints)
+{
+    if (hints & Vega) {
+        if (hints & Pico) {
+            return 64;
+        }
+
+        if (hints & CNv2) {
+            return 16;
+        }
+    }
+
+    return 8;
 }
