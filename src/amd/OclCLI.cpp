@@ -188,8 +188,8 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
         hints |= CNv2;
     }
 
-    if (config->algorithm().algo() == xmrig::CRYPTONIGHT_PICO) {
-        hints |= Pico;
+    if (config->algorithm().algo() == xmrig::CRYPTONIGHT_ULTRALITE) {
+        hints |= Ultralite;
     }
 
     if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name == "gfx901" ||
@@ -248,7 +248,7 @@ void OclCLI::parse(std::vector<int> &vector, const char *arg) const
 
 size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints)
 {
-    const size_t ratio = (algo == xmrig::CRYPTONIGHT_LITE || algo == xmrig::CRYPTONIGHT_PICO) ? 2u : 1u;
+    const size_t ratio = (algo == xmrig::CRYPTONIGHT_LITE || algo == xmrig::CRYPTONIGHT_ULTRALITE) ? 2u : 1u;
     if (ctx.vendor == xmrig::OCL_VENDOR_INTEL) {
         return ratio * ctx.computeUnits * 8;
     }
@@ -287,7 +287,7 @@ size_t OclCLI::getPossibleIntensity(const GpuContext &ctx, size_t maxThreads, si
 size_t OclCLI::worksizeByHints(int hints)
 {
     if (hints & Vega) {
-        if (hints & Pico) {
+        if (hints & Ultralite) {
             return 64;
         }
 

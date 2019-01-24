@@ -71,7 +71,7 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
 
 bool xmrig::Config::isCNv2() const
 {
-    if (algorithm().algo() == CRYPTONIGHT_PICO) {
+    if (algorithm().algo() == CRYPTONIGHT_ULTRALITE) {
         return true;
     }
 
@@ -82,7 +82,7 @@ bool xmrig::Config::isCNv2() const
     for (const Pool &pool : pools()) {
         const Variant variant = pool.algorithm().variant();
 
-        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_HALF) {
+        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_FAST_2) {
             return true;
         }
     }

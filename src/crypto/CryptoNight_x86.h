@@ -602,7 +602,7 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cnv2_mainloop_bulldozer_asm(ctx[0]);
         }
     }
-    else if (VARIANT == xmrig::VARIANT_HALF) {
+    else if (VARIANT == xmrig::VARIANT_FAST_2) {
         if (ASM == xmrig::ASM_INTEL) {
             cn_half_mainloop_ivybridge_asm(ctx[0]);
         }
@@ -613,7 +613,7 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_half_mainloop_bulldozer_asm(ctx[0]);
         }
     }
-    else if (VARIANT == xmrig::VARIANT_TRTL) {
+    else if (VARIANT == xmrig::VARIANT_TURTLE) {
         if (ASM == xmrig::ASM_INTEL) {
             cn_trtl_mainloop_ivybridge_asm(ctx[0]);
         }
@@ -645,10 +645,10 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     if (VARIANT == xmrig::VARIANT_2) {
         cnv2_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
-    else if (VARIANT == xmrig::VARIANT_HALF) {
+    else if (VARIANT == xmrig::VARIANT_FAST_2) {
         cn_half_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
-    else if (VARIANT == xmrig::VARIANT_TRTL) {
+    else if (VARIANT == xmrig::VARIANT_TURTLE) {
         cn_trtl_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
 

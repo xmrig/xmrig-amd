@@ -96,10 +96,11 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XFH>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XFH>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XTL_V9>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XTL_V9>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_FAST_2>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_FAST_2>,
 
         nullptr, nullptr, // VARIANT_UPX
+        nullptr, nullptr, // VARIANT_TURTLE
 
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
@@ -116,10 +117,12 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
         nullptr, nullptr, // VARIANT_XFH
-        nullptr, nullptr, // VARIANT_XTL_V9
+        nullptr, nullptr, // VARIANT_FAST_2
 
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_UPX>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_UPX>,
+
+        nullptr, nullptr, // VARIANT_TURTLE
 
 #       else
         nullptr, nullptr, nullptr, nullptr,
@@ -128,6 +131,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr,
 #       endif
 
 #       ifndef XMRIG_NO_SUMO
@@ -149,8 +153,9 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
         nullptr, nullptr, // VARIANT_XFH
-        nullptr, nullptr, // VARIANT_XTL_V9
+        nullptr, nullptr, // VARIANT_FAST_2
         nullptr, nullptr, // VARIANT_UPX
+        nullptr, nullptr, // VARIANT_TURTLE
 
 #       else
         nullptr, nullptr, nullptr, nullptr,
@@ -159,8 +164,10 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
+        nullptr, nullptr,
 #       endif
-#       ifndef XMRIG_NO_CN_PICO
+
+#       ifndef XMRIG_NO_CN_ULTRALITE
         nullptr, nullptr, // VARIANT_0
         nullptr, nullptr, // VARIANT_1
         nullptr, nullptr, // VARIANT_TUBE
@@ -170,11 +177,14 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
-        nullptr, nullptr, // VARIANT_HALF
+        nullptr, nullptr, // VARIANT_XFH
+        nullptr, nullptr, // VARIANT_FAST_2
+        nullptr, nullptr, // VARIANT_UPX
 
-        cryptonight_single_hash<CRYPTONIGHT_PICO, false, VARIANT_TRTL>,
-        cryptonight_single_hash<CRYPTONIGHT_PICO, true,  VARIANT_TRTL>,
+        cryptonight_single_hash<CRYPTONIGHT_ULTRALITE, false, VARIANT_TURTLE>,
+        cryptonight_single_hash<CRYPTONIGHT_ULTRALITE, true,  VARIANT_TURTLE>,
     #else
+        nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
@@ -231,7 +241,7 @@ bool CryptoNight::selfTest() {
                verify(VARIANT_XAO, test_output_xao) &&
                verify(VARIANT_RTO, test_output_rto) &&
                verify(VARIANT_XFH, test_output_xfh) &&
-               verify(VARIANT_XTL_V9, test_output_xtl_v9);
+               verify(VARIANT_FAST_2, test_output_xtl_v9);
     }
 
 #   ifndef XMRIG_NO_AEON
@@ -250,9 +260,9 @@ bool CryptoNight::selfTest() {
     }
 #   endif
 
-#   ifndef XMRIG_NO_CN_PICO
-    if (m_algorithm == xmrig::CRYPTONIGHT_PICO) {
-        return verify(VARIANT_TRTL, test_output_pico_trtl);
+#   ifndef XMRIG_NO_CN_ULTRALITE
+    if (m_algorithm == xmrig::CRYPTONIGHT_ULTRALITE) {
+        return verify(VARIANT_TURTLE, test_output_turtle);
     }
 #   endif
 

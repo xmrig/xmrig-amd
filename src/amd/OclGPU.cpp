@@ -87,13 +87,13 @@ inline static int cnKernelOffset(xmrig::Variant variant)
         return 10;
 
     case xmrig::VARIANT_2:
-    case xmrig::VARIANT_TRTL:
+    case xmrig::VARIANT_TURTLE:
         return 11;
 
     case xmrig::VARIANT_XFH:
         return 12;
 
-    case xmrig::VARIANT_XTL_V9:
+    case xmrig::VARIANT_FAST_2:
         return 13;
 
     case xmrig::VARIANT_UPX:

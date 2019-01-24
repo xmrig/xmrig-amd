@@ -36,34 +36,30 @@
 namespace xmrig
 {
 
+constexpr const uint32_t CRYPTONIGHT_ITER          = 0x80000;
+constexpr const uint32_t CRYPTONIGHT_HALF_ITER     = 0x40000;
+constexpr const uint32_t CRYPTONIGHT_XAO_ITER      = 0x100000;
+constexpr const uint32_t CRYPTONIGHT_XFH_ITER      = 0x20000;
+constexpr const uint32_t CRYPTONIGHT_LITE_UPX_ITER = 0x20000;
+constexpr const uint32_t CRYPTONIGHT_TRTL_ITER     = 0x10000;
+
 constexpr const size_t   CRYPTONIGHT_MEMORY       = 2 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_MASK         = 0x1FFFF0;
-constexpr const uint32_t CRYPTONIGHT_ITER         = 0x80000;
-constexpr const uint32_t CRYPTONIGHT_MSR_ITER     = 0x40000;
-constexpr const uint32_t CRYPTONIGHT_XTL_V9_ITER  = 0x40000;
-constexpr const uint32_t CRYPTONIGHT_XAO_ITER     = 0x100000;
-constexpr const uint32_t CRYPTONIGHT_XFH_ITER     = 0x20000;
 
 constexpr const size_t   CRYPTONIGHT_LITE_MEMORY  = 1 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_LITE_MASK    = 0xFFFF0;
-constexpr const uint32_t CRYPTONIGHT_LITE_ITER    = 0x40000;
-constexpr const uint32_t CRYPTONIGHT_LITE_UPX_ITER = 0x20000;
 
 constexpr const size_t   CRYPTONIGHT_HEAVY_MEMORY = 4 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_HEAVY_MASK   = 0x3FFFF0;
-constexpr const uint32_t CRYPTONIGHT_HEAVY_ITER   = 0x40000;
 
-constexpr const size_t   CRYPTONIGHT_PICO_MEMORY = 256 * 1024;
-constexpr const uint32_t CRYPTONIGHT_PICO_MASK   = 0x1FFF0;
-constexpr const uint32_t CRYPTONIGHT_PICO_ITER   = 0x40000;
-constexpr const uint32_t CRYPTONIGHT_TRTL_ITER   = 0x10000;
-
+constexpr const size_t   CRYPTONIGHT_ULTRALITE_MEMORY = 256 * 1024;
+constexpr const uint32_t CRYPTONIGHT_ULTRALITE_MASK   = 0x1FFF0;
 
 template<Algo ALGO> inline constexpr size_t cn_select_memory()           { return 0; }
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT>()       { return CRYPTONIGHT_MEMORY; }
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_MEMORY; }
 template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_MEMORY; }
-template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_PICO>()  { return CRYPTONIGHT_PICO_MEMORY; }
+template<> inline constexpr size_t cn_select_memory<CRYPTONIGHT_ULTRALITE>()  { return CRYPTONIGHT_ULTRALITE_MEMORY; }
 
 
 inline size_t cn_select_memory(Algo algorithm)
@@ -79,8 +75,8 @@ inline size_t cn_select_memory(Algo algorithm)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_MEMORY;
 
-    case CRYPTONIGHT_PICO:
-        return CRYPTONIGHT_PICO_MEMORY;
+    case CRYPTONIGHT_ULTRALITE:
+        return CRYPTONIGHT_ULTRALITE_MEMORY;
 
     default:
         break;
@@ -94,7 +90,7 @@ template<Algo ALGO> inline constexpr uint32_t cn_select_mask()           { retur
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT>()       { return CRYPTONIGHT_MASK; }
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_LITE>()  { return CRYPTONIGHT_LITE_MASK; }
 template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_HEAVY>() { return CRYPTONIGHT_HEAVY_MASK; }
-template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_PICO>()  { return CRYPTONIGHT_PICO_MASK; }
+template<> inline constexpr uint32_t cn_select_mask<CRYPTONIGHT_ULTRALITE>()  { return CRYPTONIGHT_ULTRALITE_MASK; }
 
 
 inline uint32_t cn_select_mask(Algo algorithm)
@@ -110,8 +106,8 @@ inline uint32_t cn_select_mask(Algo algorithm)
     case CRYPTONIGHT_HEAVY:
         return CRYPTONIGHT_HEAVY_MASK;
 
-    case CRYPTONIGHT_PICO:
-        return CRYPTONIGHT_PICO_MASK;
+    case CRYPTONIGHT_ULTRALITE:
+        return CRYPTONIGHT_ULTRALITE_MASK;
 
     default:
         break;
@@ -126,26 +122,25 @@ template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_0>()   
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_1>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_2>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL>()        { return CRYPTONIGHT_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_HALF>()       { return CRYPTONIGHT_HALF_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()        { return CRYPTONIGHT_HALF_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XAO>()        { return CRYPTONIGHT_XAO_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_RTO>()        { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XFH>()        { return CRYPTONIGHT_XFH_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL_V9>()     { return CRYPTONIGHT_XTL_V9_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_0>()     { return CRYPTONIGHT_LITE_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_1>()     { return CRYPTONIGHT_LITE_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_FAST_2>()       { return CRYPTONIGHT_HALF_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_0>()     { return CRYPTONIGHT_HALF_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_1>()     { return CRYPTONIGHT_HALF_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_LITE, VARIANT_UPX>()   { return CRYPTONIGHT_LITE_UPX_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_0>()    { return CRYPTONIGHT_HEAVY_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_XHV>()  { return CRYPTONIGHT_HEAVY_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_TUBE>() { return CRYPTONIGHT_HEAVY_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_PICO, VARIANT_TRTL>()  { return CRYPTONIGHT_TRTL_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_0>()    { return CRYPTONIGHT_HALF_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_XHV>()  { return CRYPTONIGHT_HALF_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_HEAVY, VARIANT_TUBE>() { return CRYPTONIGHT_HALF_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT_ULTRALITE, VARIANT_TURTLE>()  { return CRYPTONIGHT_TRTL_ITER; }
 
 
 inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 {
     switch (variant) {
     case VARIANT_MSR:
-    case VARIANT_HALF:
+    case VARIANT_FAST_2:
         return CRYPTONIGHT_HALF_ITER;
 
     case VARIANT_RTO:
@@ -153,9 +148,6 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 
     case VARIANT_XFH:
         return CRYPTONIGHT_XFH_ITER;
-
-    case VARIANT_XTL_V9:
-        return CRYPTONIGHT_XTL_V9_ITER;
 
     case VARIANT_UPX:
         return CRYPTONIGHT_LITE_UPX_ITER;
@@ -170,12 +162,12 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
         return CRYPTONIGHT_ITER;
 
     case CRYPTONIGHT_LITE:
-        return CRYPTONIGHT_LITE_ITER;
+        return CRYPTONIGHT_HALF_ITER;
 
     case CRYPTONIGHT_HEAVY:
-        return CRYPTONIGHT_HEAVY_ITER;
+        return CRYPTONIGHT_HALF_ITER;
 
-    case CRYPTONIGHT_PICO:
+    case CRYPTONIGHT_ULTRALITE:
         return CRYPTONIGHT_TRTL_ITER;
 
     default:
@@ -196,10 +188,10 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_XHV>()   { return VA
 template<> inline constexpr Variant cn_base_variant<VARIANT_XAO>()   { return VARIANT_0; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_RTO>()   { return VARIANT_1; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_XFH>()   { return VARIANT_0; }
-template<> inline constexpr Variant cn_base_variant<VARIANT_XTL_V9>(){ return VARIANT_2; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_FAST_2>(){ return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_2>()     { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_UPX>()   { return VARIANT_1; }
-
+template<> inline constexpr Variant cn_base_variant<VARIANT_TURTLE>(){ return VARIANT_2; }
 
 } /* namespace xmrig */
 

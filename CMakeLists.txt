@@ -247,7 +247,7 @@ if (NOT WITH_SUMO)
 endif()
 
 if (NOT WITH_CN_PICO)
-    add_definitions(/DXMRIG_NO_CN_PICO)
+    add_definitions(/DXMRIG_NO_CN_ULTRALITE)
 endif()
 
 if (WITH_HTTPD)

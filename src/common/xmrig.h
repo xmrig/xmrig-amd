@@ -32,10 +32,10 @@ namespace xmrig
 
 enum Algo {
     INVALID_ALGO = -1,
-    CRYPTONIGHT,        /* CryptoNight (2 MB) */
-    CRYPTONIGHT_LITE,   /* CryptoNight (1 MB) */
-    CRYPTONIGHT_HEAVY,  /* CryptoNight (4 MB) */
-    CRYPTONIGHT_PICO,   /* CryptoNight (256 KB) */
+    CRYPTONIGHT,             /* CryptoNight (2 MB) */
+    CRYPTONIGHT_LITE,        /* CryptoNight (1 MB) */
+    CRYPTONIGHT_HEAVY,       /* CryptoNight (4 MB) */
+    CRYPTONIGHT_ULTRALITE,   /* CryptoNight (256 KB) */
     ALGO_MAX
 };
 
@@ -72,8 +72,9 @@ enum Variant {
     VARIANT_RTO  = 7,       // Modified CryptoNight variant 1 (Arto only)
     VARIANT_2    = 8,       // CryptoNight variant 2
     VARIANT_XFH  = 9,       // CryptoNight variant xfh/swap aka cn-heavy-superfast
-    VARIANT_XTL_V9 = 10,    // Modified CryptoNight variant xtl v9
+    VARIANT_FAST_2 = 10,    // Modified CryptoNight variant used by xtl v9 / msr v8
     VARIANT_UPX = 11,       // Modified CryptoNight-Lite variant upx
+    VARIANT_TURTLE = 12,    // Modified CryptoNight-Ultralite variant turtle
     VARIANT_MAX
 };
 

@@ -64,7 +64,7 @@ private:
         DoubleThreads = 1,
         Vega          = 2,
         CNv2          = 4,
-        Pico          = 8
+        Ultralite     = 8
     };
 
     inline bool isEmpty() const              { return m_devices.empty() && m_intensity.empty(); }
