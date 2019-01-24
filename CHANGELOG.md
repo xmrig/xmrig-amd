@@ -1,7 +1,11 @@
+# 1.8.11
+- Added fix for upcoming Masari fork (cn-half/fast2) (algo: "cryptonight", variant: "msr" (autodetect), "fast2" (force))
+- Integrated cn-ultralite (turtleV2/DEGO) (algo: "cryptonight-ultralite", variant: "auto")
+- Rebase from XMRig-amd 2.10.0
 # 1.8.9
-- Improved algo parsing for XTL v9 aka cn-half
+- Improved algo parsing for XTL v9 aka cn-half/fast2
 # 1.8.8
-- Added XLT v5/9 with autodetect(algo: "cryptonight", variant: "xtl" (autodetect), "xtlv9" (force v9))
+- Added XLT v5/9 with autodetect(algo: "cryptonight", variant: "xtl" (autodetect), "fast2" (force v9))
 - Added cn-lite variant UPX/uPlexa (algo: "cryptonight-lite", variant "upx")
 # 1.8.7
 - Implemented Template based mass config editor to simple swap configs on your rigs
