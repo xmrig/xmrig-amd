@@ -83,8 +83,8 @@ static AlgoData const algorithms[] = {
 #   endif
 
 #   ifndef XMRIG_NO_CN_ULTRALITE
-    { "cryptonight-ultralite/turtle",   "cn-ultralite/turtle",   xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
     { "cryptonight-ultralite",          "cn-ultralite",          xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
+    { "cryptonight-ultralite/turtle",   "cn-ultralite/turtle",   xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
     { "cryptonight-ultralite/2",        "cn-ultralite/2",        xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
     { "cryptonight-pico/trtl",          "cn-pico/trtl",          xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
     { "cryptonight-pico",               "cn-pico",               xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
