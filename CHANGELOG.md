@@ -1,5 +1,6 @@
 # 1.8.12
 - Fixed cn-ultralite no suitable algo error when using xmrig-proxy
+- Added more names to the algo parse CN-Turtle/Ultralite
 # 1.8.11
 - Added fix for upcoming Masari fork (cn-half/fast2) (algo: "cryptonight", variant: "msr" (autodetect), "fast2" (force))
 - Integrated cn-ultralite (turtleV2/DEGO) (algo: "cryptonight-ultralite", variant: "auto")
