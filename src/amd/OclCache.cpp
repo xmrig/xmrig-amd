@@ -57,7 +57,7 @@ bool OclCache::load()
 
     char options[512] = { 0 };
     snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
-                                       "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
+                                       "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -cl-fp32-correctly-rounded-divide-sqrt",
              xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
              xmrig::cn_select_mask(algo),
              m_ctx->workSize,
