@@ -212,18 +212,23 @@ bool Workers::start(xmrig::Controller *controller)
     contexts.resize(m_threadsCount);
 
     const bool isCNv2 = controller->config()->isCNv2();
+    const bool isCN_GPU = controller->config()->algorithm().variant() == xmrig::VARIANT_GPU;
     for (size_t i = 0; i < m_threadsCount; ++i) {
         const OclThread *thread = static_cast<OclThread *>(threads[i]);
         if (isCNv2 && thread->stridedIndex() == 1) {
             LOG_WARN("%sTHREAD #%zu: \"strided_index\":1 is not compatible with CryptoNight variant 2",
                      controller->config()->isColors() ? "\x1B[1;33m" : "", i);
         }
+        if (isCN_GPU && (thread->stridedIndex() != 0)) {
+            LOG_WARN("%sTHREAD #%zu: \"strided_index\":%d is not compatible with CryptoNight-GPU",
+                controller->config()->isColors() ? "\x1B[1;33m" : "", i, thread->stridedIndex());
+        }
 
         contexts[i] = GpuContext(thread->index(),
                                  thread->intensity(),
                                  thread->worksize(),
                                  threadsCountByGPU(thread->index(), threads),
-                                 thread->stridedIndex(),
+                                 isCN_GPU ? 0 : thread->stridedIndex(),
                                  thread->memChunk(),
                                  thread->isCompMode(),
                                  thread->unrollFactor()
