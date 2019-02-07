@@ -105,6 +105,7 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define VARIANT_2    8  // CryptoNight variant 2
 #define VARIANT_HALF 9  // CryptoNight variant 2 with half iterations (Masari/Stellite)
 #define VARIANT_TRTL 10 // CryptoNight Turtle (TRTL)
+#define VARIANT_GPU  11 // CryptoNight-GPU (Ryo)
 
 #define CRYPTONIGHT       0 /* CryptoNight (2 MB) */
 #define CRYPTONIGHT_LITE  1 /* CryptoNight (1 MB) */
@@ -402,6 +403,9 @@ inline ulong getIdx()
     return get_global_id(0) - get_global_offset(0);
 #   endif
 }
+
+//#include "opencl/cryptonight_gpu.cl"
+XMRIG_INCLUDE_CN_GPU
 
 #define mix_and_propagate(xin) (xin)[(get_local_id(1)) % 8][get_local_id(0)] ^ (xin)[(get_local_id(1) + 1) % 8][get_local_id(0)]
 
