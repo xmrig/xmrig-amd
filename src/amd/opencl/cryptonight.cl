@@ -1684,7 +1684,6 @@ __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global u
 
         ((uint8 *)h)[0] = vload8(0U, c_IV256);
 
-        #pragma unroll 4
         for(uint i = 0, bitlen = 0; i < 4; ++i)
         {
             if(i < 3)
@@ -1760,7 +1759,6 @@ __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global
 
         State[7] = 0x0001000000000000UL;
 
-        #pragma unroll 4
         for(uint i = 0; i < 4; ++i)
         {
             volatile ulong H[8], M[8];
