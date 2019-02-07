@@ -200,16 +200,14 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
 {
 	const uint gIdx = getIdx();
 
-#if(COMP_MODE==1)
+#   if (COMP_MODE==1)
 	if(gIdx < Threads)
 		return;
-#endif
+#   endif
 
 	uint chunk = get_local_id(0) / 16;
 
-#if(STRIDED_INDEX==0)
 	__global int* lpad = (__global int*)((__global char*)lpad_in + MEMORY * (gIdx/16));
-#endif
 
 	__local int4 smem2[1 * 4 * WORKSIZE];
 	__local int4 smemOut2[1 * 16 * WORKSIZE];
@@ -315,16 +313,14 @@ __kernel void cn0_cn_gpu(__global ulong *input, __global int *Scratchpad, __glob
     __local ulong State_buf[8 * 25];
 	__local ulong* State = State_buf + get_local_id(0) * 25;
 
-#if(COMP_MODE==1)
+#   if (COMP_MODE==1)
     // do not use early return here
 	if(gIdx < Threads)
-#endif
+#   endif
     {
         states += 25 * gIdx;
 
-#if(STRIDED_INDEX==0)
         Scratchpad = (__global int*)((__global char*)Scratchpad + MEMORY * gIdx);
-#endif
 
         if (get_local_id(1) == 0)
         {
@@ -368,10 +364,10 @@ __kernel void cn0_cn_gpu(__global ulong *input, __global int *Scratchpad, __glob
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-#if(COMP_MODE==1)
+#   if (COMP_MODE==1)
     // do not use early return here
 	if(gIdx < Threads)
-#endif
+#   endif
 	{
 		for(ulong i = get_local_id(1); i < MEMORY / 512; i += get_local_size(1))
 		{
@@ -402,21 +398,13 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     __local uint4 xin1[8][8];
     __local uint4 xin2[8][8];
 
-#if(COMP_MODE==1)
+#   if (COMP_MODE==1)
     // do not use early return here
     if(gIdx < Threads)
-#endif
+#   endif
     {
         states += 25 * gIdx;
-#if(STRIDED_INDEX==0)
         Scratchpad += gIdx * (MEMORY >> 4);
-#elif(STRIDED_INDEX==1)
-		Scratchpad += gIdx;
-#elif(STRIDED_INDEX==2)
-        Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + MEM_CHUNK * (gIdx % WORKSIZE);
-#elif(STRIDED_INDEX==3)
-		Scratchpad += (gIdx / WORKSIZE) * (MEMORY >> 4) * WORKSIZE + (gIdx % WORKSIZE);
-#endif
 
         #if defined(__Tahiti__) || defined(__Pitcairn__)
 
@@ -441,16 +429,16 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     __local uint4* xin2_load = &xin2[(get_local_id(1) + 1) % 8][get_local_id(0)];
     *xin2_store = (uint4)(0, 0, 0, 0);
 
-#if(COMP_MODE == 1)
+#   if (COMP_MODE == 1)
     // do not use early return here
     if (gIdx < Threads)
-#endif
+#   endif
     {
 
         #pragma unroll 2
         for(int i = 0, i1 = get_local_id(1); i < (MEMORY >> 7); ++i, i1 = (i1 + 16) % (MEMORY >> 4))
         {
-            text ^= Scratchpad[IDX((uint)i1)];
+            text ^= Scratchpad[(uint)i1];
             barrier(CLK_LOCAL_MEM_FENCE);
             text ^= *xin2_load;
 
@@ -460,7 +448,7 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
 
             *xin1_store = text;
 
-            text ^= Scratchpad[IDX((uint)i1 + 8u)];
+            text ^= Scratchpad[(uint)i1 + 8u];
             barrier(CLK_LOCAL_MEM_FENCE);
             text ^= *xin1_load;
 
@@ -493,20 +481,20 @@ __kernel void cn2_cn_gpu(__global uint4 *Scratchpad, __global ulong *states, __g
     }
 
     __local ulong State_buf[8 * 25];
-#if(COMP_MODE==1)
+#   if (COMP_MODE==1)
     // do not use early return here
     if(gIdx < Threads)
-#endif
+#   endif
     {
         vstore2(as_ulong2(text), get_local_id(1) + 4, states);
     }
 
     barrier(CLK_GLOBAL_MEM_FENCE);
 
-#if(COMP_MODE==1)
+#   if (COMP_MODE==1)
     // do not use early return here
     if(gIdx < Threads)
-#endif
+#   endif
     {
         if(!get_local_id(1))
         {
