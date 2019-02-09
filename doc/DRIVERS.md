@@ -1,6 +1,6 @@
 ## Windows
 
-#### Recomendented drivers:
+#### Recommended drivers:
 * [Adrenalin Edition 18.5.1](https://www.amd.com/en/support/kb/release-notes/rn-rad-win-18-5-1)
 * [Adrenalin Edition 18.5.2](https://www.amd.com/en/support/kb/release-notes/rn-rad-win-18-5-2)
 * [Adrenalin Edition 18.6.1](https://www.amd.com/en/support/kb/release-notes/rn-rad-win-18-6-1)
