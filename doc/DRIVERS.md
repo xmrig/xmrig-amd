@@ -9,6 +9,6 @@
 * Blockchain drivers not recommended to use for `cryptonight/2`.
 
 ## Linux
-#### Recomendented drivers:
+#### Recommended drivers:
 * [18.50](https://www.amd.com/en/support/kb/release-notes/rn-rad-lin-18-50-unified)
 * [ROCm 1.9.1+](https://github.com/RadeonOpenCompute/ROCm)
