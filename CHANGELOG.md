@@ -1,3 +1,6 @@
+# v2.11.1
+* Fixed regression, algorithm `cn-pico/trtl` was broken in v2.11.0.
+
 # v2.11.0
 - [#928](https://github.com/xmrig/xmrig/issues/928) Added support for new algorithm `cryptonight/gpu`, short alias `cn/gpu` (original name `cryptonight-gpu`), for upcoming [Ryo currency](https://ryo-currency.com) fork on February 14.
 - Fixed compatibility with AMD drivers, latest Windows/Linux drivers now supported.
