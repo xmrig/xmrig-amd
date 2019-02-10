@@ -1772,7 +1772,7 @@ __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global
         states += 25 * BranchBuf[idx];
 
         ulong State[8] = { 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0x0001000000000000UL };
-        volatile ulong H[8], M[8];
+        ulong H[8], M[8];
 
         for (uint i = 0; i < 3; ++i) {
             ((ulong8 *)M)[0] = vload8(i, states);
