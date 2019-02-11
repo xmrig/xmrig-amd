@@ -92,6 +92,10 @@ static AlgoData const algorithms[] = {
     { "cryptonight-turtle",             "cn-trtl",               xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
     { "cryptonight_turtle",             "cn_turtle",             xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
 #   endif
+
+#   ifndef XMRIG_NO_CN_GPU
+    { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
+#   endif
 };
 
 
@@ -111,6 +115,8 @@ static AlgoData const xmrStakAlgorithms[] = {
     { "cryptonight_masari",      nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
     { "cryptonight-bittube2",    nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE }, // bittube-miner
     { "cryptonight_alloy",       nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  }, // xmr-stak-alloy
+    { "cryptonight_turtle",      nullptr, xmrig::CRYPTONIGHT_PICO,  xmrig::VARIANT_TRTL },
+    { "cryptonight_gpu",         nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_GPU  },
 };
 #endif
 
@@ -128,7 +134,8 @@ static const char *variants[] = {
     "xfh",
     "fast2",
     "upx",
-    "turtle"
+    "turtle",
+    "gpu"
 };
 
 
