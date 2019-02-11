@@ -1,4 +1,4 @@
-# XCASH NVIDIA Miner
+# XCASH AMD Miner
 
 This program is based on XMRIG
 * This is the **AMD-mining** version, there is also a [CPU version](https://github.com/X-CASH-official/XCASH_CPU_Miner) and [NVIDIA GPU version](https://github.com/X-CASH-official/XCASH_NVIDIA_Miner).
@@ -102,6 +102,7 @@ export GPU_FORCE_64BIT_PTR=1
 export GPU_MAX_HEAP_SIZE=100
 export GPU_MAX_ALLOC_PERCENT=100
 export GPU_SINGLE_ALLOC_PERCENT=100
+```
 
 ### XCASH_AMD_Miner configuration
 This is an example for a 3 VEGA mining computer
