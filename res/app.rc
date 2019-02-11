@@ -24,7 +24,7 @@ VS_VERSION_INFO VERSIONINFO
         VALUE "FileDescription",  APP_DESC
         VALUE "FileVersion",      APP_VERSION
         VALUE "LegalCopyright",   APP_COPYRIGHT
-        VALUE "OriginalFilename", "xmrig-amd.exe"
+        VALUE "OriginalFilename", "XCASH_AMD_Miner"
         VALUE "ProductName",      APP_NAME
         VALUE "ProductVersion",   APP_VERSION
       END
