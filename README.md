@@ -23,7 +23,7 @@ Note: There is 0% dev fee
 ## Download
 * Binary releases: https://github.com/X-CASH-official/XCASH_AMD_Miner/releases
 * Git tree: https://github.com/X-CASH-official/XCASH_AMD_Miner.git
-* Clone with `git clone hhttps://github.com/X-CASH-official/XCASH_AMDA_Miner.git`
+* Clone with `git clone hhttps://github.com/X-CASH-official/XCASH_AMD_Miner.git`
 
 
 ## Usage
