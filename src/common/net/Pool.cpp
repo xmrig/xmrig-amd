@@ -415,7 +415,7 @@ void Pool::rebuild()
     addVariant(xmrig::VARIANT_2);
     addVariant(xmrig::VARIANT_1);
     addVariant(xmrig::VARIANT_0);
-    addVariant(xmrig::VARIANT_HALF);
+    addVariant(xmrig::VARIANT_XCASH);
     addVariant(xmrig::VARIANT_XTL);
     addVariant(xmrig::VARIANT_TUBE);
     addVariant(xmrig::VARIANT_MSR);

@@ -1,48 +1,32 @@
-# XMRig AMD
+# XCASH NVIDIA Miner
 
-[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/blob/master/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/network)
+This program is based on XMRIG
+* This is the **AMD-mining** version, there is also a [CPU version](https://github.com/X-CASH-official/XCASH_CPU_Miner) and [NVIDIA GPU version](https://github.com/X-CASH-official/XCASH_NVIDIA_Miner).
 
-XMRig is high performance Monero (XMR) OpenCL miner, with the official full Windows support.
-
-GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
-
-* This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
-
-:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
-
-<img src="https://xmrig.com/assets/img/screenshots/xmrig-amd-2.8.6.png" width="795" >
+Note: There is 0% dev fee
 
 #### Table of contents
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
-* [Build](https://github.com/xmrig/xmrig-amd/wiki/Build)
-* [Donations](#donations)
-* [Release checksums](#release-checksums)
-* [Contacts](#contacts)
+* [Example Usage](#example-usage)
+* [Build](#build-instructions)
 
 ## Features
 * High performance.
 * Official Windows support.
 * Support for backup (failover) mining server.
-* CryptoNight-Lite support for AEON.
 * Automatic GPU configuration.
 * Nicehash support.
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig-amd/releases
-* Git tree: https://github.com/xmrig/xmrig-amd.git
-  * Clone with `git clone https://github.com/xmrig/xmrig-amd.git`  :hammer: [Build instructions](https://github.com/xmrig/xmrig-amd/wiki/Build).
+* Binary releases: https://github.com/X-CASH-official/XCASH_AMD_Miner/releases
+* Git tree: https://github.com/X-CASH-official/XCASH_AMD_Miner.git
+* Clone with `git clone hhttps://github.com/X-CASH-official/XCASH_AMDA_Miner.git`
+
 
 ## Usage
-Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share configurations.
 
 ### Command line options
 ```
@@ -91,13 +75,77 @@ Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share 
   -V, --version                output version information and exit
 ```
 
-## Donations
-Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level`.
+## Example Usage
+### Setup the enviroment variables
 
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
+AMD usually works better when the following enviroment variables are set:  
+```
+GPU_FORCE_64BIT_PTR=1
+GPU_MAX_HEAP_SIZE=100
+GPU_MAX_ALLOC_PERCENT=100
+GPU_SINGLE_ALLOC_PERCENT=100
+```
 
-## Contacts
-* support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
-* [twitter](https://twitter.com/xmrig_dev)
+You will need to set these enviroment varaible on each boot of the computer.
+
+To set these on Windows type this in any command prompt:  
+```
+set GPU_FORCE_64BIT_PTR=1
+set GPU_MAX_HEAP_SIZE=100
+set GPU_MAX_ALLOC_PERCENT=100
+set GPU_SINGLE_ALLOC_PERCENT=100
+```
+
+To set these on Linux type this in any terminal:  
+```
+export GPU_FORCE_64BIT_PTR=1
+export GPU_MAX_HEAP_SIZE=100
+export GPU_MAX_ALLOC_PERCENT=100
+export GPU_SINGLE_ALLOC_PERCENT=100
+
+### XCASH_AMD_Miner configuration
+This is an example for a 3 VEGA mining computer
+In this example, we are:
+* Using the opencl platform 0 (try 1 and 2 if 0 gives an opencl error) `--opencl-platform=0`
+* Setting our devices we want to use (we specifiy the device twice for VEGA to use two threads per card) `--opencl-devices=0,0,1,1,2,2`
+* Setting the intensity to 1952 and the worksize to 16 per thread `--opencl-launch=1952x16,1952x16,1952x16,1952x16,1952x16,1952x16`
+* Setting the strided_index to 2 per thread `--opencl-strided-index=2,2,2,2,2,2`
+* Setting the mem_chunk to 2 per thread `--opencl-mem-chunk=2,2,2,2,2,2`
+* Setting the comp_mode to true per thread `--opencl-comp-mode=true,true,true,true,true,true`
+* Using keepalive for TCP packets to prevent a timeout `--keepalive`
+* Connecting to the official X-CASH mining pool `--url minexcash.com:3333`
+* Mining using "YOUR_XCASH_XCA_OR_XCB_ADDRESS" (replace YOUR_XCASH_XCA_OR_XCB_ADDRESS with your address) `--user YOUR_XCASH_XCA_OR_XCB_ADDRESS`
+* Using a password of YOUR_MINING_COMPUTER_NAME (replace YOUR_MINING_COMPUTER_NAME with any name for your mining computer) `--pass YOUR_MINING_COMPUTER_NAME`  
+
+`./XCASH_AMD_Miner --opencl-platform=0 --opencl-devices=0,0,1,1,2,2 --opencl-launch=1952x16,1952x16,1952x16,1952x16,1952x16,1952x16 --opencl-strided-index=2,2,2,2,2,2 --opencl-mem-chunk=2,2,2,2,2,2 --opencl-comp-mode=true,true,true,true,true,true --keepalive --url minexcash.com:3333 --user YOUR_XCASH_XCA_OR_XCB_ADDRESS --pass YOUR_MINING_COMPUTER_NAME`  
+
+## Build Instructions
+
+### Linux (Ubuntu)
+* Install dependencies  
+`sudo apt install git build-essential cmake libuv1-dev libmicrohttpd-dev libssl-dev`
+
+* Clone the repository  
+`git clone https://github.com/X-CASH-official/XCASH_AMD_Miner.git`
+
+* Create a build folder and build the program  
+`cd XCASH_AMD_Miner && mkdir build && cd build && cmake .. && make`
+
+### Windows
+* Install dependencies
+Make sure you install Visual Studio 2017 Community Edition
+https://visualstudio.microsoft.com/downloads/
+
+Download prebuilt dependencies from XMRig and then unzip them anywhere
+https://github.com/xmrig/xmrig-deps/releases
+Note: If you just installed Visual Studio 2017 you can use 3.3, If you already had it installed try 3.1 instead
+
+* Clone the repository   
+`git clone https://github.com/X-CASH-official/XCASH_AMD_Miner.git`
+
+* Create a build folder and build the program  
+Replace PREBUILT_DEPENDENCIES_DIRECTORY with the directory location of the prebuilt dependencies  
+`cd XCASH_AMD_Miner && mkdir build && cd build && cmake .. -G "Visual Studio 15 2017 Win64" -DXMRIG_DEPS=PREBUILT_DEPENDENCIES_DIRECTORY && cmake --build . --config Release`
+
+If you get errors about redefintion of structs you might need to build without HTTPD and TLS (meaning the API and TSL will not work)  
+`cd XCASH_AMD_Miner && mkdir build && cd build && cmake .. -G "Visual Studio 15 2017 Win64" -DXMRIG_DEPS=PREBUILT_DEPENDENCIES_DIRECTORY -DWITH_HTTPD=OFF -DWITH_TLS=OFF && cmake --build . --config Release`

@@ -40,7 +40,7 @@ namespace xmrig
 constexpr const size_t   CRYPTONIGHT_MEMORY       = 2 * 1024 * 1024;
 constexpr const uint32_t CRYPTONIGHT_MASK         = 0x1FFFF0;
 constexpr const uint32_t CRYPTONIGHT_ITER         = 0x80000;
-constexpr const uint32_t CRYPTONIGHT_HALF_ITER    = 0x40000;
+constexpr const uint32_t CRYPTONIGHT_XCASH_ITER   = 0x100000;
 constexpr const uint32_t CRYPTONIGHT_XAO_ITER     = 0x100000;
 
 constexpr const uint32_t CRYPTONIGHT_GPU_ITER     = 0xC000;
@@ -127,8 +127,8 @@ template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_0>()   
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_1>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_2>()          { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XTL>()        { return CRYPTONIGHT_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_HALF>()       { return CRYPTONIGHT_HALF_ITER; }
-template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()        { return CRYPTONIGHT_HALF_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XCASH>()       { return CRYPTONIGHT_XCASH_ITER; }
+template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_MSR>()        { return CRYPTONIGHT_XCASH_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_XAO>()        { return CRYPTONIGHT_XAO_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_RTO>()        { return CRYPTONIGHT_ITER; }
 template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_GPU>()        { return CRYPTONIGHT_GPU_ITER; }
@@ -144,8 +144,8 @@ inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 {
     switch (variant) {
     case VARIANT_MSR:
-    case VARIANT_HALF:
-        return CRYPTONIGHT_HALF_ITER;
+    case VARIANT_XCASH:
+        return CRYPTONIGHT_XCASH_ITER;
 
     case VARIANT_GPU:
         return CRYPTONIGHT_GPU_ITER;
@@ -192,7 +192,7 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_XHV>()   { return VA
 template<> inline constexpr Variant cn_base_variant<VARIANT_XAO>()   { return VARIANT_0; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_RTO>()   { return VARIANT_1; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_2>()     { return VARIANT_2; }
-template<> inline constexpr Variant cn_base_variant<VARIANT_HALF>()  { return VARIANT_2; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_XCASH>()  { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_TRTL>()  { return VARIANT_2; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_GPU>()   { return VARIANT_GPU; }
 

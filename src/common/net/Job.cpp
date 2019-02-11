@@ -127,10 +127,10 @@ bool Job::setBlob(const char *blob)
 
     if (!m_algorithm.isForced()) {
         if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] >= 9) {
-            m_algorithm.setVariant(xmrig::VARIANT_HALF);
+            m_algorithm.setVariant(xmrig::VARIANT_XCASH);
         }
         else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
-            m_algorithm.setVariant(xmrig::VARIANT_HALF);
+            m_algorithm.setVariant(xmrig::VARIANT_XCASH);
         }
     }
 

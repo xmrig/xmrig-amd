@@ -28,6 +28,8 @@
 #include <string.h>
 #include <uv.h>
 
+#include "xcashAlgorithm.h"
+
 
 #ifndef XMRIG_NO_HTTPD
 #   include <microhttpd.h>
@@ -115,17 +117,15 @@ void xmrig::CommonConfig::printPools()
         if (!isColors()) {
             Log::i()->text(" * POOL #%-7zu%s variant=%s, TLS=%d",
                            i + 1,
-                           m_activePools[i].url(),
-                           m_activePools[i].algorithm().variantName(),
+                           m_activePools[i].url(),XCASH_ALGORITHM,
                            static_cast<int>(m_activePools[i].isTLS())
                            );
         }
         else {
-            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m variant " WHITE_BOLD("%s"),
+            Log::i()->text(GREEN_BOLD(" * ") WHITE_BOLD("POOL #%-7zu") "\x1B[1;%dm%s\x1B[0m variant " WHITE_BOLD(XCASH_ALGORITHM),
                            i + 1,
                            m_activePools[i].isTLS() ? 32 : 36,
-                           m_activePools[i].url(),
-                           m_activePools[i].algorithm().variantName()
+                           m_activePools[i].url()
                            );
         }
     }
@@ -330,10 +330,8 @@ bool xmrig::CommonConfig::parseBoolean(int key, bool enable)
 
 bool xmrig::CommonConfig::parseString(int key, const char *arg)
 {
+m_algorithm.parseAlgorithm(XCASH_ALGORITHM);
     switch (key) {
-    case AlgorithmKey: /* --algo */
-        m_algorithm.parseAlgorithm(arg);
-        break;
 
     case UserpassKey: /* --userpass */
         if (!currentPool().setUserpass(arg)) {

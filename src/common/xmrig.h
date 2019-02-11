@@ -71,7 +71,7 @@ enum Variant {
     VARIANT_XAO  = 6,  // Modified CryptoNight variant 0 (Alloy only)
     VARIANT_RTO  = 7,  // Modified CryptoNight variant 1 (Arto only)
     VARIANT_2    = 8,  // CryptoNight variant 2
-    VARIANT_HALF = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
+    VARIANT_XCASH = 9,  // CryptoNight variant 2 with half iterations (Masari/Stellite)
     VARIANT_TRTL = 10, // CryptoNight Turtle (TRTL)
     VARIANT_GPU  = 11, // CryptoNight-GPU (Ryo)
     VARIANT_MAX

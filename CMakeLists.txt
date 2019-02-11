@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
-project(xmrig-amd)
+project(XCASH_AMD_Miner)
 
-option(WITH_AEON      "CryptoNight-Lite support" ON)
-option(WITH_SUMO      "CryptoNight-Heavy support" ON)
-option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
-option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
+option(WITH_AEON      "CryptoNight-Lite support" OFF)
+option(WITH_SUMO      "CryptoNight-Heavy support" OFF)
+option(WITH_CN_PICO   "CryptoNight-Pico support" OFF)
+option(WITH_CN_GPU    "CryptoNight-GPU support" OFF)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_TLS       "Enable OpenSSL support" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
@@ -19,6 +19,7 @@ include (cmake/cpu.cmake)
 
 
 set(HEADERS
+    src/xcashAlgorithm.h
     src/amd/cryptonight.h
     src/amd/GpuContext.h
     src/amd/OclCache.h

@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "xcashAlgorithm.h"
+
 
 #include "common/crypto/Algorithm.h"
 
@@ -62,8 +64,8 @@ static AlgoData const algorithms[] = {
     { "cryptonight/xao",       "cn/xao",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  },
     { "cryptonight/rto",       "cn/rto",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
     { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
-    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
-    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_HALF },
+    { XCASH_ALGORITHM,      XCASH_ALGORITHM,      xmrig::CRYPTONIGHT,       xmrig::VARIANT_XCASH },
+    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_XCASH },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -212,7 +214,7 @@ void xmrig::Algorithm::parseVariant(const char *variant)
     }
 
     if (strcasecmp(variant, "xtlv9") == 0) {
-        m_variant = VARIANT_HALF;
+        m_variant = VARIANT_XCASH;
     }
 }
 

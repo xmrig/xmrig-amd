@@ -103,7 +103,7 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define VARIANT_XAO  6  // Modified CryptoNight variant 0 (Alloy only)
 #define VARIANT_RTO  7  // Modified CryptoNight variant 1 (Arto only)
 #define VARIANT_2    8  // CryptoNight variant 2
-#define VARIANT_HALF 9  // CryptoNight variant 2 with half iterations (Masari/Stellite)
+#define VARIANT_XCASH 9  // CryptoNight variant 2 with half iterations (Masari/Stellite)
 #define VARIANT_TRTL 10 // CryptoNight Turtle (TRTL)
 #define VARIANT_GPU  11 // CryptoNight-GPU (Ryo)
 

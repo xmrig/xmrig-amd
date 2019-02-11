@@ -94,8 +94,8 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_2>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_HALF>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_HALF>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_XCASH>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_XCASH>,
 
         nullptr, nullptr, // VARIANT_TRTL
 
@@ -120,7 +120,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
-        nullptr, nullptr, // VARIANT_HALF
+        nullptr, nullptr, // VARIANT_XCASH
         nullptr, nullptr, // VARIANT_TRTL
         nullptr, nullptr, // VARIANT_GPU
 #       else
@@ -150,7 +150,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
-        nullptr, nullptr, // VARIANT_HALF
+        nullptr, nullptr, // VARIANT_XCASH
         nullptr, nullptr, // VARIANT_TRTL
         nullptr, nullptr, // VARIANT_GPU
 #       else
@@ -171,7 +171,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
-        nullptr, nullptr, // VARIANT_HALF
+        nullptr, nullptr, // VARIANT_XCASH
 
         cryptonight_single_hash<CRYPTONIGHT_PICO, false, VARIANT_TRTL>,
         cryptonight_single_hash<CRYPTONIGHT_PICO, true,  VARIANT_TRTL>,
@@ -239,7 +239,7 @@ bool CryptoNight::selfTest() {
 #              ifndef XMRIG_NO_CN_GPU
                verify(VARIANT_GPU,  test_output_gpu) &&
 #              endif
-               verify(VARIANT_HALF, test_output_half);
+               verify(VARIANT_XCASH, test_output_half);
     }
 
 #   ifndef XMRIG_NO_AEON

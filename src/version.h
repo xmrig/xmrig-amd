@@ -25,18 +25,18 @@
 #ifndef XMRIG_VERSION_H
 #define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig-amd"
-#define APP_NAME      "XMRig-AMD"
-#define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.11.1"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2018 xmrig.com"
+#define APP_ID        "XCASH_AMD_Miner"
+#define APP_NAME      "XCASH_AMD_Miner"
+#define APP_DESC      "XCASH_AMD_Miner"
+#define APP_VERSION   "1.0.0"
+#define APP_DOMAIN    ""
+#define APP_SITE      ""
+#define APP_COPYRIGHT ""
 #define APP_KIND      "amd"
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  11
-#define APP_VER_PATCH  1
+#define APP_VER_MAJOR  1
+#define APP_VER_MINOR  0
+#define APP_VER_PATCH  0
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1910)

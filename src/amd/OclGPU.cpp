@@ -101,7 +101,7 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_TRTL:
         return 11;
 
-    case xmrig::VARIANT_HALF:
+    case xmrig::VARIANT_XCASH:
         return 12;
 
 #   ifndef XMRIG_NO_CN_GPU
