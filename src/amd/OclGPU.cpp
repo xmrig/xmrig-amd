@@ -566,7 +566,9 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     const int cn1_kernel_offset = cn1KernelOffset(variant);
 
     if (variant == xmrig::VARIANT_WOW) {
+#       ifdef APP_DEBUG
         const int64_t timeStart = xmrig::steadyTimestamp();
+#       endif
 
         // Get new kernel
         cl_program program = CryptonightR_get_program(ctx, variant, height);
@@ -588,8 +590,10 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
             // Precompile next program in background
             CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
 
+#           ifdef APP_DEBUG
             const int64_t timeFinish = xmrig::steadyTimestamp();
             LOG_INFO("Thread #%zu updated CryptonightR in %.3fs", ctx->threadIdx, (timeFinish - timeStart) / 1000.0);
+#           endif
         }
     }
 
