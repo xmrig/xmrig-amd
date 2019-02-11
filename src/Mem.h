@@ -6,7 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,39 +23,56 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef XMRIG_OCLGPU_H
-#define XMRIG_OCLGPU_H
-
-
-#include <vector>
+#ifndef XMRIG_MEM_H
+#define XMRIG_MEM_H
 
 
-#include "amd/GpuContext.h"
+#include <stddef.h>
+#include <stdint.h>
+
+
 #include "common/xmrig.h"
 
 
-namespace xmrig {
-    class Config;
-}
+struct cryptonight_ctx;
 
 
-class OclGPU
+struct MemInfo
 {
-public:
-    static int findPlatformIdx(xmrig::Config *config);
-    static std::vector<GpuContext> getDevices(xmrig::Config *config);
+    alignas(16) uint8_t *memory;
 
-private:
-    static int findPlatformIdx(xmrig::OclVendor vendor, char *name, size_t nameSize);
+    size_t hugePages;
+    size_t pages;
+    size_t size;
 };
 
 
-void printPlatforms();
+class Mem
+{
+public:
+    enum Flags {
+        HugepagesAvailable = 1,
+        HugepagesEnabled   = 2,
+        Lock               = 4
+    };
 
-size_t InitOpenCL(GpuContext *ctx, size_t num_gpus, xmrig::Config *config, cl_context *opencl_ctx);
-size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant, uint64_t height);
-size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant);
-void ReleaseOpenCl(GpuContext* ctx);
-void ReleaseOpenClContext(cl_context opencl_ctx);
-#endif /* XMRIG_OCLGPU_H */
+    static MemInfo create(cryptonight_ctx **ctx, xmrig::Algo algorithm, size_t count);
+    static void init(bool enabled);
+    static void release(cryptonight_ctx **ctx, size_t count, MemInfo &info);
+
+    static void *allocateExecutableMemory(size_t size);
+    static void protectExecutableMemory(void *p, size_t size);
+    static void flushInstructionCache(void *p, size_t size);
+
+    static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
+
+private:
+    static void allocate(MemInfo &info, bool enabled);
+    static void release(MemInfo &info);
+
+    static int m_flags;
+    static bool m_enabled;
+};
+
+
+#endif /* XMRIG_MEM_H */
