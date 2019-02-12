@@ -1,6 +1,6 @@
 #ifndef xcashAlgorithm_H_   /* Include guard */
 #define xcashAlgorithm_H_
 
-#define XCASH_ALGORITHM "cryptonight/xcash"
+#define XCASH_ALGORITHM "cryptonight/HeavyX"
 
 #endif
