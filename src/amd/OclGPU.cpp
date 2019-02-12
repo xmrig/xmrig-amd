@@ -69,7 +69,7 @@ inline static int cn0KernelOffset(xmrig::Variant variant)
 {
 #   ifndef XMRIG_NO_CN_GPU
     if (variant == xmrig::VARIANT_GPU) {
-        return 13;
+        return 15;
     }
 #   endif
 
@@ -112,7 +112,7 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
 
 #   ifndef XMRIG_NO_CN_GPU
     case xmrig::VARIANT_GPU:
-        return 14;
+        return 16;
 #   endif
 
     default:
@@ -128,7 +128,7 @@ inline static int cn2KernelOffset(xmrig::Variant variant)
 {
 #   ifndef XMRIG_NO_CN_GPU
     if (variant == xmrig::VARIANT_GPU) {
-        return 15;
+        return 17;
     }
 #   endif
 
@@ -552,11 +552,13 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
         return OCL_ERR_API;
     }
 
-    // variant
-    const cl_uint v = static_cast<cl_uint>(variant);
-    if ((ret = OclLib::setKernelArg(ctx->Kernels[0], 4, sizeof(cl_uint), &v)) != CL_SUCCESS) {
-        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 0, 4);
-        return OCL_ERR_API;
+    if (variant != xmrig::VARIANT_GPU) {
+        // variant
+        const auto v = static_cast<cl_uint>(variant);
+        if ((ret = OclLib::setKernelArg(ctx->Kernels[cn0_kernel_offset], 4, sizeof(cl_uint), &v)) != CL_SUCCESS) {
+            LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn0_kernel_offset, 4);
+            return OCL_ERR_API;
+        }
     }
 
     // CN1 Kernel
@@ -576,7 +578,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     }
     else {
         // variant
-        const cl_uint v = static_cast<cl_uint>(variant);
+        const auto v = static_cast<cl_uint>(variant);
         if ((ret = OclLib::setKernelArg(ctx->Kernels[cn1_kernel_offset], 2, sizeof(cl_uint), &v)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn1_kernel_offset, 2);
             return OCL_ERR_API;
@@ -637,6 +639,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
         }
 
         // variant
+        const auto v = static_cast<cl_uint>(variant);
         if ((ret = OclLib::setKernelArg(ctx->Kernels[cn2_kernel_offset], 7, sizeof(cl_uint), &v)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 7);
             return OCL_ERR_API;
