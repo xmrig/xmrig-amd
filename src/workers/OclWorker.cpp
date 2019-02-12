@@ -239,7 +239,7 @@ void OclWorker::setJob()
 {
     memcpy(m_blob, m_job.blob(), sizeof(m_blob));
 
-    XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.algorithm().variant());
+    XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.algorithm().variant(), m_job.height());
 }
 
 

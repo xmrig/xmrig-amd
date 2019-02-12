@@ -41,16 +41,21 @@ public:
 
     bool load();
 
+    static void get_options(xmrig::Algo algo, xmrig::Variant variant, const GpuContext* ctx, char* options, size_t options_size);
+    static bool get_device_string(int platform, cl_device_id device, std::string& result);
+    static void calc_hash(const std::string& device_string, const char* source_code, const char *options, std::string& hash);
+    static cl_int wait_build(cl_program program, cl_device_id device);
+    static int amdDriverMajorVersion(const GpuContext* ctx);
+    static void sleep(size_t ms);
+
 private:
     bool prepare(const char *options);
     bool save(int dev_id, cl_uint num_devices) const;
     cl_uint numDevices() const;
-    int amdDriverMajorVersion() const;
     int devId(cl_uint num_devices) const;
     void createDirectory() const;
 
     static std::string prefix();
-    static void sleep(size_t sec);
 
     cl_context m_oclCtx;
     const char *m_sourceCode;
