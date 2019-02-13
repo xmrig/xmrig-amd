@@ -1,3 +1,7 @@
+# v2.12.0
+- [#218](https://github.com/xmrig/xmrig-amd/pull/218) Added support for new algorithm `cryptonight/wow`, short alias `cn/wow` (also known as CryptonightR), for upcoming [Wownero](http://wownero.org) fork on February 14.
+- Improved `cryptonight/gpu` performance.
+
 # v2.11.1
 * Fixed regression, algorithm `cn-pico/trtl` was broken in v2.11.0.
 
