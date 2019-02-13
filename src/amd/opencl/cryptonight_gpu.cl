@@ -13,8 +13,6 @@ inline float4 _mm_sub_ps(float4 a, float4 b)
 
 inline float4 _mm_mul_ps(float4 a, float4 b)
 {
-
-    //#pragma OPENCL SELECT_ROUNDING_MODE rte
     return a * b;
 }
 
@@ -195,6 +193,12 @@ static const __constant float ccnt[16] = {
     1.4609375f
 };
 
+struct SharedMemChunk
+{
+    int4 out[16];
+    float4 va[16];
+};
+
 __attribute__((reqd_work_group_size(WORKSIZE * 16, 1, 1)))
 __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThreads)
 {
@@ -210,13 +214,8 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
 
     __global int* lpad = (__global int*)((__global char*)lpad_in + MEMORY * (gIdx/16));
 
-    __local int4 smem2[1 * 4 * WORKSIZE];
-    __local int4 smemOut2[1 * 16 * WORKSIZE];
-    __local float4 smemVa2[1 * 16 * WORKSIZE];
-
-    __local int4* smem = smem2 + 4 * chunk;
-    __local int4* smemOut = smemOut2 + 16 * chunk;
-    __local float4* smemVa = smemVa2 + 16 * chunk;
+    __local struct SharedMemChunk smem_in[WORKSIZE];
+    __local struct SharedMemChunk* smem = smem_in + chunk;
 
     uint tid = get_local_id(0) % 16;
 
@@ -224,67 +223,72 @@ __kernel void cn1_cn_gpu(__global int *lpad_in, __global int *spad, uint numThre
     uint s = ((__global uint*)spad)[idxHash * 50] >> 8;
     float4 vs = (float4)(0);
 
+    // tid divided
+    const uint tidd = tid / 4;
+    // tid modulo
+    const uint tidm = tid % 4;
+    const uint block = tidd * 16 + tidm;
+
+    #pragma unroll 1
     for(size_t i = 0; i < 0xC000; i++)
     {
         mem_fence(CLK_LOCAL_MEM_FENCE);
-        ((__local int*)smem)[tid] = ((__global int*)scratchpad_ptr(s, tid/4, lpad))[tid%4];
+        int tmp = ((__global int*)scratchpad_ptr(s, tidd, lpad))[tidm];
+        ((__local int*)(smem->out))[tid] = tmp;
         mem_fence(CLK_LOCAL_MEM_FENCE);
-
-        float4 rc = vs;
 
         {
             single_comupte_wrap(
-                tid%4,
-                *(smem + look[tid][0]),
-                *(smem + look[tid][1]),
-                *(smem + look[tid][2]),
-                *(smem + look[tid][3]),
-                ccnt[tid], rc, smemVa + tid,
-                smemOut + tid
+                tidm,
+                *(smem->out + look[tid][0]),
+                *(smem->out + look[tid][1]),
+                *(smem->out + look[tid][2]),
+                *(smem->out + look[tid][3]),
+                ccnt[tid], vs, smem->va + tid,
+                smem->out + tid
             );
         }
         mem_fence(CLK_LOCAL_MEM_FENCE);
 
-        int4 tmp2;
-        if(tid % 4 == 0)
-        {
-            int4 out = _mm_xor_si128(smemOut[tid], smemOut[tid + 1]);
-            int4 out2 = _mm_xor_si128(smemOut[tid + 2], smemOut[tid + 3]);
-            out = _mm_xor_si128(out, out2);
-            tmp2 = out;
-            *scratchpad_ptr(s , tid/4, lpad) = _mm_xor_si128(smem[tid/4], out);
-        }
-        mem_fence(CLK_LOCAL_MEM_FENCE);
-        if(tid % 4 == 0)
-            smemOut[tid] = tmp2;
-        mem_fence(CLK_LOCAL_MEM_FENCE);
-        int4 out2 = smemOut[0] ^ smemOut[4] ^ smemOut[8] ^ smemOut[12];
+        int outXor = ((__local int*)smem->out)[block];
+        for(uint dd = block + 4; dd < (tidd + 1) * 16; dd += 4)
+            outXor ^= ((__local int*)smem->out)[dd];
 
-        if(tid%2 == 0)
-            smemVa[tid] = smemVa[tid] + smemVa[tid + 1];
-        if(tid%4 == 0)
-            smemVa[tid] = smemVa[tid] + smemVa[tid + 2];
-        if(tid%8 == 0)
-            smemVa[tid] = smemVa[tid] + smemVa[tid + 4];
-        if(tid%16 == 0)
-            smemVa[tid] = smemVa[tid] + smemVa[tid + 8];
-        vs = smemVa[0];
+        ((__global int*)scratchpad_ptr(s, tidd, lpad))[tidm] = outXor ^ tmp;
+        ((__local int*)smem->out)[tid] = outXor;
 
-        vs = fabs(vs); // take abs(va) by masking the float sign bit
-        float4 xx = _mm_mul_ps(vs, (float4)(16777216.0f));
-        // vs range 0 - 64
-        int4 tmp = convert_int4_rte(xx);
-        tmp = _mm_xor_si128(tmp, out2);
-        // vs is now between 0 and 1
-        vs = _mm_div_ps(vs, (float4)(64.0f));
-        s = tmp.x ^ tmp.y ^ tmp.z ^ tmp.w;
+        float va_tmp1 = ((__local float*)smem->va)[block] + ((__local float*)smem->va)[block + 4];
+        float va_tmp2 = ((__local float*)smem->va)[block+ 8] + ((__local float*)smem->va)[block + 12];
+        ((__local float*)smem->va)[tid] = va_tmp1 + va_tmp2;
+
+        mem_fence(CLK_LOCAL_MEM_FENCE);
+
+        int out2 = ((__local int*)smem->out)[tid] ^ ((__local int*)smem->out)[tid + 4 ] ^ ((__local int*)smem->out)[tid + 8] ^ ((__local int*)smem->out)[tid + 12];
+        va_tmp1 = ((__local float*)smem->va)[block] + ((__local float*)smem->va)[block + 4];
+        va_tmp2 = ((__local float*)smem->va)[block + 8] + ((__local float*)smem->va)[block + 12];
+        va_tmp1 = va_tmp1 + va_tmp2;
+        va_tmp1 = fabs(va_tmp1);
+
+        float xx = va_tmp1 * 16777216.0f;
+        int xx_int = (int)xx;
+        ((__local int*)smem->out)[tid] = out2 ^ xx_int;
+        ((__local float*)smem->va)[tid] = va_tmp1 / 64.0f;
+
+        mem_fence(CLK_LOCAL_MEM_FENCE);
+
+        vs = smem->va[0];
+        s = smem->out[0].x ^ smem->out[0].y ^ smem->out[0].z ^ smem->out[0].w;
     }
 }
 
 )==="
 R"===(
 
-inline void generate_512(ulong idx, __local ulong* in, __global ulong* out)
+static const __constant uint skip[3] = {
+    20,22,22
+};
+
+inline void generate_512(uint idx, __local ulong* in, __global ulong* out)
 {
     ulong hash[25];
 
@@ -292,19 +296,13 @@ inline void generate_512(ulong idx, __local ulong* in, __global ulong* out)
     for(int i = 1; i < 25; ++i)
         hash[i] = in[i];
 
-    keccakf1600_1(hash);
-    for(int i = 0; i < 20; ++i)
-        out[i] = hash[i];
-    out+=160/8;
-
-    keccakf1600_1(hash);
-    for(int i = 0; i < 22; ++i)
-        out[i] = hash[i];
-    out+=176/8;
-
-    keccakf1600_1(hash);
-    for(int i = 0; i < 22; ++i)
-        out[i] = hash[i];
+    for(int a = 0; a < 3;++a)
+    {
+        keccakf1600_1(hash);
+        for(int i = 0; i < skip[a]; ++i)
+            out[i] = hash[i];
+        out+=skip[a];
+    }
 }
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
@@ -362,10 +360,25 @@ __kernel void cn0_cn_gpu(__global ulong *input, __global int *Scratchpad, __glob
             }
         }
     }
+}
+
+__attribute__((reqd_work_group_size(64, 1, 1)))
+__kernel void cn00_cn_gpu(__global int *Scratchpad, __global ulong *states)
+{
+    const uint gIdx = getIdx() / 64;
+    __local ulong State[25];
+
+    states += 25 * gIdx;
+
+    Scratchpad = (__global int*)((__global char*)Scratchpad + MEMORY * gIdx);
+
+    for(int i = get_local_id(0); i < 25; i+=get_local_size(0))
+        State[i] = states[i];
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    for(ulong i = get_local_id(1); i < MEMORY / 512; i += get_local_size(1))
+
+    for(uint i = get_local_id(0); i < MEMORY / 512; i += get_local_size(0))
     {
         generate_512(i, State, (__global ulong*)((__global uchar*)Scratchpad + i*512));
     }
