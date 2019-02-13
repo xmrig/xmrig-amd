@@ -53,7 +53,7 @@ private:
 void printPlatforms();
 
 size_t InitOpenCL(GpuContext *ctx, size_t num_gpus, xmrig::Config *config, cl_context *opencl_ctx);
-size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant);
+size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant, uint64_t height);
 size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant);
 void ReleaseOpenCl(GpuContext* ctx);
 void ReleaseOpenClContext(cl_context opencl_ctx);
