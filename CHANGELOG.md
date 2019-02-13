@@ -1,3 +1,7 @@
+# 1.8.14
+- Rebase from XMRig-amd 2.11.0
+    - Integrated new RYO algo CN-GPU (algo: "cryptonight", variant: "gpu")
+- Added alias CN-HOSP for RTO algo (algo: "cryptonight", variant: "hosp" or variant: "rto")    
 # 1.8.12
 - Fixed cn-ultralite no suitable algo error when using xmrig-proxy
 - Added more names to the algo parse CN-Turtle/Ultralite
