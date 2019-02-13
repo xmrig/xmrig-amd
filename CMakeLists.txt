@@ -330,3 +330,6 @@ target_link_libraries(xmrigMiner-amd ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS
 if (WITH_TLS)
     target_link_libraries(xmrigMiner-amd xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
 endif (WITH_TLS)
+
+add_executable(xmrigDaemon-amd src/cc/XMRigd.cpp res/app.rc)
+set_target_properties(xmrigDaemon-amd PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
