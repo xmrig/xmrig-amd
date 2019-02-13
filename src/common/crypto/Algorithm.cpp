@@ -66,6 +66,8 @@ static AlgoData const algorithms[] = {
     { "cryptonight/fast2",     "cn/fast2",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2  },
     { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2  },
     { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2  },
+    { "cryptonight/hosp",      "cn/hosp",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
+    { "cryptonight/hospital",  "cn/hospital",  xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -92,6 +94,10 @@ static AlgoData const algorithms[] = {
     { "cryptonight-turtle",             "cn-trtl",               xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
     { "cryptonight_turtle",             "cn_turtle",             xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
 #   endif
+
+#   ifndef XMRIG_NO_CN_GPU
+    { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
+#   endif
 };
 
 
@@ -111,6 +117,8 @@ static AlgoData const xmrStakAlgorithms[] = {
     { "cryptonight_masari",      nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_MSR  },
     { "cryptonight-bittube2",    nullptr, xmrig::CRYPTONIGHT_HEAVY, xmrig::VARIANT_TUBE }, // bittube-miner
     { "cryptonight_alloy",       nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_XAO  }, // xmr-stak-alloy
+    { "cryptonight_turtle",      nullptr, xmrig::CRYPTONIGHT_PICO,  xmrig::VARIANT_TRTL },
+    { "cryptonight_gpu",         nullptr, xmrig::CRYPTONIGHT,       xmrig::VARIANT_GPU  },
 };
 #endif
 
@@ -128,7 +136,8 @@ static const char *variants[] = {
     "xfh",
     "fast2",
     "upx",
-    "turtle"
+    "turtle",
+    "gpu"
 };
 
 
@@ -221,11 +230,11 @@ void xmrig::Algorithm::parseVariant(const char *variant)
         m_variant = VARIANT_FAST_2;
     }
 
-    if (strcasecmp(variant, "half") == 0) {
-        m_variant = VARIANT_FAST_2;
+    if (strcasecmp(variant, "hosp") == 0 || strcasecmp(variant, "hospital") == 0) {
+        m_variant = VARIANT_RTO;
     }
 
-    if (strcasecmp(variant, "msr2") == 0) {
+    if (strcasecmp(variant, "half") == 0 || strcasecmp(variant, "msr2") == 0) {
         m_variant = VARIANT_FAST_2;
     }
 }

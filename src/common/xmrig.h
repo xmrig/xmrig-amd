@@ -75,6 +75,7 @@ enum Variant {
     VARIANT_FAST_2 = 10,    // Modified CryptoNight variant used by xtl v9 / msr v8
     VARIANT_UPX = 11,       // Modified CryptoNight-Lite variant upx
     VARIANT_TURTLE = 12,    // Modified CryptoNight-Ultralite variant turtle
+    VARIANT_GPU  = 13,      // CryptoNight-GPU (Ryo)
     VARIANT_MAX
 };
 

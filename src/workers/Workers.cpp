@@ -214,6 +214,7 @@ bool Workers::start(xmrig::Controller *controller)
     contexts.resize(m_threadsCount);
 
     const bool isCNv2 = controller->config()->isCNv2();
+
     for (size_t i = 0; i < m_threadsCount; ++i) {
         const OclThread *thread = static_cast<OclThread *>(threads[i]);
         if (isCNv2 && thread->stridedIndex() == 1) {
