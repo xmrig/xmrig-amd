@@ -93,6 +93,10 @@ void NetworkState::add(const SubmitResult &result, const char *error)
     m_latency.push_back(result.elapsed > 0xFFFF ? 0xFFFF : (uint16_t) result.elapsed);
 }
 
+void NetworkState::addGPUComputeError(int threadID){
+    gpuComputeErrors[threadID]++;
+}
+
 
 void NetworkState::setPool(const char *host, int port, const char *ip)
 {

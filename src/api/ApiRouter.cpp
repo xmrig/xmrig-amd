@@ -23,6 +23,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <string>
 #include <uv.h>
 
 #if _WIN32
@@ -271,6 +272,13 @@ void ApiRouter::getResults(rapidjson::Document &doc) const
     results.AddMember("best",      best, allocator);
     results.AddMember("error_log", rapidjson::Value(rapidjson::kArrayType), allocator);
 
+    rapidjson::Value gpuComputeErrors(rapidjson::kObjectType);
+    for (auto const& gpuError : m_network.gpuComputeErrors){
+        std::string s = std::to_string(gpuError.first);
+        rapidjson::Value index(s.c_str(), s.size(), allocator);
+        gpuComputeErrors.AddMember(index, gpuError.second, allocator);
+    }
+    results.AddMember("gpuComputeErrors", gpuComputeErrors, allocator);
     doc.AddMember("results", results, allocator);
 }
 

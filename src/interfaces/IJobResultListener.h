@@ -35,6 +35,7 @@ public:
     virtual ~IJobResultListener() {}
 
     virtual void onJobResult(const JobResult &result) = 0;
+    virtual void onComputeError(int threadID) = 0;
 };
 
 

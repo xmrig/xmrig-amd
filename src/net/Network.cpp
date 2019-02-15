@@ -134,6 +134,11 @@ void Network::onJobResult(const JobResult &result)
     m_strategy->submit(result);
 }
 
+void Network::onComputeError(int threadID)
+{
+    m_state.addGPUComputeError(threadID);
+}
+
 
 void Network::onPause(IStrategy *strategy)
 {
