@@ -99,7 +99,7 @@ App::~App()
 int App::exec()
 {
     if (m_controller->isDone()) {
-        return 0;
+        return 1;
     }
 
     if (!m_controller->isReady()) {
