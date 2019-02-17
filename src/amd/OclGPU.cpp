@@ -112,6 +112,7 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
 #   endif
 
     case xmrig::VARIANT_WOW:
+    case xmrig::VARIANT_4:
         return 17;
 
     default:
@@ -581,7 +582,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     // CN1 Kernel
     const int cn1_kernel_offset = cn1KernelOffset(variant);
 
-    if (variant == xmrig::VARIANT_WOW) {
+    if ((variant == xmrig::VARIANT_WOW) || (variant == xmrig::VARIANT_4)) {
 #       ifdef APP_DEBUG
         const int64_t timeStart = xmrig::steadyTimestamp();
 #       endif

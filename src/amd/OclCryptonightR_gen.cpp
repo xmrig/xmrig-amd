@@ -229,12 +229,6 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         return nullptr;
     }
 
-    if (variant != xmrig::VARIANT_WOW)
-    {
-        LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
-        return nullptr;
-    }
-
     const char* source_code_template =
         #include "opencl/wolf-aes.cl"
         #include "opencl/cryptonight_r.cl"
@@ -248,7 +242,19 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     }
 
     V4_Instruction code[256];
-    const int code_size = v4_random_math_init(code, height);
+    int code_size;
+    switch (variant)
+    {
+    case xmrig::VARIANT_WOW:
+        code_size = v4_random_math_init<xmrig::VARIANT_WOW>(code, height);
+        break;
+    case xmrig::VARIANT_4:
+        code_size = v4_random_math_init<xmrig::VARIANT_4>(code, height);
+        break;
+    default:
+        LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
+        return nullptr;
+    }
 
     std::string source_code(source_code_template, offset);
     source_code.append(get_code(code, code_size));
@@ -256,6 +262,10 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
 
     char options[512] = {};
     OclCache::get_options(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));
+
+    char variant_buf[64];
+    snprintf(variant_buf, sizeof(variant_buf), " -DVARIANT=%d", static_cast<int>(variant));
+    strcat(options, variant_buf);
 
     if (is_64bit(variant))
     {
