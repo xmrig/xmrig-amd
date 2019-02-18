@@ -43,7 +43,7 @@ xmrig::Algo CryptoNight::m_algorithm = xmrig::CRYPTONIGHT;
 xmrig::AlgoVerify CryptoNight::m_av  = xmrig::VERIFY_HW_AES;
 
 
-bool CryptoNight::hash(const Job &job, JobResult &result, cryptonight_ctx *ctx)
+bool CryptoNight::hash(const xmrig::Job &job, xmrig::JobResult &result, cryptonight_ctx *ctx)
 {
     fn(job.algorithm().variant())(job.blob(), job.size(), result.result, &ctx, job.height());
 
