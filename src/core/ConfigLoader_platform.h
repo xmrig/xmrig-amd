@@ -59,6 +59,7 @@ static struct option const options[] = {
     { "log-file",             1, nullptr, xmrig::IConfig::LogFileKey        },
     { "nicehash",             0, nullptr, xmrig::IConfig::NicehashKey       },
     { "no-color",             0, nullptr, xmrig::IConfig::ColorKey          },
+    { "no-watch",             0, nullptr, xmrig::IConfig::WatchKey          },
     { "variant",              1, nullptr, xmrig::IConfig::VariantKey        },
     { "pass",                 1, nullptr, xmrig::IConfig::PasswordKey       },
     { "print-time",           1, nullptr, xmrig::IConfig::PrintTimeKey      },
@@ -100,26 +101,12 @@ static struct option const config_options[] = {
     { "retry-pause",       1, nullptr, xmrig::IConfig::RetryPauseKey  },
     { "syslog",            0, nullptr, xmrig::IConfig::SyslogKey      },
     { "user-agent",        1, nullptr, xmrig::IConfig::UserAgentKey   },
+    { "watch",             0, nullptr, xmrig::IConfig::WatchKey       },
     { "opencl-platform",   1, nullptr, xmrig::IConfig::OclPlatformKey },
     { "cache",             0, nullptr, xmrig::IConfig::OclCacheKey    },
     { "opencl-loader",     1, nullptr, xmrig::IConfig::OclLoaderKey   },
     { "autosave",          0, nullptr, xmrig::IConfig::AutoSaveKey    },
     { nullptr,             0, nullptr, 0 }
-};
-
-
-static struct option const pool_options[] = {
-    { "url",             1, nullptr, xmrig::IConfig::UrlKey         },
-    { "pass",            1, nullptr, xmrig::IConfig::PasswordKey    },
-    { "user",            1, nullptr, xmrig::IConfig::UserKey        },
-    { "userpass",        1, nullptr, xmrig::IConfig::UserpassKey    },
-    { "nicehash",        0, nullptr, xmrig::IConfig::NicehashKey    },
-    { "keepalive",       2, nullptr, xmrig::IConfig::KeepAliveKey   },
-    { "variant",         1, nullptr, xmrig::IConfig::VariantKey     },
-    { "rig-id",          1, nullptr, xmrig::IConfig::RigIdKey       },
-    { "tls",             0, nullptr, xmrig::IConfig::TlsKey         },
-    { "tls-fingerprint", 1, nullptr, xmrig::IConfig::FingerprintKey },
-    { nullptr,           0, nullptr, 0 }
 };
 
 
