@@ -144,7 +144,7 @@ static cl_program CryptonightR_build_program(
         for (size_t i = 0; i < CryptonightR_cache.size();)
         {
             const CacheEntry& entry = CryptonightR_cache[i];
-            if ((entry.variant == variant) && (entry.height + 2 < height))
+            if ((entry.variant == variant) && (entry.height + PRECOMPILATION_DEPTH < height))
             {
                 //LOG_INFO("CryptonightR: program for height %llu released (old program)", entry.height);
                 old_programs.push_back(entry.program);

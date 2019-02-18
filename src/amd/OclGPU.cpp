@@ -606,6 +606,8 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
 
             // Precompile next program in background
             CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
+            for (int i = 2; i <= PRECOMPILATION_DEPTH; ++i)
+                CryptonightR_get_program(ctx, variant, height + i, true, nullptr);
 
 #           ifdef APP_DEBUG
             const int64_t timeFinish = xmrig::steadyTimestamp();
