@@ -40,7 +40,8 @@ namespace xmrig {
 
 class ConfigLoader;
 class IThread;
-class IWatcherListener;
+class IConfigListener;
+class Process;
 
 
 class Config : public CommonConfig
@@ -61,7 +62,7 @@ public:
     inline int platformIndex() const                     { return m_platformIndex; }
     inline xmrig::OclVendor vendor() const               { return m_vendor; }
 
-    static Config *load(int argc, char **argv, IWatcherListener *listener);
+    static Config *load(Process *process, IConfigListener *listener);
     static const char *vendorName(xmrig::OclVendor vendor);
 
 protected:
@@ -82,7 +83,7 @@ private:
     int m_platformIndex;
     OclCLI m_oclCLI;
     std::vector<IThread *> m_threads;
-    xmrig::c_str m_loader;
+    xmrig::String m_loader;
     xmrig::OclVendor m_vendor;
 };
 

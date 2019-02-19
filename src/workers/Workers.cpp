@@ -45,13 +45,12 @@
 
 bool Workers::m_active = false;
 bool Workers::m_enabled = true;
+cl_context Workers::m_opencl_ctx;
 Hashrate *Workers::m_hashrate = nullptr;
-IJobResultListener *Workers::m_listener = nullptr;
-Job Workers::m_job;
 size_t Workers::m_threadsCount = 0;
 std::atomic<int> Workers::m_paused;
 std::atomic<uint64_t> Workers::m_sequence;
-std::list<Job> Workers::m_queue;
+std::list<xmrig::Job> Workers::m_queue;
 std::vector<Handle*> Workers::m_workers;
 uint64_t Workers::m_ticks = 0;
 uv_async_t Workers::m_async;
@@ -59,7 +58,8 @@ uv_mutex_t Workers::m_mutex;
 uv_rwlock_t Workers::m_rwlock;
 uv_timer_t Workers::m_timer;
 xmrig::Controller *Workers::m_controller = nullptr;
-cl_context Workers::m_opencl_ctx;
+xmrig::IJobResultListener *Workers::m_listener = nullptr;
+xmrig::Job Workers::m_job;
 
 static std::vector<GpuContext> contexts;
 
@@ -67,8 +67,8 @@ static std::vector<GpuContext> contexts;
 struct JobBaton
 {
     uv_work_t request;
-    std::vector<Job> jobs;
-    std::vector<JobResult> results;
+    std::vector<xmrig::Job> jobs;
+    std::vector<xmrig::JobResult> results;
     int errors = 0;
 
     JobBaton() {
@@ -91,10 +91,10 @@ static size_t threadsCountByGPU(size_t index, const std::vector<xmrig::IThread *
 }
 
 
-Job Workers::job()
+xmrig::Job Workers::job()
 {
     uv_rwlock_rdlock(&m_rwlock);
-    Job job = m_job;
+    xmrig::Job job = m_job;
     uv_rwlock_rdunlock(&m_rwlock);
 
     return job;
@@ -161,7 +161,7 @@ void Workers::setEnabled(bool enabled)
 }
 
 
-void Workers::setJob(const Job &job, bool donate)
+void Workers::setJob(const xmrig::Job &job, bool donate)
 {
     uv_rwlock_wrlock(&m_rwlock);
     m_job = job;
@@ -251,9 +251,7 @@ bool Workers::start(xmrig::Controller *controller)
         handle->start(Workers::onReady);
     }
 
-    if (controller->config()->isShouldSave()) {
-        controller->config()->save();
-    }
+    controller->save();
 
     return true;
 }
@@ -277,7 +275,7 @@ void Workers::stop()
 }
 
 
-void Workers::submit(const Job &result)
+void Workers::submit(const xmrig::Job &result)
 {
     uv_mutex_lock(&m_mutex);
     m_queue.push_back(result);
@@ -339,8 +337,8 @@ void Workers::onResult(uv_async_t *handle)
             cryptonight_ctx *ctx;
             MemInfo info = Mem::create(&ctx, baton->jobs[0].algorithm().algo(), 1);
 
-            for (const Job &job : baton->jobs) {
-                JobResult result(job);
+            for (const xmrig::Job &job : baton->jobs) {
+                xmrig::JobResult result(job);
 
                 if (CryptoNight::hash(job, result, ctx)) {
                     baton->results.push_back(result);
@@ -355,7 +353,7 @@ void Workers::onResult(uv_async_t *handle)
         [](uv_work_t* req, int status) {
             JobBaton *baton = static_cast<JobBaton*>(req->data);
 
-            for (const JobResult &result : baton->results) {
+            for (const xmrig::JobResult &result : baton->results) {
                 m_listener->onJobResult(result);
             }
 

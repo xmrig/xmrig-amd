@@ -133,7 +133,7 @@ void OclWorker::start()
 }
 
 
-bool OclWorker::resume(const Job &job)
+bool OclWorker::resume(const xmrig::Job &job)
 {
     if (m_job.poolId() == -1 && job.poolId() >= 0 && job.id() == m_pausedJob.id()) {
         m_job        = m_pausedJob;
@@ -199,7 +199,7 @@ int64_t OclWorker::resumeDelay() const
 
 void OclWorker::consumeJob()
 {
-    Job job = Workers::job();
+    xmrig::Job job = Workers::job();
     m_sequence = Workers::sequence();
     if (m_job.id() == job.id() && m_job.clientId() == job.clientId()) {
         return;
@@ -226,7 +226,7 @@ void OclWorker::consumeJob()
 }
 
 
-void OclWorker::save(const Job &job)
+void OclWorker::save(const xmrig::Job &job)
 {
     if (job.poolId() == -1 && m_job.poolId() >= 0) {
         m_pausedJob   = m_job;
