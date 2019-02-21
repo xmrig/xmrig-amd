@@ -319,7 +319,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 bool CryptoNight::selfTest() {
     using namespace xmrig;
 
-    MemInfo info = Mem::create(&m_ctx, m_algorithm, 1);
+    Mem::create(&m_ctx, m_algorithm, 1);
 
     if (m_algorithm == xmrig::CRYPTONIGHT) {
         if (!verify2(VARIANT_WOW, test_input_WOW)) {
