@@ -47,11 +47,12 @@ public:
     inline GpuContext *ctx() const                { return m_ctx; }
     inline void setAffinity(int64_t affinity)     { m_affinity = affinity; }
 
-    inline xmrig::Algo algorithm() const override { return m_algorithm; }
+    inline Algo algorithm() const override        { return m_algorithm; }
     inline int priority() const override          { return -1; }
     inline int64_t affinity() const override      { return m_affinity; }
     inline Multiway multiway() const override     { return SingleWay; }
     inline Type type() const override             { return OpenCL; }
+    inline bool isValid() const override          { return intensity() > 0 && worksize() > 0; }
 
     size_t index() const override;
 

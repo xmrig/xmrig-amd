@@ -405,26 +405,27 @@ void printPlatforms()
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
 size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *config, cl_context *opencl_ctx)
 {
-    const size_t num_gpus                 = contexts.size();
-    const size_t platform_idx             = config->platformIndex();
-    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
-    cl_uint entries                       = platforms.size();
+    const size_t num_gpus                       = contexts.size();
+    const size_t platform_idx                   = static_cast<size_t>(config->platformIndex());
+    const std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
 
-    if (entries == 0) {
+    if (platforms.empty()) {
         return OCL_ERR_API;
     }
 
-    if (entries <= platform_idx) {
+    if (platforms.size() <= platform_idx) {
         return OCL_ERR_BAD_PARAMS;
     }
 
     cl_int ret;
+    cl_uint entries;
     if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceIDs for number of devices.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // Same as the platform index sanity check, except we must check all requested device indexes
+    // TODO remove duplicated checks, see xmrig::Config::filter Threads()
     for (size_t i = 0; i < num_gpus; ++i) {
         if (entries <= contexts[i]->deviceIdx) {
             LOG_ERR("Selected OpenCL device index %lu doesn't exist.\n", contexts[i]->deviceIdx);

@@ -50,7 +50,7 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
     }
 
     for (size_t i = 0; i < m_devices.size(); i++) {
-        xmrig::OclThread *thread = new xmrig::OclThread(m_devices[i], intensity(i), worksize(i), affinity(i));
+        xmrig::OclThread *thread = new xmrig::OclThread(static_cast<size_t>(m_devices[i]), static_cast<size_t>(intensity(i)), static_cast<size_t>(worksize(i)), affinity(i));
         thread->setStridedIndex(stridedIndex(i));
         thread->setMemChunk(memChunk(i));
         thread->setUnrollFactor(unrollFactor(i));
@@ -147,7 +147,7 @@ void OclCLI::parseLaunch(const char *arg)
         while (pch != nullptr && count < 2) {
             count++;
 
-            const int v = (int) strtoul(pch, nullptr, 10);
+            const int v = static_cast<int>(strtoul(pch, nullptr, 10));
             if (count == 1) {
                 m_intensity.push_back(v > 0 ? v : 0);
             }
@@ -167,13 +167,13 @@ void OclCLI::parseLaunch(const char *arg)
 }
 
 
-int OclCLI::get(const std::vector<int> &vector, int index, int defaultValue) const
+int OclCLI::get(const std::vector<int> &vector, size_t index, int defaultValue) const
 {
     if (vector.empty()) {
         return defaultValue;
     }
 
-    if (static_cast<int>(vector.size()) <= index) {
+    if (vector.size() <= index) {
         return vector.back();
     }
 
@@ -237,7 +237,7 @@ void OclCLI::parse(std::vector<int> &vector, const char *arg) const
     char *pch   = strtok(value, ",");
 
     while (pch != nullptr) {
-        vector.push_back((int) strtoul(pch, nullptr, 10));
+        vector.push_back(static_cast<int>(strtoul(pch, nullptr, 10)));
 
         pch = strtok(nullptr, ",");
     }
