@@ -79,10 +79,10 @@ bool xmrig::Config::isCNv2() const
         return false;
     }
 
-    for (const Pool &pool : pools()) {
+    for (const Pool &pool : m_pools.data()) {
         const Variant variant = pool.algorithm().variant();
 
-        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_HALF) {
+        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_HALF || variant == VARIANT_WOW) {
             return true;
         }
     }
@@ -114,6 +114,7 @@ bool xmrig::Config::oclInit()
         m_oclCLI.autoConf(m_threads, this);
     }
 
+    m_threads = filterThreads();
     return !m_threads.empty();
 }
 
@@ -151,17 +152,10 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("log-file",        logFile() ? Value(StringRef(logFile())).Move() : Value(kNullType).Move(), allocator);
     doc.AddMember("opencl-platform", vendor() == OCL_VENDOR_MANUAL ? Value(platformIndex()).Move() : Value(StringRef(vendorName(vendor()))).Move(), allocator);
     doc.AddMember("opencl-loader",   StringRef(loader()), allocator);
-
-    Value pools(kArrayType);
-
-    for (const Pool &pool : m_activePools) {
-        pools.PushBack(pool.toJSON(doc), allocator);
-    }
-
-    doc.AddMember("pools",         pools, allocator);
-    doc.AddMember("print-time",    printTime(), allocator);
-    doc.AddMember("retries",       retries(), allocator);
-    doc.AddMember("retry-pause",   retryPause(), allocator);
+    doc.AddMember("pools",           m_pools.toJSON(doc), allocator);
+    doc.AddMember("print-time",      printTime(), allocator);
+    doc.AddMember("retries",         m_pools.retries(), allocator);
+    doc.AddMember("retry-pause",     m_pools.retryPause(), allocator);
 
     Value threads(kArrayType);
     for (const IThread *thread : m_threads) {
@@ -175,9 +169,9 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 }
 
 
-xmrig::Config *xmrig::Config::load(int argc, char **argv, IWatcherListener *listener)
+xmrig::Config *xmrig::Config::load(Process *process, IConfigListener *listener)
 {
-    return static_cast<Config*>(ConfigLoader::load(argc, argv, new ConfigCreator(), listener));
+    return static_cast<Config*>(ConfigLoader::load(process, new ConfigCreator(), listener));
 }
 
 
@@ -305,6 +299,8 @@ bool xmrig::Config::parseUint64(int key, uint64_t arg)
 
 void xmrig::Config::parseJSON(const rapidjson::Document &doc)
 {
+    CommonConfig::parseJSON(doc);
+
     const rapidjson::Value &threads = doc["threads"];
 
     if (threads.IsArray()) {
@@ -318,6 +314,40 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             }
         }
     }
+}
+
+
+std::vector<xmrig::IThread *> xmrig::Config::filterThreads() const
+{
+    std::vector<IThread *> threads;
+    const size_t platform_idx                   = static_cast<size_t>(platformIndex());
+    const std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+
+    if (platforms.empty() || platforms.size() <= platform_idx) {
+        return threads;
+    }
+
+    cl_int ret;
+    cl_uint entries;
+    if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
+        return threads;
+    }
+
+    for (IThread *thread : m_threads) {
+        if (thread->isValid() && thread->index() < entries) {
+            threads.push_back(thread);
+
+            continue;
+        }
+
+        if (entries <= thread->index()) {
+            LOG_ERR("Selected OpenCL device index %zu doesn't exist.", thread->index());
+        }
+
+        delete thread;
+    }
+
+    return threads;
 }
 
 
