@@ -261,7 +261,7 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     source_code.append(offset + sizeof(include_name) - 1);
 
     char options[512] = {};
-    OclCache::get_options(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));
+    OclCache::getOptions(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));
 
     char variant_buf[64];
     snprintf(variant_buf, sizeof(variant_buf), " -DVARIANT=%d", static_cast<int>(variant));

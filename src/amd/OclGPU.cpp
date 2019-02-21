@@ -723,7 +723,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     memset(BranchNonces,0,sizeof(size_t)*4);
 
     size_t g_intensity = ctx->rawIntensity;
-    size_t w_size = ctx->workSize;
+    size_t w_size = OclCache::worksize(ctx, variant);
     // round up to next multiple of w_size
     size_t g_thd = ((g_intensity + w_size - 1u) / w_size) * w_size;
     // number of global threads must be a multiple of the work group size (w_size)
