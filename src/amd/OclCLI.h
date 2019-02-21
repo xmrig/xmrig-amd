@@ -32,13 +32,13 @@
 #include "common/xmrig.h"
 
 
-class OclThread;
 struct GpuContext;
 
 
 namespace xmrig {
     class Config;
     class IThread;
+    class OclThread;
 }
 
 
@@ -78,7 +78,7 @@ private:
 
     int get(const std::vector<int> &vector, int index, int defaultValue) const;
     int getHints(const GpuContext &ctx, xmrig::Config *config) const;
-    OclThread *createThread(const GpuContext &ctx, size_t intensity, int hints) const;
+    xmrig::OclThread *createThread(const GpuContext &ctx, size_t intensity, int hints) const;
     void parse(std::vector<int> &vector, const char *arg) const;
 
     static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints);

@@ -50,7 +50,7 @@ bool OclCLI::setup(std::vector<xmrig::IThread *> &threads)
     }
 
     for (size_t i = 0; i < m_devices.size(); i++) {
-        OclThread *thread = new OclThread(m_devices[i], intensity(i), worksize(i), affinity(i));
+        xmrig::OclThread *thread = new xmrig::OclThread(m_devices[i], intensity(i), worksize(i), affinity(i));
         thread->setStridedIndex(stridedIndex(i));
         thread->setMemChunk(memChunk(i));
         thread->setUnrollFactor(unrollFactor(i));
@@ -206,7 +206,7 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
 }
 
 
-OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hints) const
+xmrig::OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hints) const
 {
     const size_t worksize = worksizeByHints(hints);
     intensity -= intensity % worksize;
@@ -219,7 +219,7 @@ OclThread *OclCLI::createThread(const GpuContext &ctx, size_t intensity, int hin
         stridedIndex = 2;
     }
 
-    OclThread *thread = new OclThread(ctx.deviceIdx, intensity, worksize);
+    xmrig::OclThread *thread = new xmrig::OclThread(ctx.deviceIdx, intensity, worksize);
     thread->setStridedIndex(stridedIndex);
     thread->setCompMode(false);
 
