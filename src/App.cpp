@@ -147,10 +147,6 @@ int xmrig::App::exec()
         uv_async_init(uv_default_loop(), &m_async, xmrig::App::onCommandReceived);
 
         m_ccclient = new CCClient(m_controller->config(), &m_async);
-
-        if (!m_controller->config()->pools().data().empty()) {
-            LOG_WARN("No pool URL supplied, but CC server configured. Trying.");
-        }
     } else {
         LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
     }
