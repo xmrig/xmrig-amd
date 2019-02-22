@@ -59,6 +59,8 @@ xmrig::App::App(Process *process) :
     m_ccclient(nullptr),
     m_hashrateMonitor(nullptr)
 {
+    m_self = this;
+
     m_controller = new xmrig::Controller(process);
     if (m_controller->init() != 0) {
         return;
@@ -212,7 +214,6 @@ void xmrig::App::stop(bool restart)
 
     m_controller->network()->stop();
     Workers::stop(restart);
-
 
     uv_stop(uv_default_loop());
 }
