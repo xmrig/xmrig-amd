@@ -39,7 +39,7 @@ public:
     ~HashrateMonitor();
 
     static void updateHashrate(const Hashrate *hashrate, bool isDonation);
-    static void updateNetworkState(const NetworkState& network);
+    static void updateNetworkState(const xmrig::NetworkState& network);
 
 private:
     static void onThreadStarted(void *handle);

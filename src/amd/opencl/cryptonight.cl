@@ -106,7 +106,8 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define VARIANT_XFH  9  // CryptoNight variant xfh aka cn-heavy-superfast
 #define VARIANT_FAST_2  10  // CryptoNight variant 2 with half iterations (Masari/Stellite)
 #define VARIANT_TURTLE  11  // CryptoNight Turtle (TRTL)
-#define VARIANT_GPU  13 // CryptoNight-GPU (Ryo)
+#define VARIANT_UPX  12     // CryptoNight UPX
+#define VARIANT_GPU  13     // CryptoNight-GPU (Ryo)
 
 #define CRYPTONIGHT       0 /* CryptoNight (2 MB) */
 #define CRYPTONIGHT_LITE  1 /* CryptoNight (1 MB) */

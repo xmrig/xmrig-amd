@@ -34,32 +34,59 @@
 #include "crypto/CryptoNight_constants.h"
 
 
-struct cryptonight_ctx {
-    uint8_t state[224];
-    uint8_t *memory;
+#ifdef _MSC_VER
+#define ABI_ATTRIBUTE
+#else
+#define ABI_ATTRIBUTE __attribute__((ms_abi))
+#endif
+
+struct cryptonight_ctx;
+
+namespace xmrig {
+    namespace CpuThread {
+        typedef void(*cn_mainloop_fun)(cryptonight_ctx*);
+        typedef void(*cn_mainloop_double_fun)(cryptonight_ctx*, cryptonight_ctx*);
+    }
+
+    class Job;
+    class JobResult;
+}
+
+typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx*) ABI_ATTRIBUTE;
+typedef void(*cn_mainloop_double_fun_ms_abi)(cryptonight_ctx*, cryptonight_ctx*) ABI_ATTRIBUTE;
+
+struct cryptonight_r_data {
+    int variant;
+    uint64_t height;
+
+    bool match(const int v, const uint64_t h) const { return (v == variant) && (h == height); }
 };
 
-
-class Job;
-class JobResult;
+struct cryptonight_ctx {
+    alignas(16) uint8_t state[224];
+    alignas(16) uint8_t *memory;
+    cn_mainloop_fun_ms_abi generated_code;
+    cn_mainloop_double_fun_ms_abi generated_code_double;
+    cryptonight_r_data generated_code_data;
+    cryptonight_r_data generated_code_double_data;
+};
 
 
 class CryptoNight
 {
 public:
-    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx);
+    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx, uint64_t height);
 
     static inline cn_hash_fun fn(xmrig::Variant variant) { return fn(m_algorithm, m_av, variant); }
 
-    static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
+    static bool hash(const xmrig::Job &job, xmrig::JobResult &result, cryptonight_ctx *ctx);
     static bool init(xmrig::Algo algorithm);
     static cn_hash_fun fn(xmrig::Algo algorithm, xmrig::AlgoVerify av, xmrig::Variant variant);
-    static cryptonight_ctx *createCtx(xmrig::Algo algorithm);
-    static void freeCtx(cryptonight_ctx *ctx);
 
 private:
     static bool selfTest();
     static bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
+    static bool verify2(xmrig::Variant variant, const char *test_data);
 
     alignas(16) static cryptonight_ctx *m_ctx;
     static xmrig::Algo m_algorithm;

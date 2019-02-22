@@ -73,7 +73,7 @@ void HashrateMonitor::updateHashrate(const Hashrate* hashrate, bool isDonation)
     }
 }
 
-void HashrateMonitor::updateNetworkState(const NetworkState& network)
+void HashrateMonitor::updateNetworkState(const xmrig::NetworkState& network)
 {
     if (m_self){
         uv_mutex_lock(&m_mutex);
