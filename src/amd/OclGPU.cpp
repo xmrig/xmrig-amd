@@ -493,6 +493,9 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
     const char *cryptonightCL =
             #include "./opencl/cryptonight.cl"
     ;
+    const char *cryptonightCL2 =
+            #include "./opencl/cryptonight2.cl"
+    ;
     const char *blake256CL =
             #include "./opencl/blake256.cl"
     ;
@@ -519,6 +522,7 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
     ;
 
     std::string source_code(cryptonightCL);
+    source_code.append(cryptonightCL2);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_AES"),         wolfAesCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_SKEIN"),       wolfSkeinCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_JH"),               jhCL);
