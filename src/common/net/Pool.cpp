@@ -29,8 +29,7 @@
 #include <stdio.h>
 
 
-#include "base/io/Json.h"
-#include "base/net/Pool.h"
+#include "common/net/Pool.h"
 #include "rapidjson/document.h"
 
 
@@ -45,24 +44,7 @@
 #endif
 
 
-namespace xmrig {
-
-static const char *kEnabled     = "enabled";
-static const char *kFingerprint = "tls-fingerprint";
-static const char *kKeepalive   = "keepalive";
-static const char *kNicehash    = "nicehash";
-static const char *kPass        = "pass";
-static const char *kRigId       = "rig-id";
-static const char *kTls         = "tls";
-static const char *kUrl         = "url";
-static const char *kUser        = "user";
-static const char *kVariant     = "variant";
-
-}
-
-
-xmrig::Pool::Pool() :
-    m_enabled(true),
+Pool::Pool() :
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -82,8 +64,7 @@ xmrig::Pool::Pool() :
  *
  * @param url
  */
-xmrig::Pool::Pool(const char *url) :
-    m_enabled(true),
+Pool::Pool(const char *url) :
     m_nicehash(false),
     m_tls(false),
     m_keepAlive(0),
@@ -93,52 +74,14 @@ xmrig::Pool::Pool(const char *url) :
 }
 
 
-xmrig::Pool::Pool(const rapidjson::Value &object) :
-    m_enabled(true),
-    m_nicehash(false),
-    m_tls(false),
-    m_keepAlive(0),
-    m_port(kDefaultPort)
-{
-    if (!parse(Json::getString(object, kUrl))) {
-        return;
-    }
-
-    setUser(Json::getString(object, kUser));
-    setPassword(Json::getString(object, kPass));
-    setRigId(Json::getString(object, kRigId));
-    setNicehash(Json::getBool(object, kNicehash));
-
-    const rapidjson::Value &keepalive = object[kKeepalive];
-    if (keepalive.IsInt()) {
-        setKeepAlive(keepalive.GetInt());
-    }
-    else if (keepalive.IsBool()) {
-        setKeepAlive(keepalive.GetBool());
-    }
-
-    const rapidjson::Value &variant = object[kVariant];
-    if (variant.IsString()) {
-        algorithm().parseVariant(variant.GetString());
-    }
-    else if (variant.IsInt()) {
-        algorithm().parseVariant(variant.GetInt());
-    }
-
-    m_enabled     = Json::getBool(object, kEnabled, true);
-    m_tls         = Json::getBool(object, kTls);
-    m_fingerprint = Json::getString(object, kFingerprint);
-}
-
-
-xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
+Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
     m_nicehash(nicehash),
     m_tls(tls),
     m_keepAlive(keepAlive),
+    m_port(port),
     m_host(host),
     m_password(password),
-    m_user(user),
-    m_port(port)
+    m_user(user)
 {
     const size_t size = m_host.size() + 8;
     assert(size > 8);
@@ -150,7 +93,7 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
 }
 
 
-bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
+bool Pool::isCompatible(const xmrig::Algorithm &algorithm) const
 {
     if (m_algorithms.empty()) {
         return true;
@@ -172,22 +115,9 @@ bool xmrig::Pool::isCompatible(const Algorithm &algorithm) const
 }
 
 
-bool xmrig::Pool::isEnabled() const
-{
-#   ifdef XMRIG_NO_TLS
-    if (isTLS()) {
-        return false;
-    }
-#   endif
-
-    return m_enabled && isValid() && algorithm().isValid();
-}
-
-
-bool xmrig::Pool::isEqual(const Pool &other) const
+bool Pool::isEqual(const Pool &other) const
 {
     return (m_nicehash       == other.m_nicehash
-            && m_enabled     == other.m_enabled
             && m_tls         == other.m_tls
             && m_keepAlive   == other.m_keepAlive
             && m_port        == other.m_port
@@ -201,7 +131,7 @@ bool xmrig::Pool::isEqual(const Pool &other) const
 }
 
 
-bool xmrig::Pool::parse(const char *url)
+bool Pool::parse(const char *url)
 {
     assert(url != nullptr);
 
@@ -237,7 +167,7 @@ bool xmrig::Pool::parse(const char *url)
         return true;
     }
 
-    const size_t size = static_cast<size_t>(port++ - base + 1);
+    const size_t size = port++ - base + 1;
     char *host        = new char[size]();
     memcpy(host, base, size - 1);
 
@@ -248,7 +178,7 @@ bool xmrig::Pool::parse(const char *url)
 }
 
 
-bool xmrig::Pool::setUserpass(const char *userpass)
+bool Pool::setUserpass(const char *userpass)
 {
     const char *p = strchr(userpass, ':');
     if (!p) {
@@ -256,7 +186,7 @@ bool xmrig::Pool::setUserpass(const char *userpass)
     }
 
     char *user = new char[p - userpass + 1]();
-    strncpy(user, userpass, static_cast<size_t>(p - userpass));
+    strncpy(user, userpass, p - userpass);
 
     m_user     = user;
     m_password = p + 1;
@@ -265,7 +195,7 @@ bool xmrig::Pool::setUserpass(const char *userpass)
 }
 
 
-rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
+rapidjson::Value Pool::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -273,47 +203,46 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    obj.AddMember(StringRef(kUrl),   m_url.toJSON(), allocator);
-    obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
-    obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
-    obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
+    obj.AddMember("url",    m_url.toJSON(), allocator);
+    obj.AddMember("user",   m_user.toJSON(), allocator);
+    obj.AddMember("pass",   m_password.toJSON(), allocator);
+    obj.AddMember("rig-id", m_rigId.toJSON(), allocator);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
+    obj.AddMember("nicehash", isNicehash(), allocator);
 #   endif
 
     if (m_keepAlive == 0 || m_keepAlive == kKeepAliveTimeout) {
-        obj.AddMember(StringRef(kKeepalive), m_keepAlive > 0, allocator);
+        obj.AddMember("keepalive", m_keepAlive > 0, allocator);
     }
     else {
-        obj.AddMember(StringRef(kKeepalive), m_keepAlive, allocator);
+        obj.AddMember("keepalive", m_keepAlive, allocator);
     }
 
     switch (m_algorithm.variant()) {
-    case VARIANT_AUTO:
-    case VARIANT_0:
-    case VARIANT_1:
-        obj.AddMember(StringRef(kVariant), m_algorithm.variant(), allocator);
+    case xmrig::VARIANT_AUTO:
+    case xmrig::VARIANT_0:
+    case xmrig::VARIANT_1:
+        obj.AddMember("variant", m_algorithm.variant(), allocator);
         break;
 
-    case VARIANT_2:
-        obj.AddMember(StringRef(kVariant), 2, allocator);
+    case xmrig::VARIANT_2:
+        obj.AddMember("variant", 2, allocator);
         break;
 
     default:
-        obj.AddMember(StringRef(kVariant), StringRef(m_algorithm.variantName()), allocator);
+        obj.AddMember("variant", StringRef(m_algorithm.variantName()), allocator);
         break;
     }
 
-    obj.AddMember(StringRef(kEnabled),     m_enabled, allocator);
-    obj.AddMember(StringRef(kTls),         isTLS(), allocator);
-    obj.AddMember(StringRef(kFingerprint), m_fingerprint.toJSON(), allocator);
+    obj.AddMember("tls",             isTLS(), allocator);
+    obj.AddMember("tls-fingerprint", m_fingerprint.toJSON(), allocator);
 
     return obj;
 }
 
 
-void xmrig::Pool::adjust(const Algorithm &algorithm)
+void Pool::adjust(const xmrig::Algorithm &algorithm)
 {
     if (!isValid()) {
         return;
@@ -328,7 +257,7 @@ void xmrig::Pool::adjust(const Algorithm &algorithm)
 }
 
 
-void xmrig::Pool::setAlgo(const xmrig::Algorithm &algorithm)
+void Pool::setAlgo(const xmrig::Algorithm &algorithm)
 {
     m_algorithm = algorithm;
 
@@ -337,7 +266,7 @@ void xmrig::Pool::setAlgo(const xmrig::Algorithm &algorithm)
 
 
 #ifdef APP_DEBUG
-void xmrig::Pool::print() const
+void Pool::print() const
 {
     LOG_NOTICE("url:       %s", m_url.data());
     LOG_DEBUG ("host:      %s", m_host.data());
@@ -352,7 +281,7 @@ void xmrig::Pool::print() const
 #endif
 
 
-bool xmrig::Pool::parseIPv6(const char *addr)
+bool Pool::parseIPv6(const char *addr)
 {
     const char *end = strchr(addr, ']');
     if (!end) {
@@ -364,7 +293,7 @@ bool xmrig::Pool::parseIPv6(const char *addr)
         return false;
     }
 
-    const size_t size = static_cast<size_t>(end - addr);
+    const size_t size = end - addr;
     char *host        = new char[size]();
     memcpy(host, addr + 1, size - 1);
 
@@ -375,7 +304,7 @@ bool xmrig::Pool::parseIPv6(const char *addr)
 }
 
 
-void xmrig::Pool::addVariant(xmrig::Variant variant)
+void Pool::addVariant(xmrig::Variant variant)
 {
     const xmrig::Algorithm algorithm(m_algorithm.algo(), variant);
     if (!algorithm.isValid() || m_algorithm == algorithm) {
@@ -386,7 +315,7 @@ void xmrig::Pool::addVariant(xmrig::Variant variant)
 }
 
 
-void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
+void Pool::adjustVariant(const xmrig::Variant variantHint)
 {
 #   ifndef XMRIG_PROXY_PROJECT
     using namespace xmrig;
@@ -472,7 +401,7 @@ void xmrig::Pool::adjustVariant(const xmrig::Variant variantHint)
 }
 
 
-void xmrig::Pool::rebuild()
+void Pool::rebuild()
 {
     m_algorithms.clear();
 
@@ -483,28 +412,20 @@ void xmrig::Pool::rebuild()
     m_algorithms.push_back(m_algorithm);
 
 #   ifndef XMRIG_PROXY_PROJECT
-    addVariant(VARIANT_4);
-    addVariant(VARIANT_WOW);
-    addVariant(VARIANT_2);
-    addVariant(VARIANT_1);
-    addVariant(VARIANT_0);
-    addVariant(VARIANT_FAST_2);
-    addVariant(VARIANT_XTL);
-    addVariant(VARIANT_TUBE);
-    addVariant(VARIANT_MSR);
-    addVariant(VARIANT_XHV);
-    addVariant(VARIANT_XAO);
-    addVariant(VARIANT_RTO);
-    addVariant(VARIANT_GPU);
-
-    // XMrigCC custom variants
-    addVariant(VARIANT_TURTLE);
-    addVariant(VARIANT_XFH);
-    addVariant(VARIANT_UPX);
-    addVariant(VARIANT_XCASH);
-    addVariant(VARIANT_ZELERIUS);
-
-    addVariant(VARIANT_AUTO);
-
+    addVariant(xmrig::VARIANT_2);
+    addVariant(xmrig::VARIANT_1);
+    addVariant(xmrig::VARIANT_0);
+    addVariant(xmrig::VARIANT_XTL);
+    addVariant(xmrig::VARIANT_TUBE);
+    addVariant(xmrig::VARIANT_MSR);
+    addVariant(xmrig::VARIANT_XHV);
+    addVariant(xmrig::VARIANT_XAO);
+    addVariant(xmrig::VARIANT_RTO);
+    addVariant(xmrig::VARIANT_XFH);
+    addVariant(xmrig::VARIANT_FAST_2);
+    addVariant(xmrig::VARIANT_UPX);
+    addVariant(xmrig::VARIANT_TURTLE);
+    addVariant(xmrig::VARIANT_GPU);
+    addVariant(xmrig::VARIANT_AUTO);
 #   endif
 }

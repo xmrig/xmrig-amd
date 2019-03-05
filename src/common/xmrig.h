@@ -78,6 +78,8 @@ enum Variant {
     VARIANT_GPU  = 13,      // CryptoNight-GPU (Ryo)
     VARIANT_WOW  = 14,      // CryptoNightR (Wownero)
     VARIANT_4    = 15,      // CryptoNightR
+    VARIANT_XCASH = 16,     // Cryptonight (2) variant xcash
+    VARIANT_ZELERIUS = 17,  // Cryptonight (2) variant zelerius
     VARIANT_MAX
 };
 

@@ -70,6 +70,10 @@ static AlgoData const algorithms[] = {
     { "cryptonight/hospital",  "cn/hospital",  xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
     { "cryptonight/wow",       "cn/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_WOW  },
     { "cryptonight/r",         "cn/r",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4    },
+    { "cryptonight/xcash",     "cn/xcash",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_XCASH},
+    { "cryptonight/heavyx",    "cn/heavyx",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_XCASH},
+    { "cryptonight/zelerius",  "cn/zelerius",  xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZELERIUS},
+    { "cryptonight/zlx",       "cn/zlx",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZELERIUS},
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -142,6 +146,8 @@ static const char *variants[] = {
     "gpu",
     "wow",
     "r",
+    "xcash",
+    "zelerius"
 };
 
 
@@ -240,6 +246,14 @@ void xmrig::Algorithm::parseVariant(const char *variant)
 
     if (strcasecmp(variant, "half") == 0 || strcasecmp(variant, "msr2") == 0) {
         m_variant = VARIANT_FAST_2;
+    }
+
+    if (strcasecmp(variant, "zlx") == 0 || strcasecmp(variant, "zelerius") == 0) {
+        m_variant = VARIANT_ZELERIUS;
+    }
+
+    if (strcasecmp(variant, "xcash") == 0 || strcasecmp(variant, "heavyx") == 0) {
+        m_variant = VARIANT_XCASH;
     }
 }
 
