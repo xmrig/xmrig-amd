@@ -118,9 +118,15 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_RWZ:
         return 17;
 
+    case xmrig::VARIANT_ZLS:
+        return 18;
+
+    case xmrig::VARIANT_DOUBLE:
+        return 19;
+
     case xmrig::VARIANT_WOW:
     case xmrig::VARIANT_4:
-        return 18;
+        return 20;
 
     default:
         break;
@@ -259,13 +265,14 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 #       else
         "", "", "", "",
 #       endif
-        "cn1_v2_rwz",
+        "cn1_v2_rwz", "cn1_v2_zls", "cn1_v2_double",
 
         nullptr
     };
     for (int i = 0; KernelNames[i]; ++i) {
-        if (!KernelNames[i][0])
+        if (!KernelNames[i][0]) {
             continue;
+        }
 
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
