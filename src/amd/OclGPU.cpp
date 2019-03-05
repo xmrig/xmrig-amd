@@ -101,6 +101,7 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
 
     case xmrig::VARIANT_2:
     case xmrig::VARIANT_TRTL:
+    case xmrig::VARIANT_RWZ:
         return 11;
 
     case xmrig::VARIANT_HALF:

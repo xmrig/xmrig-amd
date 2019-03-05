@@ -106,6 +106,7 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define VARIANT_HALF 9  // CryptoNight variant 2 with half iterations (Masari/Stellite)
 #define VARIANT_TRTL 10 // CryptoNight Turtle (TRTL)
 #define VARIANT_GPU  11 // CryptoNight-GPU (Ryo)
+#define VARIANT_RWZ  14 // CryptoNight variant 2 with 3/4 iterations and reversed shuffle operation (Graft)
 
 #define CRYPTONIGHT       0 /* CryptoNight (2 MB) */
 #define CRYPTONIGHT_LITE  1 /* CryptoNight (1 MB) */
