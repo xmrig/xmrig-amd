@@ -989,7 +989,6 @@ __kernel void cn1_v2_half(__global uint4 *Scratchpad, __global ulong *states, ui
 #   endif
 }
 
-
 )==="
 R"===(
 

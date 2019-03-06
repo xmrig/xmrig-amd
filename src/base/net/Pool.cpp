@@ -132,6 +132,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
 
 xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls) :
+    m_enabled(true),
     m_nicehash(nicehash),
     m_tls(tls),
     m_keepAlive(keepAlive),
@@ -496,6 +497,9 @@ void xmrig::Pool::rebuild()
     addVariant(VARIANT_XAO);
     addVariant(VARIANT_RTO);
     addVariant(VARIANT_GPU);
+    addVariant(VARIANT_RWZ);
+    addVariant(VARIANT_ZLS);
+    addVariant(VARIANT_DOUBLE);
     addVariant(VARIANT_AUTO);
 #   endif
 }

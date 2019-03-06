@@ -106,14 +106,27 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_HALF:
         return 12;
 
+    // 13, 14 reserved for cn/gpu cn0
+
 #   ifndef XMRIG_NO_CN_GPU
     case xmrig::VARIANT_GPU:
         return 15;
 #   endif
 
+    // 16 reserved for cn/gpu cn2
+
+    case xmrig::VARIANT_RWZ:
+        return 17;
+
+    case xmrig::VARIANT_ZLS:
+        return 18;
+
+    case xmrig::VARIANT_DOUBLE:
+        return 19;
+
     case xmrig::VARIANT_WOW:
     case xmrig::VARIANT_4:
-        return 17;
+        return 20;
 
     default:
         break;
@@ -249,11 +262,18 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_v2_half",
 #       ifndef XMRIG_NO_CN_GPU
         "cn0_cn_gpu", "cn00_cn_gpu", "cn1_cn_gpu", "cn2_cn_gpu",
+#       else
+        "", "", "", "",
 #       endif
+        "cn1_v2_rwz", "cn1_v2_zls", "cn1_v2_double",
 
         nullptr
     };
     for (int i = 0; KernelNames[i]; ++i) {
+        if (!KernelNames[i][0]) {
+            continue;
+        }
+
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -473,6 +493,9 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
     const char *cryptonightCL =
             #include "./opencl/cryptonight.cl"
     ;
+    const char *cryptonightCL2 =
+            #include "./opencl/cryptonight2.cl"
+    ;
     const char *blake256CL =
             #include "./opencl/blake256.cl"
     ;
@@ -499,6 +522,7 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
     ;
 
     std::string source_code(cryptonightCL);
+    source_code.append(cryptonightCL2);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_AES"),         wolfAesCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_SKEIN"),       wolfSkeinCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_JH"),               jhCL);
