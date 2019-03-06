@@ -1,3 +1,12 @@
+# 1.9.1
+- Rebase from XMRig-amd 2.14.0
+- Integrated Monero CN-R variant so called CNv4, aka CN-R, aka CNv5, aka Cryptonight-R (algo: "cryptonight", variant: "r" / "auto")
+- Integrated Wownero CN-R variant (algo: "cryptonight", variant: "wow")
+- Integrated Graft variant (algo: "cryptonight", variant: "rwz" OR variant: "graft")
+- Integrated X-Cash variant (algo: "cryptonight", variant: "double" OR variant: "heavyx" OR variant: "xcash")
+- Integrated Zelerius variant (algo: "cryptonight", variant: "zls" OR variant: "zelerius")
+- Add miner version column to the Dashboard (version turns red when its outdated)
+- Fixed crash when remote logging is disabled
 # 1.8.14
 - Rebase from XMRig-amd 2.11.0
     - Integrated new RYO algo CN-GPU (algo: "cryptonight", variant: "gpu")
