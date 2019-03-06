@@ -71,7 +71,7 @@ inline static int cn0KernelOffset(xmrig::Variant variant)
 {
 #   ifndef XMRIG_NO_CN_GPU
     if (variant == xmrig::VARIANT_GPU) {
-        return 17;
+        return 18;
     }
 #   endif
 
@@ -112,20 +112,27 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_UPX:
         return 14;
 
-    case xmrig::VARIANT_XCASH:
+    case xmrig::VARIANT_RWZ:
         return 15;
 
     case xmrig::VARIANT_ZELERIUS:
         return 16;
 
+    case xmrig::VARIANT_DOUBLE:
+        return 17;
+
+    // 18, 19 is used by cn0 and cn00 of Variant GPU
+
 #   ifndef XMRIG_NO_CN_GPU
     case xmrig::VARIANT_GPU:
-        return 19;
+        return 20;
 #   endif
+
+    // 21 is by for cn2 Variant GPU
 
     case xmrig::VARIANT_WOW:
     case xmrig::VARIANT_4:
-        return 21;
+        return 22;
 
     default:
         break;
@@ -140,7 +147,7 @@ inline static int cn2KernelOffset(xmrig::Variant variant)
 {
 #   ifndef XMRIG_NO_CN_GPU
     if (variant == xmrig::VARIANT_GPU) {
-        return 20;
+        return 21;
     }
 #   endif
 
@@ -258,7 +265,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     const char *KernelNames[] = {
         "cn0", "cn1", "cn2",
         "Blake", "Groestl", "JH", "Skein",
-        "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_xfh", "cn1_fastv2", "cn1_upx", "cn1_xcash", "cn1_zelerius",
+        "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_xfh", "cn1_fastv2", "cn1_upx", "cn1_rwz", "cn1_zelerius", "cn1_double",
 #       ifndef XMRIG_NO_CN_GPU
         "cn0_cn_gpu", "cn00_cn_gpu", "cn1_cn_gpu", "cn2_cn_gpu",
 #       endif

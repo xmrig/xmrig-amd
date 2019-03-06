@@ -130,13 +130,19 @@ bool xmrig::Job::setBlob(const char *blob)
     }
 
     if (!m_algorithm.isForced()) {
-        if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] >= 9) {
-            m_algorithm.setVariant(xmrig::VARIANT_FAST_2);
+        if (m_algorithm.variant() == VARIANT_XTL && m_blob[0] >= 9) {
+            m_algorithm.setVariant(VARIANT_FAST_2);
         }
-        else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
-            m_algorithm.setVariant(xmrig::VARIANT_FAST_2);
+        else if (m_algorithm.variant() == VARIANT_MSR && m_blob[0] >= 8) {
+            m_algorithm.setVariant(VARIANT_FAST_2);
         }
         else if (m_algorithm.variant() == VARIANT_WOW && m_blob[0] < 11) {
+            m_algorithm.setVariant(VARIANT_2);
+        }
+        else if (m_algorithm.variant() == VARIANT_RWZ && m_blob[0] < 12) {
+            m_algorithm.setVariant(VARIANT_2);
+        }
+        else if (m_algorithm.variant() == VARIANT_ZELERIUS && m_blob[0] < 8) {
             m_algorithm.setVariant(VARIANT_2);
         }
     }

@@ -501,8 +501,9 @@ void xmrig::Pool::rebuild()
     addVariant(VARIANT_TURTLE);
     addVariant(VARIANT_XFH);
     addVariant(VARIANT_UPX);
-    addVariant(VARIANT_XCASH);
+    addVariant(VARIANT_RWZ);
     addVariant(VARIANT_ZELERIUS);
+    addVariant(VARIANT_DOUBLE);
 
     addVariant(VARIANT_AUTO);
 
