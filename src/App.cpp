@@ -28,12 +28,14 @@
 
 #include "api/Api.h"
 #include "App.h"
+#include "base/kernel/Signals.h"
 #include "common/Console.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"
 #include "core/Config.h"
 #include "core/Controller.h"
 #include "crypto/CryptoNight.h"
+#include "Mem.h"
 #include "net/Network.h"
 #include "cc/CCClient.h"
 #include "cc/ControlCommand.h"
@@ -47,40 +49,36 @@
 #endif
 
 
-App *App::m_self = nullptr;
+xmrig::App *xmrig::App::m_self = nullptr;
 
-
-
-App::App(int argc, char **argv) :
-    m_restart(false),
+xmrig::App::App(Process *process) :
     m_console(nullptr),
     m_httpd(nullptr),
+    m_signals(nullptr),
+    m_restart(false),
     m_ccclient(nullptr),
     m_hashrateMonitor(nullptr)
 {
     m_self = this;
 
-    m_controller = new xmrig::Controller();
-    if (m_controller->init(argc, argv) != 0) {
+    m_controller = new xmrig::Controller(process);
+    if (m_controller->init() != 0) {
         return;
     }
 
     if (!m_controller->config()->isBackground()) {
         m_console = new Console(this);
     }
-
-    uv_signal_init(uv_default_loop(), &m_sigHUP);
-    uv_signal_init(uv_default_loop(), &m_sigINT);
-    uv_signal_init(uv_default_loop(), &m_sigTERM);
 }
 
 
-App::~App()
+xmrig::App::~App()
 {
     Platform::restoreTimerResolution();
 
     uv_tty_reset_mode();
 
+    delete m_signals;
     delete m_console;
     delete m_controller;
 
@@ -96,12 +94,8 @@ App::~App()
 }
 
 
-int App::exec()
+int xmrig::App::exec()
 {
-    if (m_controller->isDone()) {
-        return 1;
-    }
-
     if (!m_controller->isReady()) {
         return 2;
     }
@@ -111,11 +105,11 @@ int App::exec()
         system(startCmd);
     }
 
-    uv_signal_start(&m_sigHUP,  App::onSignal, SIGHUP);
-    uv_signal_start(&m_sigINT,  App::onSignal, SIGINT);
-    uv_signal_start(&m_sigTERM, App::onSignal, SIGTERM);
+    m_signals = new Signals(this);
 
     background();
+
+    Mem::init(true);
 
     if (!CryptoNight::init(m_controller->config()->algorithm().algo())) {
         LOG_ERR("\"%s\" hash self-test failed.", m_controller->config()->algorithm().name());
@@ -150,13 +144,9 @@ int App::exec()
 
 #   ifndef XMRIG_NO_CC
     if (m_controller->config()->ccHost() && m_controller->config()->ccPort() > 0) {
-        uv_async_init(uv_default_loop(), &m_async, App::onCommandReceived);
+        uv_async_init(uv_default_loop(), &m_async, xmrig::App::onCommandReceived);
 
         m_ccclient = new CCClient(m_controller->config(), &m_async);
-
-        if (!m_controller->config()->pools().front().isValid()) {
-            LOG_WARN("No pool URL supplied, but CC server configured. Trying.");
-        }
     } else {
         LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
     }
@@ -180,7 +170,7 @@ int App::exec()
 }
 
 
-void App::onConsoleCommand(char command)
+void xmrig::App::onConsoleCommand(char command)
 {
     switch (command) {
     case 'h':
@@ -214,7 +204,7 @@ void App::onConsoleCommand(char command)
     }
 }
 
-void App::stop(bool restart)
+void xmrig::App::stop(bool restart)
 {
     m_restart = restart;
 
@@ -224,17 +214,17 @@ void App::stop(bool restart)
     uv_stop(uv_default_loop());
 }
 
-void App::restart()
+void xmrig::App::restart()
 {
     m_self->stop(true);
 }
 
-void App::shutdown()
+void xmrig::App::shutdown()
 {
     m_self->stop(false);
 }
 
-void App::reboot()
+void xmrig::App::reboot()
 {
     auto rebootCmd = m_self->m_controller->config()->rebootCmd();
     if (rebootCmd) {
@@ -243,7 +233,7 @@ void App::reboot()
     }
 }
 
-void App::onSignal(uv_signal_t *handle, int signum)
+void xmrig::App::onSignal(int signum)
 {
     switch (signum)
     {
@@ -263,12 +253,10 @@ void App::onSignal(uv_signal_t *handle, int signum)
         break;
     }
 
-    uv_signal_stop(handle);
     m_self->shutdown();
 }
 
-
-void App::onCommandReceived(uv_async_t* async)
+void xmrig::App::onCommandReceived(uv_async_t* async)
 {
     auto command = reinterpret_cast<ControlCommand::Command &> (async->data);
     switch (command) {

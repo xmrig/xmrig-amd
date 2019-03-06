@@ -83,25 +83,33 @@
         sqrt_result_xmm_##part = int_sqrt_v2(cx_0 + division_result); \
     } while (0)
 
-#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1) \
+#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1, _c, reverse) \
     do { \
-        const __m128i chunk1 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10))); \
+        const __m128i chunk1 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ (reverse ? 0x30 : 0x10)))); \
         const __m128i chunk2 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20))); \
-        const __m128i chunk3 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30))); \
+        const __m128i chunk3 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ (reverse ? 0x10 : 0x30)))); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk3, _b1)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
+        if (VARIANT == xmrig::VARIANT_4) { \
+            _c = _mm_xor_si128(_mm_xor_si128(_c, chunk3), _mm_xor_si128(chunk1, chunk2)); \
+        } \
     } while (0)
 
-#   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo) \
+#   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo, reverse) \
     do { \
         const __m128i chunk1 = _mm_xor_si128(_mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10))), _mm_set_epi64x(lo, hi)); \
         const __m128i chunk2 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20))); \
         hi ^= ((uint64_t*)((base_ptr) + ((offset) ^ 0x20)))[0]; \
         lo ^= ((uint64_t*)((base_ptr) + ((offset) ^ 0x20)))[1]; \
         const __m128i chunk3 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30))); \
-        _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk3, _b1)); \
-        _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
+        if (reverse) { \
+            _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk1, _b1)); \
+            _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk3, _b)); \
+        } else { \
+            _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk3, _b1)); \
+            _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
+        } \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
     } while (0)
 
@@ -125,26 +133,74 @@
         sqrt_result_##part += ((r2 + b > sqrt_input) ? -1 : 0) + ((r2 + (1ULL << 32) < sqrt_input - s) ? 1 : 0); \
     } while (0)
 
-#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1) \
+#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1, _c, reverse) \
     do { \
-        const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10))); \
+        const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ (reverse ? 0x30 : 0x10)))); \
         const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20))); \
-        const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30))); \
+        const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ (reverse ? 0x10 : 0x30)))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b1))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(_a))); \
+        if (VARIANT == xmrig::VARIANT_4) { \
+            _c = veorq_u64(veorq_u64(_c, chunk3), veorq_u64(chunk1, chunk2)); \
+        } \
     } while (0)
 
-#   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo) \
+#   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo, reverse) \
     do { \
         const uint64x2_t chunk1 = veorq_u64(vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10))), vcombine_u64(vcreate_u64(hi), vcreate_u64(lo))); \
         const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20))); \
         hi ^= ((uint64_t*)((base_ptr) + ((offset) ^ 0x20)))[0]; \
         lo ^= ((uint64_t*)((base_ptr) + ((offset) ^ 0x20)))[1]; \
         const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30))); \
-        vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b1))); \
-        vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b))); \
+        if (reverse) { \
+            vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b1))); \
+            vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b))); \
+        } else { \
+            vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b1))); \
+            vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b))); \
+        } \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(_a))); \
     } while (0)
 #endif
+
+#define SWAP32LE(x) x
+#define SWAP64LE(x) x
+#define hash_extra_blake(data, length, hash) blake256_hash((uint8_t*)(hash), (uint8_t*)(data), (length))
+
+#ifndef NOINLINE
+#ifdef __GNUC__
+#define NOINLINE __attribute__ ((noinline))
+#elif _MSC_VER
+#define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE
+#endif
+#endif
+
+#include "common/xmrig.h"
+#include "variant4_random_math.h"
+
+#define VARIANT4_RANDOM_MATH_INIT(part) \
+  uint32_t r##part[9]; \
+  struct V4_Instruction code##part[256]; \
+  if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) { \
+    r##part[0] = (uint32_t)(h##part[12]); \
+    r##part[1] = (uint32_t)(h##part[12] >> 32); \
+    r##part[2] = (uint32_t)(h##part[13]); \
+    r##part[3] = (uint32_t)(h##part[13] >> 32); \
+  } \
+  v4_random_math_init<VARIANT>(code##part, height);
+
+#define VARIANT4_RANDOM_MATH(part, al, ah, cl, bx0, bx1) \
+  if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4)) { \
+    cl ^= (r##part[0] + r##part[1]) | ((uint64_t)(r##part[2] + r##part[3]) << 32); \
+    r##part[4] = static_cast<uint32_t>(al); \
+    r##part[5] = static_cast<uint32_t>(ah); \
+    r##part[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \
+    r##part[7] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx1)); \
+    r##part[8] = static_cast<uint32_t>(_mm_cvtsi128_si32(_mm_srli_si128(bx1, 8))); \
+    v4_random_math(code##part, r##part); \
+  }
+
 #endif /* XMRIG_CRYPTONIGHT_MONERO_H */

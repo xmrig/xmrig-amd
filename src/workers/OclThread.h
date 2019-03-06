@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,37 +30,46 @@
 #include "interfaces/IThread.h"
 
 
+struct GpuContext;
+
+
+namespace xmrig {
+
+
 class OclThread : public xmrig::IThread
 {
 public:
     OclThread();
     OclThread(const rapidjson::Value &object);
     OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity = -1);
-    ~OclThread();
+    ~OclThread() override;
 
-    inline bool isCompMode() const  { return m_compMode; }
-    inline int memChunk() const     { return m_memChunk; }
-    inline int stridedIndex() const { return m_stridedIndex; }
-    inline int unrollFactor() const { return m_unrollFactor; }
-    inline size_t intensity() const { return m_intensity; }
-    inline size_t worksize() const  { return m_worksize; }
+    inline GpuContext *ctx() const                { return m_ctx; }
+    inline void setAffinity(int64_t affinity)     { m_affinity = affinity; }
 
-    inline void setAffinity(int64_t affinity)  { m_affinity = affinity; }
-    inline void setCompMode(bool enable)       { m_compMode = enable; }
-    inline void setIndex(size_t index)         { m_index = index; }
-    inline void setIntensity(size_t intensity) { m_intensity = intensity; }
-    inline void setWorksize(size_t worksize)   { m_worksize = worksize; }
-
-    inline xmrig::Algo algorithm() const override { return m_algorithm; }
+    inline Algo algorithm() const override        { return m_algorithm; }
     inline int priority() const override          { return -1; }
     inline int64_t affinity() const override      { return m_affinity; }
     inline Multiway multiway() const override     { return SingleWay; }
-    inline size_t index() const override          { return m_index; }
-    inline Type type() const override             { return CPU; }
+    inline Type type() const override             { return OpenCL; }
+    inline bool isValid() const override          { return intensity() > 0 && worksize() > 0; }
 
+    size_t index() const override;
+
+    bool isCompMode() const;
+    int memChunk() const;
+    int stridedIndex() const;
+    int unrollFactor() const;
+    size_t intensity() const;
+    size_t worksize() const;
+    void setCompMode(bool enable);
+    void setIndex(size_t index);
+    void setIntensity(size_t intensity);
     void setMemChunk(int memChunk);
     void setStridedIndex(int stridedIndex);
+    void setThreadsCountByGPU(size_t threads);
     void setUnrollFactor(int unrollFactor);
+    void setWorksize(size_t worksize);
 
 protected:
 #   ifdef APP_DEBUG
@@ -74,16 +83,13 @@ protected:
     rapidjson::Value toConfig(rapidjson::Document &doc) const override;
 
 private:
-    bool m_compMode;
-    int m_memChunk;
-    int m_stridedIndex;
-    int m_unrollFactor;
+    GpuContext *m_ctx;
     int64_t m_affinity;
-    size_t m_index;
-    size_t m_intensity;
-    size_t m_worksize;
     xmrig::Algo m_algorithm;
 };
+
+
+} /* namespace xmrig */
 
 
 #endif /* XMRIG_OCLTHREAD_H */

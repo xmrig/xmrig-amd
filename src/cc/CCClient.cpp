@@ -134,7 +134,7 @@ void CCClient::updateHashrate(const Hashrate* hashrate)
 }
 
 
-void CCClient::updateNetworkState(const NetworkState& network)
+void CCClient::updateNetworkState(const xmrig::NetworkState& network)
 {
     if (m_self) {
         uv_mutex_lock(&m_mutex);
@@ -167,7 +167,7 @@ void CCClient::updateNetworkState(const NetworkState& network)
 }
 
 #ifdef TYPE_AMD_GPU
-void CCClient::updateGpuInfo(const std::vector<GpuContext>& gpuContext)
+void CCClient::updateGpuInfo(const std::vector<GpuContext *> gpuContext)
 {
     if (m_self) {
         uv_mutex_lock(&m_mutex);
@@ -176,15 +176,15 @@ void CCClient::updateGpuInfo(const std::vector<GpuContext>& gpuContext)
 
         for (auto gpu : gpuContext) {
             GPUInfo gpuInfo;
-            gpuInfo.setName(gpu.name.data());
-            gpuInfo.setCompMode(gpu.compMode);
-            gpuInfo.setComputeUnits(gpu.computeUnits);
-            gpuInfo.setDeviceIdx(gpu.deviceIdx);
-            gpuInfo.setFreeMem(gpu.freeMem);
-            gpuInfo.setWorkSize(gpu.workSize);
-            gpuInfo.setMaxWorkSize(gpu.maximumWorkSize);
-            gpuInfo.setMemChunk(gpu.memChunk);
-            gpuInfo.setRawIntensity(gpu.rawIntensity);
+            gpuInfo.setName(gpu->name.data());
+            gpuInfo.setCompMode(gpu->compMode);
+            gpuInfo.setComputeUnits(gpu->computeUnits);
+            gpuInfo.setDeviceIdx(gpu->deviceIdx);
+            gpuInfo.setFreeMem(gpu->freeMem);
+            gpuInfo.setWorkSize(gpu->workSize);
+            gpuInfo.setMaxWorkSize(gpu->maximumWorkSize);
+            gpuInfo.setMemChunk(gpu->memChunk);
+            gpuInfo.setRawIntensity(gpu->rawIntensity);
 
             m_self->m_clientStatus.addGPUInfo(gpuInfo);
         }

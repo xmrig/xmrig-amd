@@ -35,15 +35,18 @@
 #include "Options.h"
 #endif
 
+namespace xmrig {
+    class NetworkState;
+}
+
 class Hashrate;
-class NetworkState;
 
 class CCClient
 {
 public:
 #ifdef TYPE_AMD_GPU
     CCClient(xmrig::Config* m_config, uv_async_t* async);
-    static void updateGpuInfo(const std::vector<GpuContext>& network);
+    static void updateGpuInfo(const std::vector<GpuContext *> gpuContexts);
 #else
     CCClient(Options* config, uv_async_t* async);
 #endif
@@ -51,7 +54,7 @@ public:
     ~CCClient();
 
     static void updateHashrate(const Hashrate *hashrate);
-    static void updateNetworkState(const NetworkState &results);
+    static void updateNetworkState(const xmrig::NetworkState &results);
 
 private:
 

@@ -63,11 +63,20 @@ static AlgoData const algorithms[] = {
     { "cryptonight/2",         "cn/2",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_2    },
     { "cryptonight/xfh",       "cn/xfh",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_XFH  },
     { "cryptonight/swap",      "cn/swap",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_XFH  },
-    { "cryptonight/fast2",     "cn/fast2",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2  },
-    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2  },
-    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2  },
+    { "cryptonight/fast2",     "cn/fast2",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2},
+    { "cryptonight/xtlv9",     "cn/xtlv9",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2},
+    { "cryptonight/half",      "cn/half",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_FAST_2},
     { "cryptonight/hosp",      "cn/hosp",      xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
     { "cryptonight/hospital",  "cn/hospital",  xmrig::CRYPTONIGHT,       xmrig::VARIANT_RTO  },
+    { "cryptonight/wow",       "cn/wow",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_WOW  },
+    { "cryptonight/r",         "cn/r",         xmrig::CRYPTONIGHT,       xmrig::VARIANT_4    },
+    { "cryptonight/rwz",       "cn/rwz",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_RWZ  },
+    { "cryptonight/graft",     "cn/graft",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_RWZ  },
+    { "cryptonight/zelerius",  "cn/zelerius",  xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZELERIUS},
+    { "cryptonight/zls",       "cn/zls",       xmrig::CRYPTONIGHT,       xmrig::VARIANT_ZELERIUS},
+    { "cryptonight/double",    "cn/double",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE},
+    { "cryptonight/heavyx",    "cn/heavyx",    xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE},
+    { "cryptonight/xcash",     "cn/xcash",     xmrig::CRYPTONIGHT,       xmrig::VARIANT_DOUBLE},
 
 #   ifndef XMRIG_NO_AEON
     { "cryptonight-lite",      "cn-lite",      xmrig::CRYPTONIGHT_LITE,  xmrig::VARIANT_AUTO },
@@ -137,7 +146,12 @@ static const char *variants[] = {
     "fast2",
     "upx",
     "turtle",
-    "gpu"
+    "gpu",
+    "wow",
+    "r",
+    "rwz",
+    "zelerius",
+    "double"
 };
 
 
@@ -236,6 +250,18 @@ void xmrig::Algorithm::parseVariant(const char *variant)
 
     if (strcasecmp(variant, "half") == 0 || strcasecmp(variant, "msr2") == 0) {
         m_variant = VARIANT_FAST_2;
+    }
+
+    if (strcasecmp(variant, "zlx") == 0 || strcasecmp(variant, "zelerius") == 0 || strcasecmp(variant, "zls") == 0) {
+        m_variant = VARIANT_ZELERIUS;
+    }
+
+    if (strcasecmp(variant, "xcash") == 0 || strcasecmp(variant, "heavyx") == 0 || strcasecmp(variant, "double") == 0) {
+        m_variant = VARIANT_DOUBLE;
+    }
+
+    if (strcasecmp(variant, "rwz") == 0 || strcasecmp(variant, "graft") == 0) {
+        m_variant = VARIANT_RWZ;
     }
 }
 

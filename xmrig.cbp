@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="xmrig"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\cmake\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrig-asm">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/libxmrig-asm.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrig-asm"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrig-asm/fast">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/libxmrig-asm.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrig-asm/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrigMiner-amd">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/xmrigMiner-amd" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrigMiner-amd"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrigMiner-amd/fast">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/xmrigMiner-amd" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrigMiner-amd/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrig_tls">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/libxmrig_tls.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrig_tls"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrig_tls/fast">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/libxmrig_tls.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrig_tls/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrigDaemon-amd">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/xmrigDaemon-amd" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrigDaemon-amd"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="xmrigDaemon-amd/fast">
+				<Option output="/home/vidi/dev/src/c/xmrigCC-amd/xmrigDaemon-amd" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/vidi/dev/src/c/xmrigCC-amd"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DRAPIDJSON_SSE2"/>
+					<Add option="-D__STDC_FORMAT_MACROS"/>
+					<Add option="-DUNICODE"/>
+					<Add option="-DXMRIG_AMD_PROJECT"/>
+					<Add option="-DXMRIG_NO_LIBCPUID"/>
+					<Add option="-DMINER_EXECUTABLE_NAME=xmrigMiner-amd"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DCL_TARGET_OPENCL_VERSION=200"/>
+					<Add option="-DCL_USE_DEPRECATED_OPENCL_1_2_APIS"/>
+					<Add option="-DHAVE_SYSLOG_H"/>
+					<Add option="-DXMRIG_STRICT_OPENCL_CACHE"/>
+					<Add option="-DCPPHTTPLIB_OPENSSL_SUPPORT"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src"/>
+					<Add directory="/home/vidi/dev/src/c/xmrigCC-amd/src/3rdparty"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 xmrigDaemon-amd/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/vidi/dev/src/c/xmrigCC-amd/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/res/app.rc">
+			<Option target="xmrigDaemon-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/App.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/App.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/App_unix.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/Mem.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/Mem.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/Mem_unix.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/Summary.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/Summary.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/GpuContext.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCLI.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCLI.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCache.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCache.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCache_unix.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCryptonightR_gen.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclCryptonightR_gen.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclError.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclGPU.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclGPU.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclLib.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/OclLib.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/amd/cryptonight.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/api/Api.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/api/Api.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/api/ApiRouter.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/api/ApiRouter.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/api/NetworkState.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/api/NetworkState.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/io/Json.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/io/Json.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/io/Json_unix.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/io/Watcher.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/io/Watcher.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/Entry.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/Entry.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/Process.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/Process.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/Signals.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/Signals.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/interfaces/IConfigListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/interfaces/ISignalListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/kernel/interfaces/IWatcherListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/net/Pool.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/net/Pool.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/net/Pools.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/net/Pools.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/tools/Arguments.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/tools/Arguments.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/tools/Handle.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/tools/Handle.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/tools/String.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/base/tools/String.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/CCClient.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/CCClient.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/ClientStatus.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/ClientStatus.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/ControlCommand.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/ControlCommand.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/GPUInfo.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/GPUInfo.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/cc/XMRigd.cpp">
+			<Option target="xmrigDaemon-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/Console.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/Console.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/Platform.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/Platform.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/Platform_unix.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/api/HttpBody.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/api/HttpReply.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/api/HttpRequest.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/api/HttpRequest.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/api/Httpd.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/api/Httpd.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/config/CommonConfig.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/config/CommonConfig.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/config/ConfigLoader.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/config/ConfigLoader.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/config/ConfigWatcher.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/config/ConfigWatcher.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/cpu/BasicCpuInfo.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/cpu/BasicCpuInfo.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/cpu/Cpu.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/cpu/Cpu.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/crypto/Algorithm.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/crypto/Algorithm.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/crypto/keccak.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/crypto/keccak.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IClientListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IConfig.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IConfigCreator.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IConsoleListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IControllerListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/ICpuInfo.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/ILogBackend.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IStrategy.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/interfaces/IStrategyListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/BasicLog.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/BasicLog.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/ConsoleLog.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/ConsoleLog.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/FileLog.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/FileLog.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/Log.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/Log.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/RemoteLog.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/RemoteLog.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/SysLog.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/log/SysLog.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Client.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Client.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Id.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Job.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Job.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Storage.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/SubmitResult.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/SubmitResult.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Tls.cpp">
+			<Option target="xmrig_tls"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/Tls.h">
+			<Option target="xmrig_tls"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/strategies/FailoverStrategy.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/strategies/FailoverStrategy.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/strategies/SinglePoolStrategy.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/net/strategies/SinglePoolStrategy.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/utils/c_str.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/utils/mm_malloc.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/utils/timestamp.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/common/xmrig.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/core/Config.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/core/Config.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/core/ConfigLoader_platform.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/core/Controller.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/core/Controller.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/core/usage.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptoNight.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptoNight.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptoNight_constants.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptoNight_monero.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptoNight_test.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptoNight_x86.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/CryptonightR_gen.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/asm/CryptonightR_template.S">
+			<Option target="xmrig-asm"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/asm/CryptonightR_template.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/asm/cn_main_loop.S">
+			<Option target="xmrig-asm"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_blake256.c">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_blake256.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_groestl.c">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_groestl.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_jh.c">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_jh.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_skein.c">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/c_skein.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/cn_gpu_avx.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/cn_gpu_ssse3.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/groestl_tables.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/hash.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/skein_port.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/crypto/soft_aes.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/interfaces/IJobResultListener.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/interfaces/IThread.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/interfaces/IWorker.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/net/JobResult.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/net/Network.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/net/Network.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/net/strategies/DonateStrategy.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/net/strategies/DonateStrategy.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/version.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/Handle.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/Handle.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/Hashrate.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/Hashrate.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/HashrateMonitor.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/HashrateMonitor.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/OclThread.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/OclThread.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/OclWorker.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/OclWorker.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/Workers.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/workers/Workers.h">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/src/xmrig.cpp">
+			<Option target="xmrigMiner-amd"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/cmake/FindMHD.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/cmake/FindUV.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/cmake/asm.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/cmake/cn-gpu.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/cmake/cpu.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+		<Unit filename="/home/vidi/dev/src/c/xmrigCC-amd/cmake/flags.cmake">
+			<Option virtualFolder="CMake Files\cmake\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

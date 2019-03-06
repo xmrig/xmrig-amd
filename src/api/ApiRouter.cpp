@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -70,6 +71,11 @@ ApiRouter::ApiRouter(xmrig::Controller *controller) :
 }
 
 
+ApiRouter::~ApiRouter()
+{
+}
+
+
 void ApiRouter::ApiRouter::get(const xmrig::HttpRequest &req, xmrig::HttpReply &reply) const
 {
     rapidjson::Document doc;
@@ -114,7 +120,7 @@ void ApiRouter::exec(const xmrig::HttpRequest &req, xmrig::HttpReply &reply)
 }
 
 
-void ApiRouter::tick(const NetworkState &network)
+void ApiRouter::tick(const xmrig::NetworkState &network)
 {
     m_network = network;
 }
@@ -128,7 +134,7 @@ void ApiRouter::onConfigChanged(xmrig::Config *config, xmrig::Config *previousCo
 
 void ApiRouter::finalize(xmrig::HttpReply &reply, rapidjson::Document &doc) const
 {
-    rapidjson::StringBuffer buffer(0, 4096);
+    rapidjson::StringBuffer buffer(nullptr, 4096);
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     writer.SetMaxDecimalPlaces(10);
     doc.Accept(writer);
@@ -168,7 +174,7 @@ void ApiRouter::genId(const char *id)
             memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, strlen(APP_KIND));
 
             xmrig::keccak(input, inSize, hash);
-            Job::toHex(hash, 8, m_id);
+            xmrig::Job::toHex(hash, 8, m_id);
 
             delete [] input;
             break;
@@ -233,13 +239,14 @@ void ApiRouter::getIdentify(rapidjson::Document &doc) const
 
 void ApiRouter::getMiner(rapidjson::Document &doc) const
 {
+    using namespace xmrig;
     auto &allocator = doc.GetAllocator();
 
     rapidjson::Value cpu(rapidjson::kObjectType);
-    cpu.AddMember("brand",   rapidjson::StringRef(xmrig::Cpu::info()->brand()), allocator);
-    cpu.AddMember("aes",     xmrig::Cpu::info()->hasAES(), allocator);
-    cpu.AddMember("x64",     xmrig::Cpu::info()->isX64(), allocator);
-    cpu.AddMember("sockets", xmrig::Cpu::info()->sockets(), allocator);
+    cpu.AddMember("brand",   rapidjson::StringRef(Cpu::info()->brand()), allocator);
+    cpu.AddMember("aes",     Cpu::info()->hasAES(), allocator);
+    cpu.AddMember("x64",     Cpu::info()->isX64(), allocator);
+    cpu.AddMember("sockets", Cpu::info()->sockets(), allocator);
 
     doc.AddMember("version",      APP_VERSION, allocator);
     doc.AddMember("kind",         APP_KIND, allocator);

@@ -38,7 +38,9 @@
 #include "amd/OclError.h"
 #include "amd/OclGPU.h"
 #include "amd/OclLib.h"
+#include "amd/OclCryptonightR_gen.h"
 #include "common/log/Log.h"
+#include "common/utils/timestamp.h"
 #include "core/Config.h"
 #include "crypto/CryptoNight_constants.h"
 #include "cryptonight.h"
@@ -69,7 +71,7 @@ inline static int cn0KernelOffset(xmrig::Variant variant)
 {
 #   ifndef XMRIG_NO_CN_GPU
     if (variant == xmrig::VARIANT_GPU) {
-        return 15;
+        return 18;
     }
 #   endif
 
@@ -110,10 +112,27 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_UPX:
         return 14;
 
+    case xmrig::VARIANT_RWZ:
+        return 15;
+
+    case xmrig::VARIANT_ZELERIUS:
+        return 16;
+
+    case xmrig::VARIANT_DOUBLE:
+        return 17;
+
+    // 18, 19 is used by cn0 and cn00 of Variant GPU
+
 #   ifndef XMRIG_NO_CN_GPU
     case xmrig::VARIANT_GPU:
-        return 16;
+        return 20;
 #   endif
+
+    // 21 is by for cn2 Variant GPU
+
+    case xmrig::VARIANT_WOW:
+    case xmrig::VARIANT_4:
+        return 22;
 
     default:
         break;
@@ -128,7 +147,7 @@ inline static int cn2KernelOffset(xmrig::Variant variant)
 {
 #   ifndef XMRIG_NO_CN_GPU
     if (variant == xmrig::VARIANT_GPU) {
-        return 17;
+        return 21;
     }
 #   endif
 
@@ -174,6 +193,8 @@ static void printGPU(int index, GpuContext *ctx, xmrig::Config *config)
 
 size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
 {
+    ctx->opencl_ctx = opencl_ctx;
+
     printGPU(index, ctx, config);
 
     cl_int ret;
@@ -244,14 +265,15 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
     const char *KernelNames[] = {
         "cn0", "cn1", "cn2",
         "Blake", "Groestl", "JH", "Skein",
-        "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_xfh", "cn1_fastv2", "cn1_upx",
+        "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_xfh", "cn1_fastv2", "cn1_upx", "cn1_rwz", "cn1_zelerius", "cn1_double",
 #       ifndef XMRIG_NO_CN_GPU
-        "cn0_cn_gpu", "cn1_cn_gpu", "cn2_cn_gpu",
+        "cn0_cn_gpu", "cn00_cn_gpu", "cn1_cn_gpu", "cn2_cn_gpu",
 #       endif
+
         nullptr
     };
 
-    for (int i = 0; (i < 18) && KernelNames[i]; ++i) {
+    for (int i = 0; KernelNames[i]; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -302,6 +324,7 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
     for (cl_uint i = 0; i < num_devices; i++) {
         GpuContext ctx;
         ctx.deviceIdx    = i;
+        ctx.platformIdx  = platformIndex;
         ctx.DeviceID     = device_list[i];
         ctx.computeUnits = OclLib::getDeviceMaxComputeUnits(ctx.DeviceID);
         ctx.vendor       = OclLib::getDeviceVendor(ctx.DeviceID);
@@ -400,30 +423,32 @@ void printPlatforms()
 // RequestedDeviceIdxs is a list of OpenCL device indexes
 // NumDevicesRequested is number of devices in RequestedDeviceIdxs list
 // Returns 0 on success, -1 on stupid params, -2 on OpenCL API error
-size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_context *opencl_ctx)
+size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *config, cl_context *opencl_ctx)
 {
-    const size_t platform_idx             = config->platformIndex();
-    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
-    cl_uint entries                       = platforms.size();
+    const size_t num_gpus                       = contexts.size();
+    const size_t platform_idx                   = static_cast<size_t>(config->platformIndex());
+    const std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
 
-    if (entries == 0) {
+    if (platforms.empty()) {
         return OCL_ERR_API;
     }
 
-    if (entries <= platform_idx) {
+    if (platforms.size() <= platform_idx) {
         return OCL_ERR_BAD_PARAMS;
     }
 
     cl_int ret;
+    cl_uint entries;
     if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceIDs for number of devices.", err_to_str(ret));
         return OCL_ERR_API;
     }
 
     // Same as the platform index sanity check, except we must check all requested device indexes
+    // TODO remove duplicated checks, see xmrig::Config::filter Threads()
     for (size_t i = 0; i < num_gpus; ++i) {
-        if (entries <= ctx[i].deviceIdx) {
-            LOG_ERR("Selected OpenCL device index %lu doesn't exist.\n", ctx[i].deviceIdx);
+        if (entries <= contexts[i]->deviceIdx) {
+            LOG_ERR("Selected OpenCL device index %lu doesn't exist.\n", contexts[i]->deviceIdx);
             return OCL_ERR_BAD_PARAMS;
         }
     }
@@ -447,11 +472,19 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
 #   endif
 
     for (size_t i = 0; i < num_gpus; ++i) {
-        ctx[i].DeviceID = DeviceIDList[ctx[i].deviceIdx];
-        TempDeviceList[i] = DeviceIDList[ctx[i].deviceIdx];
+        TempDeviceList[i] = DeviceIDList[contexts[i]->deviceIdx];
     }
 
     *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
+
+    for (size_t i = 0; i < num_gpus; ++i) {
+        contexts[i]->threadIdx   = i;
+        contexts[i]->opencl_ctx  = *opencl_ctx;
+        contexts[i]->platformIdx = platform_idx;
+        contexts[i]->DeviceID    = DeviceIDList[contexts[i]->deviceIdx];
+        OclCache::get_device_string(contexts[i]->platformIdx, contexts[i]->DeviceID, contexts[i]->DeviceString);
+        contexts[i]->amdDriverMajorVersion = OclCache::amdDriverMajorVersion(contexts[0]);
+    }
 
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
@@ -496,18 +529,18 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_CN_GPU"),           cryptonight_gpu);
 
     for (size_t i = 0; i < num_gpus; ++i) {
-        if (ctx[i].stridedIndex == 2 && (ctx[i].rawIntensity % ctx[i].workSize) != 0) {
-            const size_t reduced_intensity = (ctx[i].rawIntensity / ctx[i].workSize) * ctx[i].workSize;
-            ctx[i].rawIntensity = reduced_intensity;
+        if (contexts[i]->stridedIndex == 2 && (contexts[i]->rawIntensity % contexts[i]->workSize) != 0) {
+            const size_t reduced_intensity = (contexts[i]->rawIntensity / contexts[i]->workSize) * contexts[i]->workSize;
+            contexts[i]->rawIntensity = reduced_intensity;
 
-            LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", ctx[i].deviceIdx, reduced_intensity);
+            LOG_WARN("AMD GPU #%zu: intensity is not a multiple of 'worksize', auto reduce intensity to %zu", contexts[i]->deviceIdx, reduced_intensity);
         }
 
-        if (ctx[i].rawIntensity % ctx[i].workSize == 0) {
-            ctx[i].compMode = 0;
+        if (contexts[i]->rawIntensity % contexts[i]->workSize == 0) {
+            contexts[i]->compMode = 0;
         }
 
-        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, *opencl_ctx, contexts[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }
@@ -515,7 +548,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant)
+size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant, uint64_t height)
 {
     cl_int ret;
 
@@ -526,7 +559,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     input[input_len] = 0x01;
     memset(input + input_len + 1, 0, 128 - input_len - 1);
     
-	cl_uint numThreads = ctx->rawIntensity;
+    cl_uint numThreads = ctx->rawIntensity;
 
     if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->InputBuffer, CL_TRUE, 0, 128, input, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill input buffer.", err_to_str(ret));
@@ -552,7 +585,21 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
         return OCL_ERR_API;
     }
 
-    if (variant != xmrig::VARIANT_GPU) {
+    if (variant == xmrig::VARIANT_GPU) {
+        // we use an additional cn0 kernel to prepare the scratchpad
+        // Scratchpads
+        if ((ret = OclLib::setKernelArg(ctx->Kernels[cn0_kernel_offset + 1], 0, sizeof(cl_mem), ctx->ExtraBuffers + 0)) != CL_SUCCESS) {
+            LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn0_kernel_offset + 1, 0);
+            return (OCL_ERR_API);
+        }
+
+        // States
+        if((ret = OclLib::setKernelArg(ctx->Kernels[cn0_kernel_offset + 1], 1, sizeof(cl_mem), ctx->ExtraBuffers + 1)) != CL_SUCCESS)
+        {
+            LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn0_kernel_offset + 1, 1);
+            return (OCL_ERR_API);
+        }
+    } else {
         // variant
         const auto v = static_cast<cl_uint>(variant);
         if ((ret = OclLib::setKernelArg(ctx->Kernels[cn0_kernel_offset], 4, sizeof(cl_uint), &v)) != CL_SUCCESS) {
@@ -564,6 +611,40 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     // CN1 Kernel
     const int cn1_kernel_offset = cn1KernelOffset(variant);
 
+    if ((variant == xmrig::VARIANT_WOW) || (variant == xmrig::VARIANT_4)) {
+#       ifdef APP_DEBUG
+        const int64_t timeStart = xmrig::steadyTimestamp();
+#       endif
+
+        // Get new kernel
+        cl_program program = CryptonightR_get_program(ctx, variant, height);
+
+        if (program != ctx->ProgramCryptonightR) {
+            cl_int ret;
+            cl_kernel kernel = OclLib::createKernel(program, "cn1_cryptonight_r", &ret);
+
+            cl_kernel old_kernel = nullptr;
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("CryptonightR: clCreateKernel returned error %s", OclError::toString(ret));
+            }
+            else {
+                old_kernel = ctx->Kernels[cn1_kernel_offset];
+                ctx->Kernels[cn1_kernel_offset] = kernel;
+            }
+            ctx->ProgramCryptonightR = program;
+
+            // Precompile next program in background
+            CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
+            for (int i = 2; i <= PRECOMPILATION_DEPTH; ++i)
+                CryptonightR_get_program(ctx, variant, height + i, true, nullptr);
+
+#           ifdef APP_DEBUG
+            const int64_t timeFinish = xmrig::steadyTimestamp();
+            LOG_INFO("Thread #%zu updated CryptonightR in %.3fs", ctx->threadIdx, (timeFinish - timeStart) / 1000.0);
+#           endif
+        }
+    }
+
     // Scratchpads, States
     if (!setKernelArgFromExtraBuffers(ctx, cn1_kernel_offset, 0, 0) || !setKernelArgFromExtraBuffers(ctx, cn1_kernel_offset, 1, 1)) {
         return OCL_ERR_API;
@@ -573,7 +654,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
         // Threads
         if ((ret = OclLib::setKernelArg(ctx->Kernels[cn1_kernel_offset], 2, sizeof(cl_uint), &numThreads)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), cn1_kernel_offset, 2);
-            return(OCL_ERR_API);
+            return (OCL_ERR_API);
         }
     }
     else {
@@ -676,7 +757,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     memset(BranchNonces,0,sizeof(size_t)*4);
 
     size_t g_intensity = ctx->rawIntensity;
-    size_t w_size = ctx->workSize;
+    size_t w_size = OclCache::worksize(ctx, variant);
     // round up to next multiple of w_size
     size_t g_thd = ((g_intensity + w_size - 1u) / w_size) * w_size;
     // number of global threads must be a multiple of the work group size (w_size)
@@ -711,7 +792,16 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     if (variant == xmrig::VARIANT_GPU) {
         g_thd *= 16;
         lthreads[0] *= 16;
+
+        size_t thd = 64;
+        size_t intens = g_intensity * thd;
+
+        if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[cn0_kernel_offset + 1], 1, nullptr, &intens, &thd, 0, nullptr, nullptr)) != CL_SUCCESS) {
+            LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), cn0_kernel_offset + 1);
+            return OCL_ERR_API;
+        }
     }
+
     if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[cn1_kernel_offset], 1, &tmpNonce, &g_thd, lthreads, 0, nullptr, nullptr)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 1);
         return OCL_ERR_API;
@@ -765,7 +855,7 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
         }
     }
 
-    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->OutputBuffer, CL_TRUE, 0, sizeof(cl_uint) * 0x100, HashOutput, 0, nullptr, NULL) != CL_SUCCESS) {
+    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->OutputBuffer, CL_TRUE, 0, sizeof(cl_uint) * 0x100, HashOutput, 0, nullptr, nullptr) != CL_SUCCESS) {
         return OCL_ERR_API;
     }
 
@@ -796,7 +886,9 @@ void ReleaseOpenCl(GpuContext* ctx)
 
     int kernel_count = sizeof(ctx->Kernels) / sizeof(ctx->Kernels[0]);
     for (int k = 0; k < kernel_count; ++k) {
-        OclLib::releaseKernel(ctx->Kernels[k]);
+        if (ctx->Kernels[k]) {
+            OclLib::releaseKernel(ctx->Kernels[k]);
+        }
     }
 
     OclLib::releaseCommandQueue(ctx->CommandQueues);

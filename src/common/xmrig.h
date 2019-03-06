@@ -76,6 +76,11 @@ enum Variant {
     VARIANT_UPX = 11,       // Modified CryptoNight-Lite variant upx
     VARIANT_TURTLE = 12,    // Modified CryptoNight-Ultralite variant turtle
     VARIANT_GPU  = 13,      // CryptoNight-GPU (Ryo)
+    VARIANT_WOW  = 14,      // CryptoNightR (Wownero)
+    VARIANT_4    = 15,      // CryptoNightR
+    VARIANT_RWZ = 16,       // Cryptonight (2) variant 3/4 Iterations + reverse shuffle rwz (Graft)
+    VARIANT_ZELERIUS = 17,  // Cryptonight (2) variant 3/4 Iterations (Zelerius)
+    VARIANT_DOUBLE = 18,    // Cryptonight (2) variant double (XCash)
     VARIANT_MAX
 };
 

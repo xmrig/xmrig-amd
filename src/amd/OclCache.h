@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,16 +41,22 @@ public:
 
     bool load();
 
+    static void getOptions(xmrig::Algo algo, xmrig::Variant variant, const GpuContext* ctx, char* options, size_t options_size);
+    static bool get_device_string(int platform, cl_device_id device, std::string& result);
+    static void calc_hash(const std::string& device_string, const char* source_code, const char *options, std::string& hash);
+    static cl_int wait_build(cl_program program, cl_device_id device);
+    static int amdDriverMajorVersion(const GpuContext* ctx);
+    static void sleep(size_t ms);
+    static size_t worksize(const GpuContext *ctx, xmrig::Variant variant);
+
 private:
     bool prepare(const char *options);
     bool save(int dev_id, cl_uint num_devices) const;
     cl_uint numDevices() const;
-    int amdDriverMajorVersion() const;
     int devId(cl_uint num_devices) const;
     void createDirectory() const;
 
     static std::string prefix();
-    static void sleep(size_t sec);
 
     cl_context m_oclCtx;
     const char *m_sourceCode;

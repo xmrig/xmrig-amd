@@ -31,7 +31,7 @@
 #include "common/net/Job.h"
 
 
-static inline unsigned char hf_hex2bin(char c, bool &err)
+unsigned char hf_hex2bin(char c, bool &err)
 {
     if (c >= '0' && c <= '9') {
         return c - '0';
@@ -48,7 +48,7 @@ static inline unsigned char hf_hex2bin(char c, bool &err)
 }
 
 
-static inline char hf_bin2hex(unsigned char c)
+char hf_bin2hex(unsigned char c)
 {
     if (c <= 0x9) {
         return '0' + c;
@@ -58,7 +58,7 @@ static inline char hf_bin2hex(unsigned char c)
 }
 
 
-Job::Job() :
+xmrig::Job::Job() :
     m_autoVariant(false),
     m_nicehash(false),
     m_donate(false),
@@ -67,13 +67,14 @@ Job::Job() :
     m_size(0),
     m_diff(0),
     m_target(0),
-    m_blob()
+    m_blob(),
+    m_height(0)
 {
 }
 
 
-Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmrig::Id &clientId) :
-    m_autoVariant(algorithm.variant() == xmrig::VARIANT_AUTO),
+xmrig::Job::Job(int poolId, bool nicehash, const Algorithm &algorithm, const Id &clientId) :
+    m_autoVariant(algorithm.variant() == VARIANT_AUTO),
     m_nicehash(nicehash),
     m_donate(false),
     m_poolId(poolId),
@@ -82,24 +83,25 @@ Job::Job(int poolId, bool nicehash, const xmrig::Algorithm &algorithm, const xmr
     m_diff(0),
     m_target(0),
     m_blob(),
+    m_height(0),
     m_algorithm(algorithm),
     m_clientId(clientId)
 {
 }
 
 
-Job::~Job()
+xmrig::Job::~Job()
 {
 }
 
 
-bool Job::isEqual(const Job &other) const
+bool xmrig::Job::isEqual(const Job &other) const
 {
     return m_id == other.m_id && m_clientId == other.m_clientId && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
 }
 
 
-bool Job::setBlob(const char *blob)
+bool xmrig::Job::setBlob(const char *blob)
 {
     if (!blob) {
         return false;
@@ -128,11 +130,20 @@ bool Job::setBlob(const char *blob)
     }
 
     if (!m_algorithm.isForced()) {
-        if (m_algorithm.variant() == xmrig::VARIANT_XTL && m_blob[0] >= 9) {
-            m_algorithm.setVariant(xmrig::VARIANT_FAST_2);
+        if (m_algorithm.variant() == VARIANT_XTL && m_blob[0] >= 9) {
+            m_algorithm.setVariant(VARIANT_FAST_2);
         }
-        else if (m_algorithm.variant() == xmrig::VARIANT_MSR && m_blob[0] >= 8) {
-            m_algorithm.setVariant(xmrig::VARIANT_FAST_2);
+        else if (m_algorithm.variant() == VARIANT_MSR && m_blob[0] >= 8) {
+            m_algorithm.setVariant(VARIANT_FAST_2);
+        }
+        else if (m_algorithm.variant() == VARIANT_WOW && m_blob[0] < 11) {
+            m_algorithm.setVariant(VARIANT_2);
+        }
+        else if (m_algorithm.variant() == VARIANT_RWZ && m_blob[0] < 12) {
+            m_algorithm.setVariant(VARIANT_2);
+        }
+        else if (m_algorithm.variant() == VARIANT_ZELERIUS && m_blob[0] < 8) {
+            m_algorithm.setVariant(VARIANT_2);
         }
     }
 
@@ -145,7 +156,7 @@ bool Job::setBlob(const char *blob)
 }
 
 
-bool Job::setTarget(const char *target)
+bool xmrig::Job::setTarget(const char *target)
 {
     if (!target) {
         return false;
@@ -187,7 +198,7 @@ bool Job::setTarget(const char *target)
 }
 
 
-void Job::setAlgorithm(const char *algo)
+void xmrig::Job::setAlgorithm(const char *algo)
 {
     m_algorithm.parseAlgorithm(algo);
 
@@ -197,7 +208,13 @@ void Job::setAlgorithm(const char *algo)
 }
 
 
-bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
+void xmrig::Job::setHeight(uint64_t height)
+{
+    m_height = height;
+}
+
+
+bool xmrig::Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 {
     bool error = false;
     for (unsigned int i = 0; i < len; i += 2) {
@@ -211,7 +228,7 @@ bool Job::fromHex(const char* in, unsigned int len, unsigned char* out)
 }
 
 
-void Job::toHex(const unsigned char* in, unsigned int len, char* out)
+void xmrig::Job::toHex(const unsigned char* in, unsigned int len, char* out)
 {
     for (unsigned int i = 0; i < len; i++) {
         out[i * 2] = hf_bin2hex((in[i] & 0xF0) >> 4);
@@ -221,7 +238,7 @@ void Job::toHex(const unsigned char* in, unsigned int len, char* out)
 
 
 #ifdef APP_DEBUG
-char *Job::toHex(const unsigned char* in, unsigned int len)
+char *xmrig::Job::toHex(const unsigned char* in, unsigned int len)
 {
     char *out = new char[len * 2 + 1]();
     toHex(in, len, out);
@@ -231,13 +248,11 @@ char *Job::toHex(const unsigned char* in, unsigned int len)
 #endif
 
 
-xmrig::Variant Job::variant() const
+xmrig::Variant xmrig::Job::variant() const
 {
-    using namespace xmrig;
-
     switch (m_algorithm.algo()) {
     case CRYPTONIGHT:
-        return (m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1;
+        return (m_blob[0] >= 10) ? VARIANT_4 : ((m_blob[0] >= 8) ? VARIANT_2 : VARIANT_1);
 
     case CRYPTONIGHT_LITE:
         return VARIANT_1;

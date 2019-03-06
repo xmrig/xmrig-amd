@@ -51,7 +51,7 @@ std::string OclCache::prefix()
 }
 
 
-void OclCache::sleep(size_t sec)
+void OclCache::sleep(size_t ms)
 {
-    Sleep(sec * 1000);
+    Sleep(ms);
 }
