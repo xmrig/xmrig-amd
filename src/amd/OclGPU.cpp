@@ -522,6 +522,7 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
     ;
 
     std::string source_code(cryptonightCL);
+    source_code.append(cryptonightCL2);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_AES"),         wolfAesCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_WOLF_SKEIN"),       wolfSkeinCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_JH"),               jhCL);
@@ -530,7 +531,6 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_INT_MATH_V2"), fastIntMathV2CL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_DIV_HEAVY"),   fastDivHeavyCL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_CN_GPU"),           cryptonight_gpu);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_CRYPTONIGHT2"),     cryptonightCL2);
 
     for (size_t i = 0; i < num_gpus; ++i) {
         if (contexts[i]->stridedIndex == 2 && (contexts[i]->rawIntensity % contexts[i]->workSize) != 0) {

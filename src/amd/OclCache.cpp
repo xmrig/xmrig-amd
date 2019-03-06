@@ -70,7 +70,7 @@ void OclCache::getOptions(xmrig::Algo algo, xmrig::Variant variant, const GpuCon
 {
     snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
         "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -DWORKSIZE_GPU=%zu -cl-fp32-correctly-rounded-divide-sqrt",
-        xmrig::cn_select_iter(algo, variant),
+        xmrig::cn_select_iter(algo, xmrig::VARIANT_AUTO),
         xmrig::cn_select_mask(algo),
         ctx->workSize,
         ctx->stridedIndex,

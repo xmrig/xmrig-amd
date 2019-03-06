@@ -409,9 +409,6 @@ inline ulong getIdx()
 //#include "opencl/cryptonight_gpu.cl"
 XMRIG_INCLUDE_CN_GPU
 
-//#include "opencl/cryptonight2.cl"
-XMRIG_INCLUDE_CRYPTONIGHT2
-
 #define mix_and_propagate(xin) (xin)[(get_local_id(1)) % 8][get_local_id(0)] ^ (xin)[(get_local_id(1) + 1) % 8][get_local_id(0)]
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
