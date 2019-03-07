@@ -78,7 +78,6 @@ inline int amd_bfe(const uint src0, const uint offset, const uint width)
 }
 #endif
 
-XMRIG_INCLUDE_CRYPTONIGHT_CL2
 //#include "opencl/wolf-aes.cl"
 XMRIG_INCLUDE_WOLF_AES
 //#include "opencl/wolf-skein.cl"
