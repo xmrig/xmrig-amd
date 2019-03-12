@@ -193,4 +193,5 @@ const char *Hashrate::format(double h, char *buf, size_t size)
 void Hashrate::onReport(uv_timer_t *handle)
 {
     static_cast<Hashrate*>(handle->data)->print();
+    Workers::printHashrate(true);
 }
