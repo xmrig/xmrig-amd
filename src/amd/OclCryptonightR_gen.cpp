@@ -158,10 +158,6 @@ static cl_program CryptonightR_build_program(
     std::string options,
     std::string hash)
 {
-    if (old_kernel) {
-        OclLib::releaseKernel(old_kernel);
-    }
-
     std::vector<cl_program> old_programs;
     old_programs.reserve(32);
     {
@@ -254,6 +250,9 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     if (background) {
         background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false, old_kernel); });
         return nullptr;
+    }
+    else if (old_kernel) {
+        OclLib::releaseKernel(old_kernel);
     }
 
     const char* source_code_template =
