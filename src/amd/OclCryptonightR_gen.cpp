@@ -173,7 +173,7 @@ static cl_program CryptonightR_build_program(
             const CacheEntry& entry = CryptonightR_cache[i];
             if ((entry.variant == variant) && (entry.height + PRECOMPILATION_DEPTH < height))
             {
-                //LOG_INFO("CryptonightR: program for height %llu released (old program)", entry.height);
+                LOG_DEBUG("CryptonightR: program for height %" PRIu64 " released (old program)", entry.height);
                 old_programs.push_back(entry.program);
                 CryptonightR_cache[i] = std::move(CryptonightR_cache.back());
                 CryptonightR_cache.pop_back();
@@ -235,7 +235,7 @@ static cl_program CryptonightR_build_program(
         return nullptr;
     }
 
-    //LOG_INFO("CryptonightR: program for height %llu compiled", height);
+    LOG_DEBUG("CryptonightR: program for height %" PRIu64 " compiled", height);
 
     {
         std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
@@ -314,7 +314,7 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         {
             if ((entry.variant == variant) && (entry.height == height) && (entry.deviceIdx == ctx->deviceIdx) && (entry.hash == hash))
             {
-                //LOG_INFO("CryptonightR: program for height %llu found in cache", height);
+                LOG_DEBUG("CryptonightR: program for height %" PRIu64 " found in cache", height);
                 return entry.program;
             }
         }
