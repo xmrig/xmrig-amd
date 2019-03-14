@@ -1,3 +1,8 @@
+# v2.14.1
+- [#228](https://github.com/xmrig/xmrig-amd/issues/228#issuecomment-472287697) Fixed macOS support.
+- [#235](https://github.com/xmrig/xmrig-amd/issues/235) Fixed autoconf for `cn/r` and other recently added algorithms.
+- [#241](https://github.com/xmrig/xmrig-amd/issues/241) Fixed memory leak if used `cn/r` algorithm.
+
 # v2.14.0
 - **[#227](https://github.com/xmrig/xmrig-amd/pull/227) Added new algorithm `cryptonight/rwz`, short alias `cn/rwz` (also known as CryptoNight ReverseWaltz), for upcoming [Graft](https://www.graft.network/) fork.**
 - **[#931](https://github.com/xmrig/xmrig/issues/931) Added new algorithm `cryptonight/zls`, short alias `cn/zls` for [Zelerius Network](https://zelerius.org) fork.**
