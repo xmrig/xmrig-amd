@@ -346,6 +346,10 @@ cl_int OclLib::releaseKernel(cl_kernel kernel)
 {
     assert(pReleaseKernel != nullptr);
 
+    if (kernel == nullptr) {
+        return CL_SUCCESS;
+    }
+
     const cl_int ret = pReleaseKernel(kernel);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseKernel);

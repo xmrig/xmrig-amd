@@ -149,14 +149,8 @@ static void background_exec(T&& func)
     }
 }
 
-static cl_program CryptonightR_build_program(
-    const GpuContext* ctx,
-    xmrig::Variant variant,
-    uint64_t height,
-    cl_kernel old_kernel,
-    std::string source,
-    std::string options,
-    std::string hash)
+
+static cl_program CryptonightR_build_program(const GpuContext *ctx, xmrig::Variant variant, uint64_t height, const std::string &source, const std::string &options, std::string hash)
 {
     std::vector<cl_program> old_programs;
     old_programs.reserve(32);
@@ -240,19 +234,18 @@ static cl_program CryptonightR_build_program(
     return program;
 }
 
+
 static bool is_64bit(xmrig::Variant variant)
 {
     return false;
 }
 
-cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background, cl_kernel old_kernel)
+
+cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background)
 {
     if (background) {
-        background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false, old_kernel); });
+        background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false); });
         return nullptr;
-    }
-    else if (old_kernel) {
-        OclLib::releaseKernel(old_kernel);
     }
 
     const char* source_code_template =
@@ -319,5 +312,5 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         }
     }
 
-    return CryptonightR_build_program(ctx, variant, height, old_kernel, source, options, hash);
+    return CryptonightR_build_program(ctx, variant, height, source, options, hash);
 }
