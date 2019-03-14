@@ -1,52 +1,79 @@
-#include <string>
-#include <sstream>
-#include <mutex>
+/* XMRig
+ * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
+ * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
+ * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
+ * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
+ * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
+ * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <cstring>
+#include <mutex>
+#include <sstream>
+#include <string>
 #include <thread>
-#include "crypto/CryptoNight_monero.h"
-#include "amd/OclCryptonightR_gen.h"
-#include "amd/OclLib.h"
+
+
 #include "amd/OclCache.h"
+#include "amd/OclCryptonightR_gen.h"
 #include "amd/OclError.h"
+#include "amd/OclLib.h"
 #include "common/log/Log.h"
+#include "crypto/CryptoNight_monero.h"
+
 
 static std::string get_code(const V4_Instruction* code, int code_size)
 {
     std::stringstream s;
 
-	for (int i = 0; i < code_size; ++i)
+    for (int i = 0; i < code_size; ++i)
     {
-		const V4_Instruction inst = code[i];
+        const V4_Instruction inst = code[i];
 
-		const uint32_t a = inst.dst_index;
-		const uint32_t b = inst.src_index;
+        const uint32_t a = inst.dst_index;
+        const uint32_t b = inst.src_index;
 
-		switch (inst.opcode)
+        switch (inst.opcode)
         {
-		case MUL:
-			s << 'r' << a << "*=r" << b << ';';
-			break;
+        case MUL:
+            s << 'r' << a << "*=r" << b << ';';
+            break;
 
-		case ADD:
+        case ADD:
             s << 'r' << a << "+=r" << b << '+' << inst.C << "U;";
-			break;
+            break;
 
-		case SUB:
+        case SUB:
             s << 'r' << a << "-=r" << b << ';';
-			break;
+            break;
 
-		case ROR:
+        case ROR:
         case ROL:
             s << 'r' << a << "=rotate(r" << a << ((inst.opcode == ROR) ? ",ROT_BITS-r" : ",r") << b << ");";
-			break;
+            break;
 
-		case XOR:
-			s << 'r' << a << "^=r" << b << ';';
-			break;
-		}
+        case XOR:
+            s << 'r' << a << "^=r" << b << ';';
+            break;
+        }
 
-		s << '\n';
-	}
+        s << '\n';
+    }
 
     return s.str();
 }
@@ -122,19 +149,9 @@ static void background_exec(T&& func)
     }
 }
 
-static cl_program CryptonightR_build_program(
-    const GpuContext* ctx,
-    xmrig::Variant variant,
-    uint64_t height,
-    cl_kernel old_kernel,
-    std::string source,
-    std::string options,
-    std::string hash)
-{
-    if (old_kernel) {
-        OclLib::releaseKernel(old_kernel);
-    }
 
+static cl_program CryptonightR_build_program(const GpuContext *ctx, xmrig::Variant variant, uint64_t height, const std::string &source, const std::string &options, std::string hash)
+{
     std::vector<cl_program> old_programs;
     old_programs.reserve(32);
     {
@@ -146,7 +163,7 @@ static cl_program CryptonightR_build_program(
             const CacheEntry& entry = CryptonightR_cache[i];
             if ((entry.variant == variant) && (entry.height + PRECOMPILATION_DEPTH < height))
             {
-                //LOG_INFO("CryptonightR: program for height %llu released (old program)", entry.height);
+                LOG_DEBUG("CryptonightR: program for height %" PRIu64 " released (old program)", entry.height);
                 old_programs.push_back(entry.program);
                 CryptonightR_cache[i] = std::move(CryptonightR_cache.back());
                 CryptonightR_cache.pop_back();
@@ -193,22 +210,22 @@ static cl_program CryptonightR_build_program(
     }
 
     ret = OclLib::buildProgram(program, 1, &ctx->DeviceID, options.c_str());
-    if (ret != CL_SUCCESS)
-    {
-        OclLib::releaseProgram(program);
+    if (ret != CL_SUCCESS) {
         LOG_ERR("CryptonightR: clBuildProgram returned error %s", OclError::toString(ret));
+        printf("Build log:\n%s\n", OclLib::getProgramBuildLog(program, ctx->DeviceID).data());
+
+        OclLib::releaseProgram(program);
         return nullptr;
     }
 
     ret = OclCache::wait_build(program, ctx->DeviceID);
-    if (ret != CL_SUCCESS)
-    {
+    if (ret != CL_SUCCESS) {
         OclLib::releaseProgram(program);
         LOG_ERR("CryptonightR: wait_build returned error %s", OclError::toString(ret));
         return nullptr;
     }
 
-    //LOG_INFO("CryptonightR: program for height %llu compiled", height);
+    LOG_DEBUG("CryptonightR: program for height %" PRIu64 " compiled", height);
 
     {
         std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
@@ -217,15 +234,17 @@ static cl_program CryptonightR_build_program(
     return program;
 }
 
+
 static bool is_64bit(xmrig::Variant variant)
 {
     return false;
 }
 
-cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background, cl_kernel old_kernel)
+
+cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background)
 {
     if (background) {
-        background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false, old_kernel); });
+        background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false); });
         return nullptr;
     }
 
@@ -287,11 +306,11 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         {
             if ((entry.variant == variant) && (entry.height == height) && (entry.deviceIdx == ctx->deviceIdx) && (entry.hash == hash))
             {
-                //LOG_INFO("CryptonightR: program for height %llu found in cache", height);
+                LOG_DEBUG("CryptonightR: program for height %" PRIu64 " found in cache", height);
                 return entry.program;
             }
         }
     }
 
-    return CryptonightR_build_program(ctx, variant, height, old_kernel, source, options, hash);
+    return CryptonightR_build_program(ctx, variant, height, source, options, hash);
 }

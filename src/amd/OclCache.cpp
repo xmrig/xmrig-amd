@@ -111,23 +111,7 @@ bool OclCache::load()
         }
 
         if (OclLib::buildProgram(m_ctx->Program, 1, &m_ctx->DeviceID, options) != CL_SUCCESS) {
-            size_t len = 0;
-
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_LOG, 0, nullptr, &len) != CL_SUCCESS) {
-                return false;
-            }
-
-            char *buildLog = new char[len + 1]();
-
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_LOG, len, buildLog, nullptr) != CL_SUCCESS) {
-                delete [] buildLog;
-                return false;
-            }
-
-            Log::i()->text("Build log:");
-            std::cerr << buildLog << std::endl;
-
-            delete [] buildLog;
+            printf("Build log:\n%s\n", OclLib::getProgramBuildLog(m_ctx->Program, m_ctx->DeviceID).data());
             return false;
         }
 

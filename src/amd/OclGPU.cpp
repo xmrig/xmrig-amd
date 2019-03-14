@@ -620,20 +620,20 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
             cl_int ret;
             cl_kernel kernel = OclLib::createKernel(program, "cn1_cryptonight_r", &ret);
 
-            cl_kernel old_kernel = nullptr;
             if (ret != CL_SUCCESS) {
                 LOG_ERR("CryptonightR: clCreateKernel returned error %s", OclError::toString(ret));
             }
             else {
-                old_kernel = ctx->Kernels[cn1_kernel_offset];
+                OclLib::releaseKernel(ctx->Kernels[cn1_kernel_offset]);
                 ctx->Kernels[cn1_kernel_offset] = kernel;
             }
+
             ctx->ProgramCryptonightR = program;
 
             // Precompile next program in background
-            CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
-            for (int i = 2; i <= PRECOMPILATION_DEPTH; ++i)
-                CryptonightR_get_program(ctx, variant, height + i, true, nullptr);
+            for (size_t i = 1; i <= PRECOMPILATION_DEPTH; ++i) {
+                CryptonightR_get_program(ctx, variant, height + i, true);
+            }
 
 #           ifdef APP_DEBUG
             const int64_t timeFinish = xmrig::steadyTimestamp();

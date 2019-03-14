@@ -5,7 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -345,6 +346,10 @@ cl_int OclLib::releaseKernel(cl_kernel kernel)
 {
     assert(pReleaseKernel != nullptr);
 
+    if (kernel == nullptr) {
+        return CL_SUCCESS;
+    }
+
     const cl_int ret = pReleaseKernel(kernel);
     if (ret != CL_SUCCESS) {
         LOG_ERR(kErrorTemplate, OclError::toString(ret), kReleaseKernel);
@@ -520,4 +525,22 @@ xmrig::String OclLib::getDeviceName(cl_device_id id)
     getDeviceInfo(id, CL_DEVICE_NAME, size, buf);
 
     return buf;
+}
+
+
+xmrig::String OclLib::getProgramBuildLog(cl_program program, cl_device_id device)
+{
+    size_t size = 0;
+    if (getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &size) != CL_SUCCESS) {
+        return xmrig::String();
+    }
+
+    char *log = new char[size + 1]();
+
+    if (OclLib::getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, size, log, nullptr) != CL_SUCCESS) {
+        delete [] log;
+        return xmrig::String();
+    }
+
+    return log;
 }
