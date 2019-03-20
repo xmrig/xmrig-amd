@@ -49,16 +49,17 @@ static const char *kEnqueueWriteBuffer               = "clEnqueueWriteBuffer";
 static const char *kFinish                           = "clFinish";
 static const char *kGetDeviceIDs                     = "clGetDeviceIDs";
 static const char *kGetDeviceInfo                    = "clGetDeviceInfo";
+static const char *kGetKernelInfo                    = "clGetKernelInfo";
 static const char *kGetPlatformIDs                   = "clGetPlatformIDs";
 static const char *kGetPlatformInfo                  = "clGetPlatformInfo";
 static const char *kGetProgramBuildInfo              = "clGetProgramBuildInfo";
 static const char *kGetProgramInfo                   = "clGetProgramInfo";
-static const char *kSetKernelArg                     = "clSetKernelArg";
-static const char *kReleaseMemObject                 = "clReleaseMemObject";
-static const char *kReleaseProgram                   = "clReleaseProgram";
-static const char *kReleaseKernel                    = "clReleaseKernel";
 static const char *kReleaseCommandQueue              = "clReleaseCommandQueue";
 static const char *kReleaseContext                   = "clReleaseContext";
+static const char *kReleaseKernel                    = "clReleaseKernel";
+static const char *kReleaseMemObject                 = "clReleaseMemObject";
+static const char *kReleaseProgram                   = "clReleaseProgram";
+static const char *kSetKernelArg                     = "clSetKernelArg";
 
 #if defined(CL_VERSION_2_0)
 typedef cl_command_queue (CL_API_CALL *createCommandQueueWithProperties_t)(cl_context, cl_device_id, const cl_queue_properties *, cl_int *);
@@ -73,49 +74,51 @@ typedef cl_int (CL_API_CALL *enqueueWriteBuffer_t)(cl_command_queue, cl_mem, cl_
 typedef cl_int (CL_API_CALL *finish_t)(cl_command_queue);
 typedef cl_int (CL_API_CALL *getDeviceIDs_t)(cl_platform_id, cl_device_type, cl_uint, cl_device_id *, cl_uint *);
 typedef cl_int (CL_API_CALL *getDeviceInfo_t)(cl_device_id, cl_device_info, size_t, void *, size_t *);
+typedef cl_int (CL_API_CALL *getKernelInfo_t)(cl_kernel, cl_kernel_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getPlatformIDs_t)(cl_uint, cl_platform_id *, cl_uint *);
 typedef cl_int (CL_API_CALL *getPlatformInfo_t)(cl_platform_id, cl_platform_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getProgramBuildInfo_t)(cl_program, cl_device_id, cl_program_build_info, size_t, void *, size_t *);
 typedef cl_int (CL_API_CALL *getProgramInfo_t)(cl_program, cl_program_info, size_t, void *, size_t *);
+typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
+typedef cl_int (CL_API_CALL *releaseContext_t)(cl_context);
+typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
+typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
+typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
 typedef cl_int (CL_API_CALL *setKernelArg_t)(cl_kernel, cl_uint, size_t, const void *);
 typedef cl_kernel (CL_API_CALL *createKernel_t)(cl_program, const char *, cl_int *);
 typedef cl_mem (CL_API_CALL *createBuffer_t)(cl_context, cl_mem_flags, size_t, void *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithBinary_t)(cl_context, cl_uint, const cl_device_id *, const size_t *, const unsigned char **, cl_int *, cl_int *);
 typedef cl_program (CL_API_CALL *createProgramWithSource_t)(cl_context, cl_uint, const char **, const size_t *, cl_int *);
-typedef cl_int (CL_API_CALL *releaseMemObject_t)(cl_mem);
-typedef cl_int (CL_API_CALL *releaseProgram_t)(cl_program);
-typedef cl_int (CL_API_CALL *releaseKernel_t)(cl_kernel);
-typedef cl_int (CL_API_CALL *releaseCommandQueue_t)(cl_command_queue);
-typedef cl_int (CL_API_CALL *releaseContext_t)(cl_context);
 
 
 #if defined(CL_VERSION_2_0)
 static createCommandQueueWithProperties_t pCreateCommandQueueWithProperties = nullptr;
 #endif
 
+static buildProgram_t  pBuildProgram                                        = nullptr;
+static createBuffer_t pCreateBuffer                                         = nullptr;
 static createCommandQueue_t pCreateCommandQueue                             = nullptr;
 static createContext_t pCreateContext                                       = nullptr;
-static buildProgram_t  pBuildProgram                                        = nullptr;
+static createKernel_t pCreateKernel                                         = nullptr;
+static createProgramWithBinary_t pCreateProgramWithBinary                   = nullptr;
+static createProgramWithSource_t pCreateProgramWithSource                   = nullptr;
 static enqueueNDRangeKernel_t pEnqueueNDRangeKernel                         = nullptr;
 static enqueueReadBuffer_t pEnqueueReadBuffer                               = nullptr;
 static enqueueWriteBuffer_t pEnqueueWriteBuffer                             = nullptr;
 static finish_t pFinish                                                     = nullptr;
 static getDeviceIDs_t pGetDeviceIDs                                         = nullptr;
 static getDeviceInfo_t pGetDeviceInfo                                       = nullptr;
+static getKernelInfo_t pGetKernelInfo                                       = nullptr;
 static getPlatformIDs_t pGetPlatformIDs                                     = nullptr;
 static getPlatformInfo_t pGetPlatformInfo                                   = nullptr;
 static getProgramBuildInfo_t pGetProgramBuildInfo                           = nullptr;
 static getProgramInfo_t pGetProgramInfo                                     = nullptr;
-static setKernelArg_t pSetKernelArg                                         = nullptr;
-static createKernel_t pCreateKernel                                         = nullptr;
-static createBuffer_t pCreateBuffer                                         = nullptr;
-static createProgramWithBinary_t pCreateProgramWithBinary                   = nullptr;
-static createProgramWithSource_t pCreateProgramWithSource                   = nullptr;
-static releaseMemObject_t pReleaseMemObject                                 = nullptr;
-static releaseProgram_t pReleaseProgram                                     = nullptr;
-static releaseKernel_t pReleaseKernel                                       = nullptr;
 static releaseCommandQueue_t pReleaseCommandQueue                           = nullptr;
 static releaseContext_t pReleaseContext                                     = nullptr;
+static releaseKernel_t pReleaseKernel                                       = nullptr;
+static releaseMemObject_t pReleaseMemObject                                 = nullptr;
+static releaseProgram_t pReleaseProgram                                     = nullptr;
+static setKernelArg_t pSetKernelArg                                         = nullptr;
 
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { return false; }
 
@@ -156,6 +159,7 @@ bool OclLib::load()
     DLSYM(ReleaseKernel);
     DLSYM(ReleaseCommandQueue);
     DLSYM(ReleaseContext);
+    DLSYM(GetKernelInfo);
 
 #   if defined(CL_VERSION_2_0)
     uv_dlsym(&oclLib, kCreateCommandQueueWithProperties, reinterpret_cast<void**>(&pCreateCommandQueueWithProperties));
