@@ -225,7 +225,7 @@ static cl_program CryptonightR_build_program(const GpuContext *ctx, xmrig::Varia
         return nullptr;
     }
 
-    LOG_DEBUG("CryptonightR: program for height %" PRIu64 " compiled", height);
+    LOG_DEBUG("CryptonightR: programs for heights %" PRIu64 " - %" PRIu64 " compiled", height * 10, height * 10 + 9);
 
     {
         std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
@@ -248,10 +248,15 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         return nullptr;
     }
 
-    const char* source_code_template =
+    std::string source_code = 
         #include "opencl/wolf-aes.cl"
+        #include "opencl/cryptonight_r_defines.cl"
+    ;
+
+    const char* source_code_template =
         #include "opencl/cryptonight_r.cl"
     ;
+
     const char include_name[] = "XMRIG_INCLUDE_RANDOM_MATH";
     const char* offset = strstr(source_code_template, include_name);
     if (!offset)
@@ -260,24 +265,32 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         return nullptr;
     }
 
-    V4_Instruction code[256];
-    int code_size;
-    switch (variant)
+    for (int i = 0; i < 10; ++i)
     {
-    case xmrig::VARIANT_WOW:
-        code_size = v4_random_math_init<xmrig::VARIANT_WOW>(code, height);
-        break;
-    case xmrig::VARIANT_4:
-        code_size = v4_random_math_init<xmrig::VARIANT_4>(code, height);
-        break;
-    default:
-        LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
-        return nullptr;
-    }
+        V4_Instruction code[256];
+        int code_size;
+        switch (variant)
+        {
+        case xmrig::VARIANT_WOW:
+            code_size = v4_random_math_init<xmrig::VARIANT_WOW>(code, height * 10 + i);
+            break;
+        case xmrig::VARIANT_4:
+            code_size = v4_random_math_init<xmrig::VARIANT_4>(code, height * 10 + i);
+            break;
+        default:
+            LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
+            return nullptr;
+        }
 
-    std::string source_code(source_code_template, offset);
-    source_code.append(get_code(code, code_size));
-    source_code.append(offset + sizeof(include_name) - 1);
+        std::string s(source_code_template, offset);
+        s.append(get_code(code, code_size));
+        s.append(offset + sizeof(include_name) - 1);
+
+        const char kernel_name[] = "cn1_cryptonight_r_N";
+        s[s.find(kernel_name) + sizeof(kernel_name) - 2] = '0' + i;
+
+        source_code += s;
+    }
 
     char options[512] = {};
     OclCache::getOptions(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));

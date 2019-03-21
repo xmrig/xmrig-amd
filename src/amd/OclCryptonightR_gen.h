@@ -29,7 +29,7 @@
 
 enum
 {
-    PRECOMPILATION_DEPTH = 3,
+    PRECOMPILATION_DEPTH = 1,
 };
 static_assert((PRECOMPILATION_DEPTH >= 1) && (PRECOMPILATION_DEPTH <= 10), "Invalid precompilation depth");
 

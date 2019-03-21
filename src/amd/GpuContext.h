@@ -65,6 +65,7 @@ struct GpuContext
         Program(nullptr),
         Kernels{ nullptr },
         ProgramCryptonightR(nullptr),
+        HeightCryptonightR(0),
         freeMem(0),
         globalMem(0),
         computeUnits(0),
@@ -98,6 +99,7 @@ struct GpuContext
     cl_program Program;
     cl_kernel Kernels[32];
     cl_program ProgramCryptonightR;
+    uint64_t HeightCryptonightR;
     size_t freeMem;
     size_t globalMem;
     cl_uint computeUnits;
