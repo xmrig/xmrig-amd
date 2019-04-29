@@ -97,7 +97,7 @@ xmrig::App::~App()
 int xmrig::App::exec()
 {
     if (!m_controller->isReady()) {
-        return 2;
+        return 1;
     }
 
     auto startCmd = m_controller->config()->startCmd();

@@ -75,6 +75,10 @@ bool xmrig::Config::isCNv2() const
         return true;
     }
 
+    if (algorithm().algo() == CRYPTONIGHT_EXTREMELITE) {
+        return true;
+    }
+
     if (algorithm().algo() != CRYPTONIGHT) {
         return false;
     }

@@ -36,6 +36,7 @@ enum Algo {
     CRYPTONIGHT_LITE,        /* CryptoNight (1 MB) */
     CRYPTONIGHT_HEAVY,       /* CryptoNight (4 MB) */
     CRYPTONIGHT_ULTRALITE,   /* CryptoNight (256 KB) */
+    CRYPTONIGHT_EXTREMELITE,   /* CryptoNight (128 KB) */
     ALGO_MAX
 };
 
@@ -81,6 +82,7 @@ enum Variant {
     VARIANT_RWZ = 16,       // Cryptonight (2) variant 3/4 Iterations + reverse shuffle rwz (Graft)
     VARIANT_ZELERIUS = 17,  // Cryptonight (2) variant 3/4 Iterations (Zelerius)
     VARIANT_DOUBLE = 18,    // Cryptonight (2) variant double (XCash)
+    VARIANT_UPX2 = 19,      // Modified CryptoNight-Extremelite variant upx2
     VARIANT_MAX
 };
 

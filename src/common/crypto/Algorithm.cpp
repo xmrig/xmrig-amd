@@ -104,6 +104,12 @@ static AlgoData const algorithms[] = {
     { "cryptonight_turtle",             "cn_turtle",             xmrig::CRYPTONIGHT_ULTRALITE, xmrig::VARIANT_TURTLE },
 #   endif
 
+#   ifndef XMRIG_NO_CN_EXTREMELITE
+    { "cryptonight-extremelite",        "cn-extremelite",        xmrig::CRYPTONIGHT_EXTREMELITE, xmrig::VARIANT_UPX2 },
+    { "cryptonight-extremelite/upx2",   "cn-extremelite/upx2",   xmrig::CRYPTONIGHT_EXTREMELITE, xmrig::VARIANT_UPX2 },
+    { "cryptonight-upx2",               "cn-upx2",               xmrig::CRYPTONIGHT_EXTREMELITE, xmrig::VARIANT_UPX2 },
+#   endif
+
 #   ifndef XMRIG_NO_CN_GPU
     { "cryptonight/gpu",        "cn/gpu",  xmrig::CRYPTONIGHT, xmrig::VARIANT_GPU },
 #   endif
@@ -151,7 +157,8 @@ static const char *variants[] = {
     "r",
     "rwz",
     "zelerius",
-    "double"
+    "double",
+    "upx2"
 };
 
 
@@ -233,6 +240,11 @@ void xmrig::Algorithm::parseVariant(const char *variant)
         return;
     }
 
+    if (m_algo == xmrig::CRYPTONIGHT_EXTREMELITE) {
+        m_variant = VARIANT_UPX2;
+        return;
+    }
+
     for (size_t i = 0; i < ARRAY_SIZE(variants); i++) {
         if (strcasecmp(variant, variants[i]) == 0) {
             m_variant = static_cast<Variant>(i);
@@ -293,6 +305,10 @@ void xmrig::Algorithm::setAlgo(Algo algo)
 
     if (m_algo == CRYPTONIGHT_ULTRALITE && m_variant == VARIANT_AUTO) {
         m_variant = xmrig::VARIANT_TURTLE;
+    }
+
+    if (m_algo == CRYPTONIGHT_EXTREMELITE && m_variant == VARIANT_AUTO) {
+        m_variant = xmrig::VARIANT_UPX2;
     }
 }
 

@@ -1,3 +1,6 @@
+# 1.9.3
+- Integrated UPX2 variant (algo: "cryptonight-extremelite", variant: "upx2" OR variant: "auto")
+- Integrated merged templates and replace of @WORKER-ID@ in template assignment
 # 1.9.1
 - Rebase from XMRig-amd 2.14.0
 - Integrated Monero CN-R variant so called CNv4, aka CN-R, aka CNv5, aka Cryptonight-R (algo: "cryptonight", variant: "r" / "auto")

@@ -192,6 +192,10 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
         hints |= Ultralite;
     }
 
+    if (config->algorithm().algo() == xmrig::CRYPTONIGHT_EXTREMELITE) {
+        hints |= Extremelite;
+    }
+
     if (ctx.vendor == xmrig::OCL_VENDOR_AMD && (ctx.name == "gfx901" ||
                                                 ctx.name == "gfx904" ||
                                                 ctx.name == "gfx900" ||
@@ -248,7 +252,7 @@ void OclCLI::parse(std::vector<int> &vector, const char *arg) const
 
 size_t OclCLI::getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints)
 {
-    const size_t ratio = (algo == xmrig::CRYPTONIGHT_LITE || algo == xmrig::CRYPTONIGHT_ULTRALITE) ? 2u : 1u;
+    const size_t ratio = (algo == xmrig::CRYPTONIGHT_LITE || algo == xmrig::CRYPTONIGHT_ULTRALITE || algo == xmrig::CRYPTONIGHT_EXTREMELITE) ? 2u : 1u;
     if (ctx.vendor == xmrig::OCL_VENDOR_INTEL) {
         return ratio * ctx.computeUnits * 8;
     }
@@ -288,6 +292,10 @@ size_t OclCLI::worksizeByHints(int hints)
 {
     if (hints & Vega) {
         if (hints & Ultralite) {
+            return 64;
+        }
+
+        if (hints & Extremelite) {
             return 64;
         }
 

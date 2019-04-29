@@ -460,7 +460,7 @@ template<xmrig::Variant VARIANT, xmrig::Variant BASE>
 static inline void cryptonight_monero_tweak(uint64_t* mem_out, const uint8_t* l, uint64_t idx, __m128i ax0, __m128i bx0, __m128i bx1, __m128i& cx)
 {
     if (BASE == xmrig::VARIANT_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (VARIANT == xmrig::VARIANT_RWZ || VARIANT == xmrig::VARIANT_UPX2? 1 : 0));
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -560,7 +560,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             if (VARIANT == xmrig::VARIANT_4) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (VARIANT == xmrig::VARIANT_RWZ || VARIANT == xmrig::VARIANT_UPX2 ? 1 : 0));
             }
         }
 
@@ -898,7 +898,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (VARIANT == xmrig::VARIANT_4) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (VARIANT == xmrig::VARIANT_RWZ || VARIANT == xmrig::VARIANT_UPX2 ? 1 : 0));
             }
         }
 
@@ -954,7 +954,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (VARIANT == xmrig::VARIANT_4) {
                 VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1, 0);
             } else {
-                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (VARIANT == xmrig::VARIANT_RWZ || VARIANT == xmrig::VARIANT_UPX2 ? 1 : 0));
             }
         }
 
@@ -1058,7 +1058,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         if (VARIANT == xmrig::VARIANT_4) { \
             VARIANT2_SHUFFLE(l, idx & MASK, a, b0, b1, c, 0); \
         } else {                                        \
-            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo, (VARIANT == xmrig::VARIANT_RWZ ? 1 : 0)); \
+            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo, (VARIANT == xmrig::VARIANT_RWZ || VARIANT == xmrig::VARIANT_UPX2 ? 1 : 0)); \
         } \
     }                                                   \
     if (VARIANT == xmrig::VARIANT_4) { \

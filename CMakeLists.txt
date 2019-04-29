@@ -13,6 +13,7 @@ option(WITH_TLS       "TLS support" ON)
 option(BUILD_STATIC  "Build static binary" OFF)
 option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
+option(WITH_CN_EXTREMELITE "CryptoNight-Extremelite support" ON)
 option(WITH_ASM       "Enable ASM PoW implementations" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
@@ -289,6 +290,10 @@ endif()
 
 if (NOT WITH_CN_PICO)
     add_definitions(/DXMRIG_NO_CN_ULTRALITE)
+endif()
+
+if (NOT WITH_CN_EXTREMELITE)
+    add_definitions(/DXMRIG_NO_CN_EXTREMELITE)
 endif()
 
 if (WITH_HTTPD)

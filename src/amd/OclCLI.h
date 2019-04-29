@@ -64,7 +64,8 @@ private:
         DoubleThreads = 1,
         Vega          = 2,
         CNv2          = 4,
-        Ultralite     = 8
+        Ultralite     = 8,
+        Extremelite   = 16
     };
 
     inline bool isEmpty() const                 { return m_devices.empty() && m_intensity.empty(); }

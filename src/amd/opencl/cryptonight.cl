@@ -116,6 +116,7 @@ XMRIG_INCLUDE_FAST_DIV_HEAVY
 #define CRYPTONIGHT_LITE  1 /* CryptoNight (1 MB) */
 #define CRYPTONIGHT_HEAVY 2 /* CryptoNight (4 MB) */
 #define CRYPTONIGHT_ULTRALITE  3 /* CryptoNight (256 KB) */
+#define CRYPTONIGHT_EXTREMELITE  4 /* CryptoNight (128 KB) */
 
 #if defined(__NV_CL_C_VERSION) && STRIDED_INDEX != 0
 #   undef STRIDED_INDEX

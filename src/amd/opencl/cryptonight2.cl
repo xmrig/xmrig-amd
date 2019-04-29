@@ -244,7 +244,7 @@ R"===(
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
 __kernel void cn1_rwz(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
 {
-#   if (ALGO == CRYPTONIGHT)
+#   if (ALGO == CRYPTONIGHT || ALGO == CRYPTONIGHT_EXTREMELITE)
     ulong a[2], b[4];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
     const ulong gIdx = getIdx();
@@ -305,7 +305,12 @@ __kernel void cn1_rwz(__global uint4 *Scratchpad, __global ulong *states, uint v
     uint2 division_result = as_uint2(states[12]);
     uint sqrt_result = as_uint2(states[13]).s0;
     #pragma unroll UNROLL_FACTOR
+#   if (ALGO == CRYPTONIGHT)
     for(int i = 0; i < 0x60000; ++i)
+#   endif
+#   if (ALGO == CRYPTONIGHT_EXTREMELITE)
+    for(int i = 0; i < 0x4000; ++i)
+#   endif
     {
 #       ifdef __NV_CL_C_VERSION
             uint idx  = a[0] & 0x1FFFC0;

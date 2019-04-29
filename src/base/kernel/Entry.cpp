@@ -107,7 +107,7 @@ int xmrig::Entry::exec(const Process &, Id id)
     switch (id) {
     case Usage:
         printf(usage);
-        return 0;
+        return 1;
 
     case Version:
         return showVersion();

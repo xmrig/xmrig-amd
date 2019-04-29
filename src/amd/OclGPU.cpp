@@ -113,6 +113,7 @@ inline static int cn1KernelOffset(xmrig::Variant variant)
         return 14;
 
     case xmrig::VARIANT_RWZ:
+    case xmrig::VARIANT_UPX2:
         return 15;
 
     case xmrig::VARIANT_ZELERIUS:
