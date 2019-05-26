@@ -1,3 +1,9 @@
+# v2.14.4
+- [#249](https://github.com/xmrig/xmrig-amd/pull/249) Added workaround for some drivers memory leak.
+- In HTTP API for unknown hashrate now used `null` instead of `0.0`.
+- Fixed MSVC 2019 version detection.
+- Removed obsolete automatic variants.
+
 # v2.14.1
 - [#228](https://github.com/xmrig/xmrig-amd/issues/228#issuecomment-472287697) Fixed macOS support.
 - [#235](https://github.com/xmrig/xmrig-amd/issues/235) Fixed autoconf for `cn/r` and other recently added algorithms.
