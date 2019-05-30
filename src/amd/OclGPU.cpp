@@ -614,11 +614,13 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
 #       endif
 
         // Get new kernel
-        cl_program program = CryptonightR_get_program(ctx, variant, height);
+        cl_program program = CryptonightR_get_program(ctx, variant, height / 10);
 
-        if (program != ctx->ProgramCryptonightR) {
+        if ((program != ctx->ProgramCryptonightR) || (height != ctx->HeightCryptonightR)) {
             cl_int ret;
-            cl_kernel kernel = OclLib::createKernel(program, "cn1_cryptonight_r", &ret);
+            char kernel_name[32];
+            sprintf(kernel_name, "cn1_cryptonight_r_%d", static_cast<int>(height % 10));
+            cl_kernel kernel = OclLib::createKernel(program, kernel_name, &ret);
 
             if (ret != CL_SUCCESS) {
                 LOG_ERR("CryptonightR: clCreateKernel returned error %s", OclError::toString(ret));
@@ -627,12 +629,15 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
                 OclLib::releaseKernel(ctx->Kernels[cn1_kernel_offset]);
                 ctx->Kernels[cn1_kernel_offset] = kernel;
             }
+            ctx->HeightCryptonightR = height;
+        }
 
+        if (program != ctx->ProgramCryptonightR) {
             ctx->ProgramCryptonightR = program;
 
             // Precompile next program in background
             for (size_t i = 1; i <= PRECOMPILATION_DEPTH; ++i) {
-                CryptonightR_get_program(ctx, variant, height + i, true);
+                CryptonightR_get_program(ctx, variant, height / 10 + i, true);
             }
 
 #           ifdef APP_DEBUG
