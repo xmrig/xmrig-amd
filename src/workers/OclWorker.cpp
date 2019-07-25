@@ -93,7 +93,15 @@ void OclWorker::start()
 
             const int64_t t = xmrig::steadyTimestamp();
 
-            XMRRunJob(m_ctx, results, m_job.algorithm().variant());
+#           ifdef XMRIG_ALGO_RANDOMX
+            if (m_job.algorithm().algo() == xmrig::RANDOM_X) {
+                RXRunJob(m_ctx, results, m_job.algorithm().variant());
+            }
+            else
+#           endif
+            {
+                XMRRunJob(m_ctx, results, m_job.algorithm().variant());
+            }
 
             for (size_t i = 0; i < results[0xFF]; i++) {
                 *m_job.nonce() = results[i];
@@ -239,7 +247,15 @@ void OclWorker::setJob()
 {
     memcpy(m_blob, m_job.blob(), sizeof(m_blob));
 
-    XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.algorithm().variant(), m_job.height());
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (m_job.algorithm().algo() == xmrig::RANDOM_X) {
+        RXSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.seed_hash(), m_job.algorithm().variant());
+    }
+    else
+#   endif
+    {
+        XMRSetJob(m_ctx, m_blob, m_job.size(), m_job.target(), m_job.algorithm().variant(), m_job.height());
+    }
 }
 
 

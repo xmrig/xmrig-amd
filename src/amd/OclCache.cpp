@@ -68,20 +68,42 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
 
 void OclCache::getOptions(xmrig::Algo algo, xmrig::Variant, const GpuContext* ctx, char* options, size_t options_size)
 {
-    snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
-        "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -DWORKSIZE_GPU=%zu -cl-fp32-correctly-rounded-divide-sqrt",
-        xmrig::cn_select_iter(algo, xmrig::VARIANT_AUTO),
-        xmrig::cn_select_mask(algo),
-        ctx->workSize,
-        ctx->stridedIndex,
-        static_cast<int>(1u << ctx->memChunk),
-        ctx->compMode,
-        xmrig::cn_select_memory(algo),
-        static_cast<int>(algo),
-        ctx->unrollFactor,
-        ctx->amdDriverMajorVersion,
-        worksize(ctx, xmrig::VARIANT_GPU)
-    );
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (algo == xmrig::RANDOM_X) {
+        uint32_t workSize;
+        switch (ctx->workSize)
+        {
+        case 2:
+        case 4:
+        case 8:
+        case 16:
+            workSize = ctx->workSize;
+            break;
+
+        default:
+            workSize = 8;
+        }
+
+        snprintf(options, options_size, "-DWORKERS_PER_HASH=%u", workSize);
+    }
+    else
+#   endif
+    {
+        snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
+            "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -DWORKSIZE_GPU=%zu -cl-fp32-correctly-rounded-divide-sqrt",
+            xmrig::cn_select_iter(algo, xmrig::VARIANT_AUTO),
+            xmrig::cn_select_mask(algo),
+            ctx->workSize,
+            ctx->stridedIndex,
+            static_cast<int>(1u << ctx->memChunk),
+            ctx->compMode,
+            xmrig::cn_select_memory(algo),
+            static_cast<int>(algo),
+            ctx->unrollFactor,
+            ctx->amdDriverMajorVersion,
+            worksize(ctx, xmrig::VARIANT_GPU)
+        );
+    }
 }
 
 bool OclCache::load()

@@ -5,6 +5,7 @@ option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
+option(WITH_RANDOMX   "RandomX support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_TLS       "Enable OpenSSL support" ON)
 option(WITH_ASM       "Enable ASM PoW implementations" ON)
@@ -232,6 +233,52 @@ add_definitions(/DXMRIG_NO_LIBCPUID)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(UV REQUIRED)
+
+if (WITH_RANDOMX)
+    include_directories(src/crypto/randomx)
+    add_definitions(/DXMRIG_ALGO_RANDOMX)
+    set(SOURCES_CRYPTO
+        "${SOURCES_CRYPTO}"
+        src/crypto/randomx/aes_hash.cpp
+        src/crypto/randomx/argon2_ref.c
+        src/crypto/randomx/bytecode_machine.cpp
+        src/crypto/randomx/dataset.cpp
+        src/crypto/randomx/soft_aes.cpp
+        src/crypto/randomx/virtual_memory.cpp
+        src/crypto/randomx/vm_interpreted.cpp
+        src/crypto/randomx/allocator.cpp
+        src/crypto/randomx/randomx.cpp
+        src/crypto/randomx/superscalar.cpp
+        src/crypto/randomx/vm_compiled.cpp
+        src/crypto/randomx/vm_interpreted_light.cpp
+        src/crypto/randomx/argon2_core.c
+        src/crypto/randomx/blake2_generator.cpp
+        src/crypto/randomx/instructions_portable.cpp
+        src/crypto/randomx/reciprocal.c
+        src/crypto/randomx/virtual_machine.cpp
+        src/crypto/randomx/vm_compiled_light.cpp
+        src/crypto/randomx/blake2/blake2b.c
+    )
+    if (NOT ARCH_ID)
+        set(ARCH_ID ${CMAKE_HOST_SYSTEM_PROCESSOR})
+    endif()
+    if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+        enable_language(ASM_MASM)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_x86_static.asm
+             src/crypto/randomx/jit_compiler_x86.cpp
+            )
+    elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_x86_static.S
+             src/crypto/randomx/jit_compiler_x86.cpp
+            )
+        # cheat because cmake and ccache hate each other
+        set_property(SOURCE src/crypto/randomx/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
+    endif()
+else()
+    remove_definitions(/DXMRIG_ALGO_RANDOMX)
+endif()
 
 include(cmake/flags.cmake)
 
