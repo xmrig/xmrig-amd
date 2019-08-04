@@ -1,22 +1,13 @@
-# XMRig AMD
+# xmrig-termux-opencl
 
-[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/blob/master/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/network)
-
-XMRig is high performance Monero (XMR) OpenCL miner, with the official full Windows support.
+xmrig-termux-opencl is android phone arm based opencl cryptonight miner based on xmrig.
 
 GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
 
-* This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
-* [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
+* There is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
 
-:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
+:warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please feel free open an [issue](https://github.com/BenjaminWegener/xmrig-termux-opencl) if auto configuration suggests wrong values.
 
-<img src="https://xmrig.com/assets/img/screenshots/xmrig-amd-2.8.6.png" width="795" >
 
 #### Table of contents
 * [Features](#features)
@@ -29,7 +20,6 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 
 ## Features
 * High performance.
-* Official Windows support.
 * Support for backup (failover) mining server.
 * CryptoNight-Lite support for AEON.
 * Automatic GPU configuration.
@@ -37,12 +27,20 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * It's open source software.
 
 ## Download
-* Binary releases: https://github.com/xmrig/xmrig-amd/releases
-* Git tree: https://github.com/xmrig/xmrig-amd.git
-  * Clone with `git clone https://github.com/xmrig/xmrig-amd.git`  :hammer: [Build instructions](https://github.com/xmrig/xmrig-amd/wiki/Build).
 
-## Usage
-Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share configurations.
+* use following instructions to use it:
+  * install termux from play store or aptoide
+  * termux-setup-storage
+  * pkg install cmake git libuv* openssl-dev unstable-repo -y
+  * pkg install libmicrohttpd-dev -y
+  * git clone https://github.com/xmrig/xmrig
+  * cd xmrig && mkdir build && cd build
+  * cmake ..
+  * make
+  * cp xmrig ..
+  * cd ..
+  * ./xmrig -a cryptonight/r -o stratum+tcp://cryptonightr.eu.nicehash.com:3375 -u 34yFoDVBQdrcupptL8BXSxYWsLCRj22DaE -p x --donate-level=1 --threads=16 --variant=1
+
 
 ### Command line options
 ```
@@ -94,10 +92,4 @@ Use [config.xmrig.com](https://config.xmrig.com/amd) to generate, edit or share 
 ## Donations
 Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via option `donate-level`.
 
-* XMR: `48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD`
-* BTC: `1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT`
-
-## Contacts
-* support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
-* [twitter](https://twitter.com/xmrig_dev)
+* BTC: `34yFoDVBQdrcupptL8BXSxYWsLCRj22DaE`
