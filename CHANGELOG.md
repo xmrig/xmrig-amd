@@ -1,3 +1,8 @@
+# v0.1 FORK for arm based android devices
+- removed some vendor specific opencl codelines
+- build is passing under termux, but opencl in not working yet
+- edited readme
+
 # v2.14.4
 - [#249](https://github.com/xmrig/xmrig-amd/pull/249) Added workaround for some drivers memory leak.
 - In HTTP API for unknown hashrate now used `null` instead of `0.0`.
