@@ -1,4 +1,4 @@
-/* XMRig
+/* xmrig-termux-opencl
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2019 Benjamin Wegener <wegeneredv@gmail.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,35 +26,15 @@
 #ifndef XMRIG_VERSION_H
 #define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig-amd"
-#define APP_NAME      "XMRig-AMD"
-#define APP_DESC      "XMRig OpenCL miner"
-#define APP_VERSION   "2.14.4"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2019 xmrig.com"
-#define APP_KIND      "amd"
+#define APP_ID        "xmrig-termux-opencl"
+#define APP_NAME      "xmrig-termux-opencl"
+#define APP_DESC      "cryptonight ARM (OpenCL) miner (for android phones)"
+#define APP_VERSION   "0.1"
+#define APP_SITE      "https://github.com/BenjaminWegener/xmrig-termux-opencl"
+#define APP_COPYRIGHT " * Copyright 2019 Benjamin Wegener <wegeneredv@gmail.com>"
+#define APP_VER_MAJOR  0
+#define APP_VER_MINOR  1
+#define APP_VER_PATCH  0
 
-#define APP_VER_MAJOR  2
-#define APP_VER_MINOR  14
-#define APP_VER_PATCH  4
-
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1920)
-#       define MSVC_VERSION 2019
-#   elif (_MSC_VER >= 1910 && _MSC_VER < 1920)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
 
 #endif /* XMRIG_VERSION_H */
