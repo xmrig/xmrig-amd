@@ -39,7 +39,7 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
   * make
   * cp xmrig ..
   * cd ..
-  * ./xmrig -a cryptonight/r -o stratum+tcp://cryptonightr.eu.nicehash.com:3375 -u 34yFoDVBQdrcupptL8BXSxYWsLCRj22DaE -p x --donate-level=1 --threads=16 --variant=1
+  * ./xmrig -a cryptonight/r -o stratum+tcp://cryptonightr.eu.nicehash.com:3375 -u 34yFoDVBQdrcupptL8BXSxYWsLCRj22DaE -p x --opencl-devices 0 --opencl-launch 8x8 --opencl-mem-chunk 2 --opencl-strided-index 0 --opencl-unroll 0 --nicehash --no-cache
 
 
 ### Command line options
