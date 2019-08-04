@@ -31,11 +31,11 @@
 #define APP_DESC      "cryptonight ARM (OpenCL) miner (for android phones)"
 #define APP_VERSION   "0.1"
 #define APP_SITE      "https://github.com/BenjaminWegener/xmrig-termux-opencl"
-#define APP_COPYRIGHT " * Copyright 2019 Benjamin Wegener <wegeneredv@gmail.com>"
+#define APP_COPYRIGHT "Copyright 2019 Benjamin Wegener <wegeneredv@gmail.com>"
 #define APP_VER_MAJOR  0
 #define APP_VER_MINOR  1
 #define APP_VER_PATCH  0
-#define APP_KIND "mining software"
+#define APP_KIND      "mining software"
 
 
 #endif /* XMRIG_VERSION_H */
