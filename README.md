@@ -1,4 +1,4 @@
-# xmrig-termux-opencl
+# xmrig-termux-opencl (NON WORKING BETA)
 
 xmrig-termux-opencl is android phone arm based opencl cryptonight miner based on xmrig.
 
