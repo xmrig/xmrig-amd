@@ -34,7 +34,8 @@
 #include "Mem.h"
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_test.h"
-#include "crypto/CryptoNight_x86.h"
+/*#include "crypto/CryptoNight_x86.h"*/
+#include "crypto/CryptoNight_arm.h"
 #include "net/JobResult.h"
 
 

@@ -1,6 +1,3 @@
-# v2.14.5
-- Fixed compatibility with recent AMD drivers (19.7.2), thanks [@psychocrypt](https://github.com/psychocrypt).
-
 # v2.14.4
 - [#249](https://github.com/xmrig/xmrig-amd/pull/249) Added workaround for some drivers memory leak.
 - In HTTP API for unknown hashrate now used `null` instead of `0.0`.

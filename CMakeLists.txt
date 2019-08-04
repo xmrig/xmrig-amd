@@ -7,17 +7,26 @@ option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
 option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_TLS       "Enable OpenSSL support" ON)
-option(WITH_ASM       "Enable ASM PoW implementations" ON)
+option(WITH_ASM       "Enable ASM PoW implementations" OFF)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
-option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
+option(XMRIG_ARM	  "Build for ARM platforms" ON)
+
+option(ARM_TARGET     "Force use specific ARM target 8 or 7" 8)
 
 option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 option(WITH_EMBEDDED_CONFIG      "Enable internal embedded JSON config" OFF)
 
+
+
+
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+
+
+
+
 
 
 set(HEADERS
@@ -238,6 +247,40 @@ include(cmake/flags.cmake)
 add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
 add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
+###############################################################################
+# Find OpenCL
+###############################################################################
+
+option(OpenCL_ENABLE "Enable or disable OpenCL spport (AMD GPU support)" ON)
+if(OpenCL_ENABLE)
+    # try to find AMD OpenCL before NVIDIA OpenCL
+    find_path(OpenCL_INCLUDE_DIR
+        NAMES
+            cl.h
+        NO_DEFAULT_PATH
+        PATHS
+            ${CMAKE_SOURCE_DIR}/CL)
+
+    find_library(OpenCL_LIBRARY
+        NAMES
+            libOpenCL.so
+        NO_DEFAULT_PATH
+        PATHS
+            /system/vendor/lib64)
+    # find package will use the previews searched path variables
+  #  find_package(OpenCL)
+  #  if(OpenCL_FOUND)
+  #      list(APPEND BACKEND_TYPES "amd")
+  #      include_directories(SYSTEM ${OpenCL_INCLUDE_DIRS})
+  #      #set(LIBS ${LIBS} ${OpenCL_LIBRARY})
+  #      link_directories(${OpenCL_LIBRARY})
+   # else()
+   #     message(FATAL_ERROR "OpenCL NOT found: use `-DOpenCL_ENABLE=OFF` to build without OpenCL support for AMD gpu's")
+   # endif()
+else()
+    add_definitions("-DCONF_NO_OPENCL")
+endif()
+
 
 include(cmake/OpenSSL.cmake)
 include(cmake/cn-gpu.cmake)
@@ -300,7 +343,7 @@ endif()
 
 include_directories(src)
 include_directories(src/3rdparty)
-include_directories(${UV_INCLUDE_DIR})
+
 
 if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
@@ -314,5 +357,7 @@ if (WITH_INTERLEAVE_DEBUG_LOG)
     add_definitions(/DAPP_INTERLEAVE_DEBUG)
 endif()
 
+
+
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${CN_GPU_SOURCES} ${XMRIG_ASM_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${OpenCL_LIBRARY} ${EXTRA_LIBS} ${LIBS})

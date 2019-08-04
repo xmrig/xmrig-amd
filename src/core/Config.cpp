@@ -57,14 +57,8 @@ xmrig::Config::Config() : xmrig::CommonConfig(),
     m_cache(true),
     m_shouldSave(false),
     m_platformIndex(0),
-#   if defined(__APPLE__)
-    m_loader("/System/Library/Frameworks/OpenCL.framework/OpenCL"),
-#   elif defined(_WIN32)
-    m_loader("OpenCL.dll"),
-#   else
-    m_loader("libOpenCL.so"),
-#   endif
-    m_vendor(xmrig::OCL_VENDOR_AMD)
+    m_loader("libOpenCL.so")/*,
+    m_vendor(xmrig::OCL_VENDOR_AMD)*/
 {    
 }
 
@@ -93,13 +87,13 @@ bool xmrig::Config::oclInit()
 {
     LOG_WARN("compiling code and initializing GPUs. This will take a while...");
 
-    if (m_vendor != OCL_VENDOR_MANUAL) {
+    //if (m_vendor != OCL_VENDOR_MANUAL) {
         m_platformIndex = OclGPU::findPlatformIdx(this);
         if (m_platformIndex == -1) {
-            LOG_ERR("%s%s OpenCL platform NOT found.", isColors() ? "\x1B[1;31m" : "", vendorName(m_vendor));
+            LOG_ERR("%s%s OpenCL platform not found.", isColors() ? "\x1B[1;31m" : "", vendorName(m_vendor));
             return false;
         }
-    }
+    //}
 
     if (m_platformIndex >= static_cast<int>(OclLib::getNumPlatforms())) {
         LOG_ERR("%sSelected OpenCL platform index %d doesn't exist.", isColors() ? "\x1B[1;31m" : "", m_platformIndex);
