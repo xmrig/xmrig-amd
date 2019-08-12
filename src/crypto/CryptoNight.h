@@ -34,7 +34,7 @@
 #include "crypto/CryptoNight_constants.h"
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined XMRIG_ARM
 #define ABI_ATTRIBUTE
 #else
 #define ABI_ATTRIBUTE __attribute__((ms_abi))
@@ -44,16 +44,14 @@ struct cryptonight_ctx;
 
 namespace xmrig {
     namespace CpuThread {
-        typedef void(*cn_mainloop_fun)(cryptonight_ctx*);
-        typedef void(*cn_mainloop_double_fun)(cryptonight_ctx*, cryptonight_ctx*);
+        typedef void(*cn_mainloop_fun)(cryptonight_ctx**);
     }
 
     class Job;
     class JobResult;
 }
 
-typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx*) ABI_ATTRIBUTE;
-typedef void(*cn_mainloop_double_fun_ms_abi)(cryptonight_ctx*, cryptonight_ctx*) ABI_ATTRIBUTE;
+typedef void(*cn_mainloop_fun_ms_abi)(cryptonight_ctx**) ABI_ATTRIBUTE;
 
 struct cryptonight_r_data {
     int variant;
@@ -65,8 +63,12 @@ struct cryptonight_r_data {
 struct cryptonight_ctx {
     alignas(16) uint8_t state[224];
     alignas(16) uint8_t *memory;
+
+    uint8_t unused[40];
+    const uint32_t* saes_table;
+
     cn_mainloop_fun_ms_abi generated_code;
-    cn_mainloop_double_fun_ms_abi generated_code_double;
+    cn_mainloop_fun_ms_abi generated_code_double;
     cryptonight_r_data generated_code_data;
     cryptonight_r_data generated_code_double_data;
 };
@@ -86,7 +88,7 @@ public:
 private:
     static bool selfTest();
     static bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
-    static bool verify2(xmrig::Variant variant, const char *test_data);
+    static bool verify2(xmrig::Variant variant, const uint8_t *test_data);
 
     alignas(16) static cryptonight_ctx *m_ctx;
     static xmrig::Algo m_algorithm;

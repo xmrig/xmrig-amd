@@ -1,3 +1,30 @@
+# v2.14.5
+- Fixed compatibility with recent AMD drivers (19.7.2), thanks [@psychocrypt](https://github.com/psychocrypt).
+
+# v2.14.4
+- [#249](https://github.com/xmrig/xmrig-amd/pull/249) Added workaround for some drivers memory leak.
+- In HTTP API for unknown hashrate now used `null` instead of `0.0`.
+- Fixed MSVC 2019 version detection.
+- Removed obsolete automatic variants.
+
+# v2.14.1
+- [#228](https://github.com/xmrig/xmrig-amd/issues/228#issuecomment-472287697) Fixed macOS support.
+- [#235](https://github.com/xmrig/xmrig-amd/issues/235) Fixed autoconf for `cn/r` and other recently added algorithms.
+- [#241](https://github.com/xmrig/xmrig-amd/issues/241) Fixed memory leak if used `cn/r` algorithm.
+
+# v2.14.0
+- **[#227](https://github.com/xmrig/xmrig-amd/pull/227) Added new algorithm `cryptonight/rwz`, short alias `cn/rwz` (also known as CryptoNight ReverseWaltz), for upcoming [Graft](https://www.graft.network/) fork.**
+- **[#931](https://github.com/xmrig/xmrig/issues/931) Added new algorithm `cryptonight/zls`, short alias `cn/zls` for [Zelerius Network](https://zelerius.org) fork.**
+- **[#940](https://github.com/xmrig/xmrig/issues/940) Added new algorithm `cryptonight/double`, short alias `cn/double` (also known as CryptoNight HeavyX), for [X-CASH](https://x-cash.org/).**
+- [#951](https://github.com/xmrig/xmrig/issues/951#issuecomment-469581529) Fixed crash if AVX was disabled on OS level.
+- [#952](https://github.com/xmrig/xmrig/issues/952) Fixed compile error on some Linux.
+- [#957](https://github.com/xmrig/xmrig/issues/957#issuecomment-468890667) Added support for embedded config.
+
+# v2.13.0
+- **[#938](https://github.com/xmrig/xmrig/issues/938) Added support for new algorithm `cryptonight/r`, short alias `cn/r` (also known as CryptoNightR or CryptoNight variant 4), for upcoming [Monero](https://www.getmonero.org/) fork on March 9, thanks [@SChernykh](https://github.com/SChernykh).**
+- [#939](https://github.com/xmrig/xmrig/issues/939) Added support for dynamic (runtime) pools reload.
+- Invalid threads (eg with wrong device index) now ignored and not stop the miner.
+
 # v2.12.0
 - [#218](https://github.com/xmrig/xmrig-amd/pull/218) Added support for new algorithm `cryptonight/wow`, short alias `cn/wow` (also known as CryptonightR), for upcoming [Wownero](http://wownero.org) fork on February 14.
 - Improved `cryptonight/gpu` performance.

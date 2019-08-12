@@ -22,59 +22,59 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ITHREAD_H
-#define XMRIG_ITHREAD_H
-
-
-#include <stdint.h>
-
-
-#include "common/xmrig.h"
-#include "rapidjson/fwd.h"
+#ifndef XMRIG_CONFIGLOADER_DEFAULT_H
+#define XMRIG_CONFIGLOADER_DEFAULT_H
 
 
 namespace xmrig {
 
 
-class IThread
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+const static char *default_config =
+R"===(
 {
-public:
-    enum Type {
-        CPU,
-        OpenCL,
-        CUDA
-    };
-
-    enum Multiway {
-        SingleWay = 1,
-        DoubleWay,
-        TripleWay,
-        QuadWay,
-        PentaWay
-    };
-
-    virtual ~IThread() = default;
-
-    virtual Algo algorithm() const                                    = 0;
-    virtual bool isValid() const                                      = 0;
-    virtual int priority() const                                      = 0;
-    virtual int64_t affinity() const                                  = 0;
-    virtual Multiway multiway() const                                 = 0;
-    virtual rapidjson::Value toConfig(rapidjson::Document &doc) const = 0;
-    virtual size_t index() const                                      = 0;
-    virtual Type type() const                                         = 0;
-
-#   ifndef XMRIG_NO_API
-    virtual rapidjson::Value toAPI(rapidjson::Document &doc) const = 0;
-#   endif
-
-#   ifdef APP_DEBUG
-    virtual void print() const = 0;
-#   endif
-};
+    "algo": "cryptonight",
+    "api": {
+        "port": 0,
+        "access-token": null,
+        "id": null,
+        "worker-id": null,
+        "ipv6": false,
+        "restricted": true
+    },
+    "autosave": true,
+    "background": false,
+    "cache": true,
+    "colors": true,
+    "donate-level": 5,
+    "log-file": null,
+    "opencl-platform": "AMD",
+    "pools": [
+        {
+            "url": "donate.v2.xmrig.com:3333",
+            "user": "YOUR_WALLET_ADDRESS",
+            "pass": "x",
+            "rig-id": null,
+            "nicehash": false,
+            "keepalive": false,
+            "variant": -1,
+            "enabled": true,
+            "tls": false,
+            "tls-fingerprint": null
+        }
+    ],
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "threads": null,
+    "user-agent": null,
+    "syslog": false,
+    "watch": true
+}
+)===";
+#endif
 
 
 } /* namespace xmrig */
 
-
-#endif // XMRIG_ITHREAD_H
+#endif /* XMRIG_CONFIGLOADER_DEFAULT_H */

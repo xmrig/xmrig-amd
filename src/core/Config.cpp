@@ -80,9 +80,7 @@ bool xmrig::Config::isCNv2() const
     }
 
     for (const Pool &pool : m_pools.data()) {
-        const Variant variant = pool.algorithm().variant();
-
-        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_HALF || variant == VARIANT_WOW) {
+        if (cn_base_variant(pool.algorithm().variant()) == VARIANT_2) {
             return true;
         }
     }
@@ -114,6 +112,7 @@ bool xmrig::Config::oclInit()
         m_oclCLI.autoConf(m_threads, this);
     }
 
+    m_threads = filterThreads();
     return !m_threads.empty();
 }
 
@@ -313,6 +312,40 @@ void xmrig::Config::parseJSON(const rapidjson::Document &doc)
             }
         }
     }
+}
+
+
+std::vector<xmrig::IThread *> xmrig::Config::filterThreads() const
+{
+    std::vector<IThread *> threads;
+    const size_t platform_idx                   = static_cast<size_t>(platformIndex());
+    const std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+
+    if (platforms.empty() || platforms.size() <= platform_idx) {
+        return threads;
+    }
+
+    cl_int ret;
+    cl_uint entries;
+    if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) != CL_SUCCESS) {
+        return threads;
+    }
+
+    for (IThread *thread : m_threads) {
+        if (thread->isValid() && thread->index() < entries) {
+            threads.push_back(thread);
+
+            continue;
+        }
+
+        if (entries <= thread->index()) {
+            LOG_ERR("Selected OpenCL device index %zu doesn't exist.", thread->index());
+        }
+
+        delete thread;
+    }
+
+    return threads;
 }
 
 

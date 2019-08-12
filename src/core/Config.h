@@ -73,6 +73,7 @@ protected:
     void parseJSON(const rapidjson::Document &doc) override;
 
 private:
+    std::vector<IThread *> filterThreads() const;
     void parseThread(const rapidjson::Value &object);
     void setPlatformIndex(const char *name);
     void setPlatformIndex(int index);

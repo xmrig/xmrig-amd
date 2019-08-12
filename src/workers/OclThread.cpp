@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,118 +28,175 @@
 #include <string.h>
 
 
+#include "amd/GpuContext.h"
+#include "base/io/Json.h"
+#include "common/log/Log.h"
 #include "rapidjson/document.h"
 #include "workers/OclThread.h"
-#include "common/log/Log.h"
 
 
-OclThread::OclThread() :
-    m_compMode(true),
-    m_memChunk(2),
-    m_stridedIndex(2),
-    m_unrollFactor(8),
-    m_affinity(-1),
-    m_index(0),
-    m_intensity(0),
-    m_worksize(0)
-{
+namespace xmrig {
+
+static const char *kAffineToCpu  = "affine_to_cpu";
+static const char *kCompMode     = "comp_mode";
+static const char *kIndex        = "index";
+static const char *kIntensity    = "intensity";
+static const char *kMemChunk     = "mem_chunk";
+static const char *kStridedIndex = "strided_index";
+static const char *kUnroll       = "unroll";
+static const char *kWorksize     = "worksize";
+
 }
 
 
-OclThread::OclThread(const rapidjson::Value &object) :
-    m_compMode(true),
-    m_memChunk(2),
-    m_stridedIndex(2),
-    m_unrollFactor(8),
+xmrig::OclThread::OclThread() :
     m_affinity(-1)
 {
-    setIndex(object["index"].GetInt());
-    setIntensity(object["intensity"].GetUint());
-    setWorksize(object["worksize"].GetUint());
+    m_ctx = new GpuContext();
+}
 
-    const rapidjson::Value &affinity = object["affine_to_cpu"];
-    if (affinity.IsInt64()) {
-        setAffinity(affinity.GetInt64());
-    }
 
-    const rapidjson::Value &stridedIndex = object["strided_index"];
+xmrig::OclThread::OclThread(const rapidjson::Value &object) :
+    m_affinity(-1)
+{
+    m_ctx = new GpuContext();
+
+    setIndex(Json::getUint(object, kIndex));
+    setIntensity(Json::getUint(object, kIntensity));
+    setWorksize(Json::getUint(object, kWorksize));
+    setAffinity(Json::getInt64(object, kAffineToCpu, -1));
+    setMemChunk(Json::getInt(object, kMemChunk, m_ctx->memChunk));
+    setUnrollFactor(Json::getInt(object, kUnroll, m_ctx->unrollFactor));
+    setCompMode(Json::getBool(object, kCompMode, true));
+
+    const rapidjson::Value &stridedIndex = object[kStridedIndex];
     if (stridedIndex.IsBool()) {
         setStridedIndex(stridedIndex.IsTrue() ? 1 : 0);
     }
     else if (stridedIndex.IsUint()) {
         setStridedIndex(stridedIndex.GetInt());
     }
-
-    // DEPRECATED
-    const rapidjson::Value &unrollFactor = object["unroll_factor"];
-    if (unrollFactor.IsUint()) {
-        setUnrollFactor(unrollFactor.GetInt());
-    }
-
-    const rapidjson::Value &unroll = object["unroll"];
-    if (unroll.IsUint()) {
-        setUnrollFactor(unroll.GetInt());
-    }
-
-    const rapidjson::Value &memChunk = object["mem_chunk"];
-    if (memChunk.IsUint()) {
-        setMemChunk(memChunk.GetInt());
-    }
-
-    const rapidjson::Value &compMode = object["comp_mode"];
-    if (compMode.IsBool()) {
-        setCompMode(compMode.IsTrue());
-    }
 }
 
 
-OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity) :
-    m_compMode(true),
-    m_memChunk(2),
-    m_stridedIndex(2),
-    m_unrollFactor(8),
-    m_affinity(affinity),
-    m_index(index),
-    m_intensity(intensity),
-    m_worksize(worksize)
+xmrig::OclThread::OclThread(size_t index, size_t intensity, size_t worksize, int64_t affinity) :
+    m_affinity(affinity)
 {
+    m_ctx = new GpuContext();
+
+    setIndex(index);
+    setIntensity(intensity);
+    setWorksize(worksize);
 }
 
 
-OclThread::~OclThread()
+xmrig::OclThread::~OclThread()
 {
+    delete m_ctx;
 }
 
 
-void OclThread::setMemChunk(int memChunk)
+size_t xmrig::OclThread::index() const
+{
+    return m_ctx->deviceIdx;
+}
+
+
+bool xmrig::OclThread::isCompMode() const
+{
+    return m_ctx->compMode == 1;
+}
+
+
+int xmrig::OclThread::memChunk() const
+{
+    return m_ctx->memChunk;
+}
+
+
+int xmrig::OclThread::stridedIndex() const
+{
+    return m_ctx->stridedIndex;
+}
+
+
+int xmrig::OclThread::unrollFactor() const
+{
+    return m_ctx->unrollFactor;
+}
+
+
+size_t xmrig::OclThread::intensity() const
+{
+    return m_ctx->rawIntensity;
+}
+
+
+size_t xmrig::OclThread::worksize() const
+{
+    return m_ctx->workSize;
+}
+
+
+void xmrig::OclThread::setCompMode(bool enable)
+{
+    m_ctx->compMode = enable ? 1 : 0;
+}
+
+
+void xmrig::OclThread::setIndex(size_t index)
+{
+    m_ctx->deviceIdx = index;
+}
+
+
+void xmrig::OclThread::setIntensity(size_t intensity)
+{
+    m_ctx->rawIntensity = intensity;
+}
+
+
+void xmrig::OclThread::setMemChunk(int memChunk)
 {
     if (memChunk >= 0 && memChunk <= 18) {
-        m_memChunk = memChunk;
+        m_ctx->memChunk = memChunk;
     }
 }
 
 
-void OclThread::setStridedIndex(int stridedIndex)
+void xmrig::OclThread::setStridedIndex(int stridedIndex)
 {
     if (stridedIndex >= 0 && stridedIndex <= 2) {
-        m_stridedIndex = stridedIndex;
+        m_ctx->stridedIndex = stridedIndex;
     }
 }
 
 
-void OclThread::setUnrollFactor(int unrollFactor)
+void xmrig::OclThread::setThreadsCountByGPU(size_t threads)
+{
+    m_ctx->threads = threads;
+}
+
+
+void xmrig::OclThread::setUnrollFactor(int unrollFactor)
 {
     if (unrollFactor < 1) {
-        m_unrollFactor = 1;
+        m_ctx->unrollFactor = 1;
         return;
     }
 
-    m_unrollFactor = unrollFactor > 128 ? 128 : unrollFactor;
+    m_ctx->unrollFactor = unrollFactor > 128 ? 128 : unrollFactor;
+}
+
+
+void xmrig::OclThread::setWorksize(size_t worksize)
+{
+    m_ctx->workSize = worksize;
 }
 
 
 #ifdef APP_DEBUG
-void OclThread::print() const
+void xmrig::OclThread::print() const
 {
     LOG_DEBUG(GREEN_BOLD("OpenCL thread:") " index " WHITE_BOLD("%zu") ", intensity " WHITE_BOLD("%zu") ", worksize " WHITE_BOLD("%zu") ",", index(), intensity(), worksize());
     LOG_DEBUG("               strided_index %d, mem_chunk %d, unroll_factor %d, comp_mode %d,", stridedIndex(), memChunk(), unrollFactor(), isCompMode());
@@ -149,33 +206,33 @@ void OclThread::print() const
 
 
 #ifndef XMRIG_NO_API
-rapidjson::Value OclThread::toAPI(rapidjson::Document &doc) const
+rapidjson::Value xmrig::OclThread::toAPI(rapidjson::Document &doc) const
 {
     return toConfig(doc);
 }
 #endif
 
 
-rapidjson::Value OclThread::toConfig(rapidjson::Document &doc) const
+rapidjson::Value xmrig::OclThread::toConfig(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
     Value obj(kObjectType);
     auto &allocator = doc.GetAllocator();
 
-    obj.AddMember("index",         static_cast<uint64_t>(index()),     allocator);
-    obj.AddMember("intensity",     static_cast<uint64_t>(intensity()), allocator);
-    obj.AddMember("worksize",      static_cast<uint64_t>(worksize()),  allocator);
-    obj.AddMember("strided_index", stridedIndex(),                     allocator);
-    obj.AddMember("mem_chunk",     memChunk(),                         allocator);
-    obj.AddMember("unroll",        unrollFactor(),                     allocator);
-    obj.AddMember("comp_mode",     isCompMode(),                       allocator);
+    obj.AddMember(StringRef(kIndex),        static_cast<uint64_t>(index()),     allocator);
+    obj.AddMember(StringRef(kIntensity),    static_cast<uint64_t>(intensity()), allocator);
+    obj.AddMember(StringRef(kWorksize),     static_cast<uint64_t>(worksize()),  allocator);
+    obj.AddMember(StringRef(kStridedIndex), stridedIndex(),                     allocator);
+    obj.AddMember(StringRef(kMemChunk),     memChunk(),                         allocator);
+    obj.AddMember(StringRef(kUnroll),       unrollFactor(),                     allocator);
+    obj.AddMember(StringRef(kCompMode),     isCompMode(),                       allocator);
 
     if (affinity() >= 0) {
-        obj.AddMember("affine_to_cpu", affinity(), allocator);
+        obj.AddMember(StringRef(kAffineToCpu), affinity(), allocator);
     }
     else {
-        obj.AddMember("affine_to_cpu", false, allocator);
+        obj.AddMember(StringRef(kAffineToCpu), false, allocator);
     }
 
     return obj;

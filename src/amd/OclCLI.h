@@ -32,13 +32,13 @@
 #include "common/xmrig.h"
 
 
-class OclThread;
 struct GpuContext;
 
 
 namespace xmrig {
     class Config;
     class IThread;
+    class OclThread;
 }
 
 
@@ -67,18 +67,18 @@ private:
         Pico          = 8
     };
 
-    inline bool isEmpty() const              { return m_devices.empty() && m_intensity.empty(); }
-    inline int affinity(int index) const     { return get(m_affinity, index, -1); }
-    inline int compMode(int index) const     { return get(m_compMode, index, 1); }
-    inline int intensity(int index) const    { return get(m_intensity, index, 0); }
-    inline int memChunk(int index) const     { return get(m_memChunk, index, 2); }
-    inline int stridedIndex(int index) const { return get(m_stridedIndex, index, 2); }
-    inline int unrollFactor(int index) const { return get(m_unrollFactor, index, 8); }
-    inline int worksize(int index) const     { return get(m_worksize, index, 8); }
+    inline bool isEmpty() const                 { return m_devices.empty() && m_intensity.empty(); }
+    inline int affinity(size_t index) const     { return get(m_affinity, index, -1); }
+    inline int compMode(size_t index) const     { return get(m_compMode, index, 1); }
+    inline int intensity(size_t index) const    { return get(m_intensity, index, 0); }
+    inline int memChunk(size_t index) const     { return get(m_memChunk, index, 2); }
+    inline int stridedIndex(size_t index) const { return get(m_stridedIndex, index, 2); }
+    inline int unrollFactor(size_t index) const { return get(m_unrollFactor, index, 8); }
+    inline int worksize(size_t index) const     { return get(m_worksize, index, 8); }
 
-    int get(const std::vector<int> &vector, int index, int defaultValue) const;
+    int get(const std::vector<int> &vector, size_t index, int defaultValue) const;
     int getHints(const GpuContext &ctx, xmrig::Config *config) const;
-    OclThread *createThread(const GpuContext &ctx, size_t intensity, int hints) const;
+    xmrig::OclThread *createThread(const GpuContext &ctx, size_t intensity, int hints) const;
     void parse(std::vector<int> &vector, const char *arg) const;
 
     static size_t getMaxThreads(const GpuContext &ctx, xmrig::Algo algo, int hints);

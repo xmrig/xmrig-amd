@@ -2,6 +2,47 @@ R"===(
 #ifndef WOLF_AES_CL
 #define WOLF_AES_CL
 
+#ifdef cl_amd_media_ops2
+#   pragma OPENCL EXTENSION cl_amd_media_ops2 : enable
+
+#   define xmrig_amd_bfe(src0, src1, src2) amd_bfe(src0, src1, src2)
+#else
+/* taken from: https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops2.txt
+ *     Built-in Function:
+ *     uintn amd_bfe (uintn src0, uintn src1, uintn src2)
+ *   Description
+ *     NOTE: operator >> below represent logical right shift
+ *     offset = src1.s0 & 31;
+ *     width = src2.s0 & 31;
+ *     if width = 0
+ *         dst.s0 = 0;
+ *     else if (offset + width) < 32
+ *         dst.s0 = (src0.s0 << (32 - offset - width)) >> (32 - width);
+ *     else
+ *         dst.s0 = src0.s0 >> offset;
+ *     similar operation applied to other components of the vectors
+ */
+inline int xmrig_amd_bfe(const uint src0, const uint offset, const uint width)
+{
+    /* casts are removed because we can implement everything as uint
+     * int offset = src1;
+     * int width = src2;
+     * remove check for edge case, this function is always called with
+     * `width==8`
+     * @code
+     *   if ( width == 0 )
+     *      return 0;
+     * @endcode
+     */
+    if ((offset + width) < 32u) {
+        return (src0 << (32u - offset - width)) >> (32u - width);
+    }
+
+    return src0 >> offset;
+}
+#endif
+
+
 // AES table - the other three are generated on the fly
 
 static const __constant uint AES0_C[256] =
@@ -72,7 +113,7 @@ static const __constant uint AES0_C[256] =
     0xCBB0B07BU, 0xFC5454A8U, 0xD6BBBB6DU, 0x3A16162CU
 };
 
-#define BYTE(x, y)  (amd_bfe((x), (y) << 3U, 8U))
+#define BYTE(x, y) (xmrig_amd_bfe((x), (y) << 3U, 8U))
 
 inline uint4 AES_Round_bittube2(const __local uint *AES0, const __local uint *AES1, uint4 x, uint4 k)
 {

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char
 {
 }
 
+
 cl_int OclCache::wait_build(cl_program program, cl_device_id device)
 {
     cl_build_status status;
@@ -64,11 +65,12 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
     return CL_SUCCESS;
 }
 
-void OclCache::get_options(xmrig::Algo algo, xmrig::Variant variant, const GpuContext* ctx, char* options, size_t options_size)
+
+void OclCache::getOptions(xmrig::Algo algo, xmrig::Variant, const GpuContext* ctx, char* options, size_t options_size)
 {
     snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
-        "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -cl-fp32-correctly-rounded-divide-sqrt",
-        xmrig::cn_select_iter(algo, variant),
+        "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -DWORKSIZE_GPU=%zu -cl-fp32-correctly-rounded-divide-sqrt",
+        xmrig::cn_select_iter(algo, xmrig::VARIANT_AUTO),
         xmrig::cn_select_mask(algo),
         ctx->workSize,
         ctx->stridedIndex,
@@ -77,7 +79,8 @@ void OclCache::get_options(xmrig::Algo algo, xmrig::Variant variant, const GpuCo
         xmrig::cn_select_memory(algo),
         static_cast<int>(algo),
         ctx->unrollFactor,
-        ctx->amdDriverMajorVersion
+        ctx->amdDriverMajorVersion,
+        worksize(ctx, xmrig::VARIANT_GPU)
     );
 }
 
@@ -87,7 +90,7 @@ bool OclCache::load()
     const xmrig::Variant variant = m_config->algorithm().variant();
 
     char options[512] = { 0 };
-    get_options(algo, variant, m_ctx, options, sizeof(options));
+    getOptions(algo, variant, m_ctx, options, sizeof(options));
 
     if (!prepare(options)) {
         return false;
@@ -108,23 +111,7 @@ bool OclCache::load()
         }
 
         if (OclLib::buildProgram(m_ctx->Program, 1, &m_ctx->DeviceID, options) != CL_SUCCESS) {
-            size_t len = 0;
-
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_LOG, 0, nullptr, &len) != CL_SUCCESS) {
-                return false;
-            }
-
-            char *buildLog = new char[len + 1]();
-
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_LOG, len, buildLog, nullptr) != CL_SUCCESS) {
-                delete [] buildLog;
-                return false;
-            }
-
-            Log::i()->text("Build log:");
-            std::cerr << buildLog << std::endl;
-
-            delete [] buildLog;
+            printf("Build log:\n%s\n", OclLib::getProgramBuildLog(m_ctx->Program, m_ctx->DeviceID).data());
             return false;
         }
 
@@ -292,6 +279,24 @@ int OclCache::amdDriverMajorVersion(const GpuContext* ctx)
 #   else
     return 0;
 #   endif
+}
+
+
+size_t OclCache::worksize(const GpuContext *ctx, xmrig::Variant variant)
+{
+    if (variant != xmrig::VARIANT_GPU) {
+        return ctx->workSize;
+    }
+
+    size_t maxWorkSize = 0;
+
+    if (OclLib::getDeviceInfo(ctx->DeviceID, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &maxWorkSize) == CL_SUCCESS) {
+        maxWorkSize /= 16;
+
+        return ctx->workSize > maxWorkSize ? maxWorkSize : ctx->workSize;
+    }
+
+    return ctx->workSize;
 }
 
 
