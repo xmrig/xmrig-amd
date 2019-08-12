@@ -500,6 +500,10 @@ void xmrig::Pool::rebuild()
     addVariant(VARIANT_RWZ);
     addVariant(VARIANT_ZLS);
     addVariant(VARIANT_DOUBLE);
+#   ifdef XMRIG_ALGO_RANDOMX
+    addVariant(VARIANT_RX_WOW);
+    addVariant(VARIANT_RX_LOKI);
+#   endif
     addVariant(VARIANT_AUTO);
 #   endif
 }

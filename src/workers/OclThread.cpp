@@ -45,6 +45,7 @@ static const char *kMemChunk     = "mem_chunk";
 static const char *kStridedIndex = "strided_index";
 static const char *kUnroll       = "unroll";
 static const char *kWorksize     = "worksize";
+static const char *kBFactor      = "bfactor";
 
 }
 
@@ -64,6 +65,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &object) :
     setIndex(Json::getUint(object, kIndex));
     setIntensity(Json::getUint(object, kIntensity));
     setWorksize(Json::getUint(object, kWorksize));
+    setBFactor(Json::getUint(object, kBFactor, 6));
     setAffinity(Json::getInt64(object, kAffineToCpu, -1));
     setMemChunk(Json::getInt(object, kMemChunk, m_ctx->memChunk));
     setUnrollFactor(Json::getInt(object, kUnroll, m_ctx->unrollFactor));
@@ -192,6 +194,12 @@ void xmrig::OclThread::setUnrollFactor(int unrollFactor)
 void xmrig::OclThread::setWorksize(size_t worksize)
 {
     m_ctx->workSize = worksize;
+}
+
+
+void xmrig::OclThread::setBFactor(size_t bfactor)
+{
+    m_ctx->bfactor = bfactor;
 }
 
 

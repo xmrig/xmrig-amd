@@ -47,6 +47,7 @@ struct GpuContext
         deviceIdx(0),
         rawIntensity(0),
         workSize(0),
+        bfactor(6),
         threads(0),
         stridedIndex(2),
         memChunk(2),
@@ -69,15 +70,25 @@ struct GpuContext
         freeMem(0),
         globalMem(0),
         computeUnits(0),
-        Nonce(0)
+        Nonce(0),
+        rx_variant(xmrig::VARIANT_AUTO),
+        rx_dataset(nullptr),
+        rx_scratchpads(nullptr),
+        rx_hashes(nullptr),
+        rx_entropy(nullptr),
+        rx_vm_states(nullptr),
+        rx_rounding(nullptr)
     {
         memset(Kernels, 0, sizeof(Kernels));
+        memset(rx_dataset_seedhash, 0, sizeof(rx_dataset_seedhash));
+        memset(rx_kernels, 0, sizeof(rx_kernels));
     }
 
     /*Input vars*/
     size_t deviceIdx;
     size_t rawIntensity;
     size_t workSize;
+    size_t bfactor;
     size_t threads;
     int stridedIndex;
     int memChunk;
@@ -107,6 +118,16 @@ struct GpuContext
     xmrig::String name;
 
     uint32_t Nonce;
+
+    uint8_t rx_dataset_seedhash[32];
+    xmrig::Variant rx_variant;
+    cl_mem rx_dataset;
+    cl_mem rx_scratchpads;
+    cl_mem rx_hashes;
+    cl_mem rx_entropy;
+    cl_mem rx_vm_states;
+    cl_mem rx_rounding;
+    cl_kernel rx_kernels[32];
 };
 
 
