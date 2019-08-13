@@ -70,18 +70,27 @@ struct GpuContext
         freeMem(0),
         globalMem(0),
         computeUnits(0),
-        Nonce(0),
-        rx_variant(xmrig::VARIANT_AUTO),
-        rx_dataset(nullptr),
-        rx_scratchpads(nullptr),
-        rx_hashes(nullptr),
-        rx_entropy(nullptr),
-        rx_vm_states(nullptr),
-        rx_rounding(nullptr)
+        Nonce(0)
+#ifdef XMRIG_ALGO_RANDOMX
+        , gcnAsm(1)
+        , AsmProgram(nullptr)
+        , rx_variant(xmrig::VARIANT_AUTO)
+        , rx_dataset(nullptr)
+        , rx_scratchpads(nullptr)
+        , rx_hashes(nullptr)
+        , rx_entropy(nullptr)
+        , rx_vm_states(nullptr)
+        , rx_registers(nullptr)
+        , rx_intermediate_programs(nullptr)
+        , rx_programs(nullptr)
+        , rx_rounding(nullptr)
+#endif
     {
         memset(Kernels, 0, sizeof(Kernels));
+#ifdef XMRIG_ALGO_RANDOMX
         memset(rx_dataset_seedhash, 0, sizeof(rx_dataset_seedhash));
         memset(rx_kernels, 0, sizeof(rx_kernels));
+#endif
     }
 
     /*Input vars*/
@@ -116,8 +125,13 @@ struct GpuContext
     cl_uint computeUnits;
     xmrig::String board;
     xmrig::String name;
+    uint32_t gcn_version;
 
     uint32_t Nonce;
+
+#ifdef XMRIG_ALGO_RANDOMX
+    int gcnAsm;
+    cl_program AsmProgram;
 
     uint8_t rx_dataset_seedhash[32];
     xmrig::Variant rx_variant;
@@ -126,8 +140,12 @@ struct GpuContext
     cl_mem rx_hashes;
     cl_mem rx_entropy;
     cl_mem rx_vm_states;
+    cl_mem rx_registers;
+    cl_mem rx_intermediate_programs;
+    cl_mem rx_programs;
     cl_mem rx_rounding;
     cl_kernel rx_kernels[32];
+#endif
 };
 
 

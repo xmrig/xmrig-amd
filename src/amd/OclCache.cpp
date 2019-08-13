@@ -84,7 +84,7 @@ void OclCache::getOptions(xmrig::Algo algo, xmrig::Variant, const GpuContext* ct
             workSize = 8;
         }
 
-        snprintf(options, options_size, "-DWORKERS_PER_HASH=%u", workSize);
+        snprintf(options, options_size, "-DWORKERS_PER_HASH=%u -DGCN_VERSION=%u", workSize, ctx->gcn_version);
     }
     else
 #   endif

@@ -23,9 +23,8 @@ __kernel void fillAes_name(__global void* state, __global void* out, uint batch_
 {
 	__local uint T[2048];
 
-	const uint stride_size = batch_size * 4;
 	const uint global_index = get_global_id(0);
-	if (global_index >= stride_size)
+	if (global_index >= batch_size * 4)
 		return;
 
 	const uint idx = global_index / 4;
@@ -67,7 +66,7 @@ __kernel void fillAes_name(__global void* state, __global void* out, uint batch_
 	const uint s1 = (sub & 1) ? 8 : 24;
 	const uint s3 = (sub & 1) ? 24 : 8;
 
-	__global uint4* p = strided ? (((__global uint4*) out) + idx * 4 + sub) : (((__global uint4*) out) + idx * (outputSize0 / sizeof(uint4)) + sub);
+	__global uint4* p = ((__global uint4*) out) + idx * (outputSize0 / sizeof(uint4)) + sub;
 
 	const __local uint* const t0 = (sub & 1) ? T : (T + 1024);
 	const __local uint* const t1 = (sub & 1) ? (T + 256) : (T + 1792);
@@ -75,7 +74,7 @@ __kernel void fillAes_name(__global void* state, __global void* out, uint batch_
 	const __local uint* const t3 = (sub & 1) ? (T + 768) : (T + 1280);
 
 	#pragma unroll(unroll_factor)
-	for (uint i = 0; i < outputSize / sizeof(uint4); i += 4, p += strided ? stride_size : 4)
+	for (uint i = 0; i < outputSize / sizeof(uint4); i += 4, p += 4)
 	{
 		uint y[4];
 
@@ -115,6 +114,7 @@ __kernel void fillAes_name(__global void* state, __global void* out, uint batch_
 		*p = *(uint4*)(x);
 #endif
 	}
+
 	*(__global uint4*)(s) = *(uint4*)(x);
 }
 )==="
