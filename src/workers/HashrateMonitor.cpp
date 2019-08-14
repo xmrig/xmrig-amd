@@ -100,7 +100,7 @@ void HashrateMonitor::onTick(uv_timer_t* handle)
 {
     if (m_self) {
         if (!m_self->m_hashrates.empty()) {
-            if (m_self->m_connectionTime > 30) {
+            if (m_self->m_connectionTime > 120) {
                 bool error = false;
                 double totalHashrate = 0;
                 size_t threadId = 0;

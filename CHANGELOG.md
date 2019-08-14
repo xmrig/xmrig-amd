@@ -1,3 +1,9 @@
+# 1.9.5
+- Rebase from XMRig-amd 2.15.4 (Fixed compatibility with recent AMD drivers (19.7.2), thanks @psychocrypt)
+- Added possibility to delete templates #257
+- Added embedded config parsing #256
+- OSX Hugepages fix #250
+- Fixed non-merged template assignment      
 # 1.9.3
 - Integrated UPX2 variant (algo: "cryptonight-extremelite", variant: "upx2" OR variant: "auto")
 - Integrated merged templates and replace of @WORKER-ID@ in template assignment
