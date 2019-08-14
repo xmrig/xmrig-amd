@@ -363,6 +363,7 @@ void Workers::onResult(uv_async_t *handle)
                         case xmrig::VARIANT_RX_LOKI:
                             randomx_apply_config(RandomX_LokiConfig);
                             break;
+                        case xmrig::VARIANT_RX_0:
                         default:
                             randomx_apply_config(RandomX_MoneroConfig);
                             break;
@@ -479,6 +480,7 @@ randomx_dataset* Workers::getDataset(const uint8_t* seed_hash, xmrig::Variant va
         case xmrig::VARIANT_RX_LOKI:
             randomx_apply_config(RandomX_LokiConfig);
             break;
+        case xmrig::VARIANT_RX_0:
         default:
             randomx_apply_config(RandomX_MoneroConfig);
             break;

@@ -32,6 +32,7 @@
 #include <string.h>
 #include <vector>
 #include <inttypes.h>
+#include <cctype>
 
 
 #include "amd/OclCache.h"
@@ -39,6 +40,10 @@
 #include "amd/OclGPU.h"
 #include "amd/OclLib.h"
 #include "amd/OclCryptonightR_gen.h"
+#ifdef XMRIG_ALGO_RANDOMX
+#include "amd/opencl/RandomX/randomx_run_gfx803.h"
+#include "amd/opencl/RandomX/randomx_run_gfx900.h"
+#endif
 #include "common/log/Log.h"
 #include "common/utils/timestamp.h"
 #include "core/Config.h"
@@ -192,6 +197,10 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 
     printGPU(index, ctx, config);
 
+    xmrig::String device_name = ctx->name;
+    std::for_each(device_name.data(), device_name.data() + device_name.size(), [](char& c) { c = static_cast<char>(toupper(c)); });
+    ctx->gcn_version = (device_name == "GFX900") ? 14 : 12;
+
     cl_int ret;
     ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);
     if (ret != CL_SUCCESS) {
@@ -232,10 +241,31 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             return OCL_ERR_API;
         }
 
-        ctx->rx_vm_states = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, 2560 * g_thd, nullptr, &ret);
-        if (ret != CL_SUCCESS) {
-            LOG_ERR("Error %s when calling clCreateBuffer to create RandomX VM states buffer.", err_to_str(ret));
-            return OCL_ERR_API;
+        if (ctx->gcnAsm) {
+            ctx->rx_registers = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, 256 * g_thd, nullptr, &ret);
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clCreateBuffer to create RandomX JIT registers buffer.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
+
+            ctx->rx_intermediate_programs = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, 5120 * g_thd, nullptr, &ret);
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clCreateBuffer to create RandomX JIT intermediate programs buffer.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
+
+            ctx->rx_programs = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, 10048 * g_thd, nullptr, &ret);
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clCreateBuffer to create RandomX JIT programs buffer.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
+        }
+        else {
+            ctx->rx_vm_states = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, 2560 * g_thd, nullptr, &ret);
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clCreateBuffer to create RandomX VM states buffer.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
         }
 
         ctx->rx_rounding = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(uint32_t) * g_thd, nullptr, &ret);
@@ -305,7 +335,9 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         const char* KernelNamesRX[] = {
             "fillAes1Rx4_scratchpad", "fillAes4Rx4_entropy", "hashAes1Rx4",
             "blake2b_initial_hash", "blake2b_hash_registers_32", "blake2b_hash_registers_64",
-            "init_vm", "execute_vm", "find_shares",
+            ctx->gcnAsm ? "" : "init_vm", ctx->gcnAsm ? "" : "execute_vm", "find_shares",
+            ctx->gcnAsm ? "randomx_jit" : "",
+            "", // reserved for randomx_run binary kernel
             nullptr
         };
 
@@ -314,6 +346,52 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
                 continue;
             }
             ctx->rx_kernels[i] = OclLib::createKernel(ctx->Program, KernelNamesRX[i], &ret);
+            if (ret != CL_SUCCESS) {
+                return OCL_ERR_API;
+            }
+        }
+
+        if (ctx->gcnAsm) {
+            // Adrenaline drivers on Windows and amdgpu-pro drivers on Linux use ELF header's flags (offset 0x30) to store internal device ID
+            // Read it from compiled OpenCL code and substitute this ID into pre-compiled binary to make sure the driver accepts it
+            uint32_t elf_header_flags = 0;
+            const uint32_t elf_header_flags_offset = 0x30;
+
+            size_t bin_size;
+            if (OclLib::getProgramInfo(ctx->Program, CL_PROGRAM_BINARY_SIZES, sizeof(bin_size), &bin_size) != CL_SUCCESS) {
+                return OCL_ERR_API;
+            }
+
+            std::vector<char> binary_data(bin_size);
+            char* tmp[1] = { binary_data.data() };
+            if (OclLib::getProgramInfo(ctx->Program, CL_PROGRAM_BINARIES, sizeof(char*), tmp) != CL_SUCCESS) {
+                return false;
+            }
+
+            if (bin_size >= elf_header_flags_offset + sizeof(uint32_t)) {
+                elf_header_flags = *(uint32_t*)(binary_data.data() + elf_header_flags_offset);
+            }
+
+            size_t len = (ctx->gcn_version == 14) ? randomx_run_gfx900_bin_size : randomx_run_gfx803_bin_size;
+            unsigned char* binary = (ctx->gcn_version == 14) ? randomx_run_gfx900_bin : randomx_run_gfx803_bin;
+
+            // Set correct internal device ID in the pre-compiled binary
+            if (elf_header_flags) {
+                *(uint32_t*)(binary + elf_header_flags_offset) = elf_header_flags;
+            }
+
+            cl_int status;
+            ctx->AsmProgram = OclLib::createProgramWithBinary(ctx->opencl_ctx, 1, &ctx->DeviceID, &len, (const unsigned char**) &binary, &status, &ret);
+            if (ret != CL_SUCCESS) {
+                return OCL_ERR_API;
+            }
+
+            ret = OclLib::buildProgram(ctx->AsmProgram, 1, &ctx->DeviceID);
+            if (ret != CL_SUCCESS) {
+                return OCL_ERR_API;
+            }
+
+            ctx->rx_kernels[10] = OclLib::createKernel(ctx->AsmProgram, "randomx_run", &ret);
             if (ret != CL_SUCCESS) {
                 return OCL_ERR_API;
             }
@@ -369,7 +447,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             return OCL_ERR_API;
         }
 
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[2], 1, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
+        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[2], 1, sizeof(cl_mem), ctx->gcnAsm ? &ctx->rx_registers : &ctx->rx_vm_states)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 1);
             return OCL_ERR_API;
         }
@@ -380,7 +458,12 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             return OCL_ERR_API;
         }
 
-        const uint32_t hashStrideBytes = (config->algorithm().variant() == xmrig::VARIANT_RX_LOKI) ? RandomX_LokiConfig.ProgramSize * 8 : RandomX_MoneroConfig.ProgramSize * 8;
+        uint32_t hashStrideBytes;
+        if (ctx->gcnAsm)
+            hashStrideBytes = 256;
+        else
+            hashStrideBytes = (config->algorithm().variant() == xmrig::VARIANT_RX_LOKI) ? RandomX_LokiConfig.ProgramSize * 8 : RandomX_MoneroConfig.ProgramSize * 8;
+
         if ((ret = OclLib::setKernelArg(ctx->rx_kernels[2], 3, sizeof(uint32_t), &hashStrideBytes)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 2, 3);
             return OCL_ERR_API;
@@ -411,7 +494,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             return OCL_ERR_API;
         }
 
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[4], 1, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
+        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[4], 1, sizeof(cl_mem), ctx->gcnAsm ? &ctx->rx_registers : &ctx->rx_vm_states)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 4, 1);
             return OCL_ERR_API;
         }
@@ -427,7 +510,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             return OCL_ERR_API;
         }
 
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[5], 1, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
+        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[5], 1, sizeof(cl_mem), ctx->gcnAsm ? &ctx->rx_registers : &ctx->rx_vm_states)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 5, 1);
             return OCL_ERR_API;
         }
@@ -437,51 +520,53 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             return OCL_ERR_API;
         }
 
-        // init_vm
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 0, sizeof(cl_mem), &ctx->rx_entropy)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 0);
-            return OCL_ERR_API;
+        if (!ctx->gcnAsm) {
+            // init_vm
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 0, sizeof(cl_mem), &ctx->rx_entropy)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 0);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 1, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 1);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 2, sizeof(cl_mem), &ctx->rx_rounding)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 2);
+                return OCL_ERR_API;
+            }
+
+            // iteration is set in RXRunJob()
+
+            // execute_vm
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 0, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 0);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 1, sizeof(cl_mem), &ctx->rx_rounding)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 1);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 2, sizeof(cl_mem), &ctx->rx_scratchpads)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 2);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 3, sizeof(cl_mem), &ctx->rx_dataset)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 3);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 4, sizeof(uint32_t), &batch_size)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 4);
+                return OCL_ERR_API;
+            }
+
+            // num_iterations, first, last are set in RXRunJob()
         }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 1, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 1);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 2, sizeof(cl_mem), &ctx->rx_rounding)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 2);
-            return OCL_ERR_API;
-        }
-
-        // iteration is set in RXRunJob()
-
-        // execute_vm
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 0, sizeof(cl_mem), &ctx->rx_vm_states)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 0);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 1, sizeof(cl_mem), &ctx->rx_rounding)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 1);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 2, sizeof(cl_mem), &ctx->rx_scratchpads)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 2);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 3, sizeof(cl_mem), &ctx->rx_dataset)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 3);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 4, sizeof(uint32_t), &batch_size)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 4);
-            return OCL_ERR_API;
-        }
-
-        // num_iterations, first, last are set in RXRunJob()
 
         // find_shares
         if ((ret = OclLib::setKernelArg(ctx->rx_kernels[8], 0, sizeof(cl_mem), &ctx->rx_hashes)) != CL_SUCCESS) {
@@ -495,6 +580,111 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         if ((ret = OclLib::setKernelArg(ctx->rx_kernels[8], 3, sizeof(cl_mem), &ctx->OutputBuffer)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), 8, 3);
             return OCL_ERR_API;
+        }
+
+        if (ctx->gcnAsm) {
+            // randomx_jit
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 0, sizeof(cl_mem), &ctx->rx_entropy)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 0);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 1, sizeof(cl_mem), &ctx->rx_registers)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 1);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 2, sizeof(cl_mem), &ctx->rx_intermediate_programs)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 2);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 3, sizeof(cl_mem), &ctx->rx_programs)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 3);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 4, sizeof(uint32_t), &batch_size)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 4);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 5, sizeof(cl_mem), &ctx->rx_rounding)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 5);
+                return OCL_ERR_API;
+            }
+
+            // iteration is set in RXRunJob()
+
+            // randomx_run
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 0, sizeof(cl_mem), &ctx->rx_dataset)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 0);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 1, sizeof(cl_mem), &ctx->rx_scratchpads)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 1);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 2, sizeof(cl_mem), &ctx->rx_registers)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 2);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 3, sizeof(cl_mem), &ctx->rx_rounding)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 3);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 4, sizeof(cl_mem), &ctx->rx_programs)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 4);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 5, sizeof(uint32_t), &batch_size)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 5);
+                return OCL_ERR_API;
+            }
+
+            auto PowerOf2 = [](size_t N)
+            {
+                uint32_t result = 0;
+                while (N > 1)
+                {
+                    ++result;
+                    N >>= 1;
+                }
+                return result;
+            };
+
+            const RandomX_ConfigurationBase* rx_conf;
+            switch (config->algorithm().variant())
+            {
+            case xmrig::VARIANT_RX_LOKI:
+                rx_conf = &RandomX_LokiConfig;
+                break;
+
+            case xmrig::VARIANT_RX_WOW:
+                rx_conf = &RandomX_WowneroConfig;
+                break;
+
+            default:
+                rx_conf = &RandomX_MoneroConfig;
+                break;
+            }
+
+            const uint32_t rx_parameters =
+                (PowerOf2(rx_conf->ScratchpadL1_Size) << 0) |
+                (PowerOf2(rx_conf->ScratchpadL2_Size) << 5) |
+                (PowerOf2(rx_conf->ScratchpadL3_Size) << 10) |
+                (PowerOf2(rx_conf->ProgramIterations) << 15);
+            ;
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 6, sizeof(uint32_t), &rx_parameters)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 6);
+                return OCL_ERR_API;
+            }
         }
     }
     else
@@ -744,6 +934,9 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
         const char* randomx_constants_loki_h =
             #include "./opencl/RandomX/randomx_constants_loki.h"
         ;
+        const char* randomx_constants_monero_h =
+            #include "./opencl/RandomX/randomx_constants_monero.h"
+        ;
         const char* aesCL = 
             #include "./opencl/RandomX/aes.cl"
         ;
@@ -759,6 +952,9 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
         const char* randomx_vmCL =
             #include "./opencl/RandomX/randomx_vm.cl"
         ;
+        const char* randomx_jitCL =
+            #include "./opencl/RandomX/randomx_jit.cl"
+        ;
 
         switch (config->algorithm().variant())
         {
@@ -769,11 +965,17 @@ size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *conf
         case xmrig::VARIANT_RX_LOKI:
             source_code.append(randomx_constants_loki_h);
             break;
+
+        case xmrig::VARIANT_RX_0:
+        default:
+            source_code.append(randomx_constants_monero_h);
+            break;
         }
 
         source_code.append(std::regex_replace(aesCL, std::regex("#include \"fillAes1Rx4.cl\""), fillAes1Rx4CL));
         source_code.append(std::regex_replace(blake2bCL, std::regex("#include \"blake2b_double_block.cl\""), blake2b_double_blockCL));
         source_code.append(randomx_vmCL);
+        source_code.append(randomx_jitCL);
     }
     else
 #endif
@@ -1213,6 +1415,8 @@ size_t RXRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
     size_t globalWorkSize4 = g_intensity * 4;
     size_t globalWorkSize8 = g_intensity * 8;
     size_t globalWorkSize16 = g_intensity * 16;
+    size_t globalWorkSize32 = g_intensity * 32;
+    size_t globalWorkSize64 = g_intensity * 64;
     size_t localWorkSize = 64;
     size_t localWorkSize32 = 32;
     size_t localWorkSize16 = 16;
@@ -1247,58 +1451,83 @@ size_t RXRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
             return OCL_ERR_API;
         }
 
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 3, sizeof(uint32_t), &i)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 3);
-            return OCL_ERR_API;
-        }
-
-        // init_vm
-        if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->rx_kernels[6], 1, nullptr, &globalWorkSize8, &localWorkSize32, 0, nullptr, nullptr)) != CL_SUCCESS) {
-            LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 6);
-            return OCL_ERR_API;
-        }
-
-        // execute_vm
-        uint32_t num_iterations = RandomX_CurrentConfig.ProgramIterations >> bfactor;
-        uint32_t first = 1;
-        uint32_t last = 0;
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 5, sizeof(uint32_t), &num_iterations)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 5);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 6, sizeof(uint32_t), &first)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 6);
-            return OCL_ERR_API;
-        }
-
-        if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 7, sizeof(uint32_t), &last)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 7);
-            return OCL_ERR_API;
-        }
-
-        for (int j = 0, n = 1 << bfactor; j < n; ++j) {
-            if (j == n - 1) {
-                last = 1;
-                if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 7, sizeof(uint32_t), &last)) != CL_SUCCESS) {
-                    LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 7);
-                    return OCL_ERR_API;
-                }
-            }
-
-            // execute_vm
-            if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->rx_kernels[7], 1, nullptr, (ctx->workSize == 16) ? &globalWorkSize16 : &globalWorkSize8, (ctx->workSize == 16) ? &localWorkSize32 : &localWorkSize16, 0, nullptr, nullptr)) != CL_SUCCESS) {
-                LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 7);
+        if (!ctx->gcnAsm) {
+            // init_vm
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[6], 3, sizeof(uint32_t), &i)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 6, 3);
                 return OCL_ERR_API;
             }
 
-            if (j == 0) {
-                first = 0;
-                if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 6, sizeof(uint32_t), &first)) != CL_SUCCESS) {
-                    LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 6);
+            if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->rx_kernels[6], 1, nullptr, &globalWorkSize8, &localWorkSize32, 0, nullptr, nullptr)) != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 6);
+                return OCL_ERR_API;
+            }
+
+            // execute_vm
+            uint32_t num_iterations = RandomX_CurrentConfig.ProgramIterations >> bfactor;
+            uint32_t first = 1;
+            uint32_t last = 0;
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 5, sizeof(uint32_t), &num_iterations)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 5);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 6, sizeof(uint32_t), &first)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 6);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 7, sizeof(uint32_t), &last)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 7);
+                return OCL_ERR_API;
+            }
+
+            for (int j = 0, n = 1 << bfactor; j < n; ++j) {
+                if (j == n - 1) {
+                    last = 1;
+                    if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 7, sizeof(uint32_t), &last)) != CL_SUCCESS) {
+                        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 7);
+                        return OCL_ERR_API;
+                    }
+                }
+
+                // execute_vm
+                if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->rx_kernels[7], 1, nullptr, (ctx->workSize == 16) ? &globalWorkSize16 : &globalWorkSize8, (ctx->workSize == 16) ? &localWorkSize32 : &localWorkSize16, 0, nullptr, nullptr)) != CL_SUCCESS) {
+                    LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 7);
                     return OCL_ERR_API;
                 }
+
+                if (j == 0) {
+                    first = 0;
+                    if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 6, sizeof(uint32_t), &first)) != CL_SUCCESS) {
+                        LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 6);
+                        return OCL_ERR_API;
+                    }
+                }
+            }
+        }
+        else {
+            // randomx_jit
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[9], 6, sizeof(uint32_t), &i)) != CL_SUCCESS) {
+                LOG_ERR(kSetKernelArgErr, err_to_str(ret), 9, 6);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->rx_kernels[9], 1, nullptr, &globalWorkSize32, &localWorkSize, 0, nullptr, nullptr)) != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 9);
+                return OCL_ERR_API;
+            }
+
+            if ((ret = OclLib::finish(ctx->CommandQueues)) != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clFinish.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
+
+            // randomx_run
+            if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->rx_kernels[10], 1, nullptr, &globalWorkSize64, &localWorkSize, 0, nullptr, nullptr)) != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), 10);
+                return OCL_ERR_API;
             }
         }
 
@@ -1369,11 +1598,16 @@ void ReleaseOpenCl(GpuContext* ctx)
         }
     }
 
+#ifdef XMRIG_ALGO_RANDOMX
+    if (ctx->AsmProgram) OclLib::releaseProgram(ctx->AsmProgram);
     if (ctx->rx_dataset) OclLib::releaseMemObject(ctx->rx_dataset);
     if (ctx->rx_scratchpads) OclLib::releaseMemObject(ctx->rx_scratchpads);
     if (ctx->rx_hashes) OclLib::releaseMemObject(ctx->rx_hashes);
     if (ctx->rx_entropy) OclLib::releaseMemObject(ctx->rx_entropy);
     if (ctx->rx_vm_states) OclLib::releaseMemObject(ctx->rx_vm_states);
+    if (ctx->rx_registers) OclLib::releaseMemObject(ctx->rx_registers);
+    if (ctx->rx_intermediate_programs) OclLib::releaseMemObject(ctx->rx_intermediate_programs);
+    if (ctx->rx_programs) OclLib::releaseMemObject(ctx->rx_programs);
     if (ctx->rx_rounding) OclLib::releaseMemObject(ctx->rx_rounding);
 
     kernel_count = sizeof(ctx->rx_kernels) / sizeof(ctx->rx_kernels[0]);
@@ -1382,6 +1616,7 @@ void ReleaseOpenCl(GpuContext* ctx)
             OclLib::releaseKernel(ctx->rx_kernels[k]);
         }
     }
+#endif
 
     OclLib::releaseCommandQueue(ctx->CommandQueues);
 }

@@ -69,6 +69,9 @@ public:
     void setStridedIndex(int stridedIndex);
     void setThreadsCountByGPU(size_t threads);
     void setUnrollFactor(int unrollFactor);
+#ifdef XMRIG_ALGO_RANDOMX
+    void setGCNAsm(int gcnAsm);
+#endif
     void setWorksize(size_t worksize);
     void setBFactor(size_t bfactor);
 

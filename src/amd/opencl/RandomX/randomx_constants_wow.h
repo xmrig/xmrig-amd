@@ -83,8 +83,6 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 
 #define RANDOMX_PROGRAM_SIZE 256
 
-#define SCRATCHPAD_STRIDED 0
-
 #define HASH_SIZE 64
 #define ENTROPY_SIZE (128 + RANDOMX_PROGRAM_SIZE * 8)
 #define REGISTERS_SIZE 256

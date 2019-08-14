@@ -44,6 +44,9 @@ static const char *kIntensity    = "intensity";
 static const char *kMemChunk     = "mem_chunk";
 static const char *kStridedIndex = "strided_index";
 static const char *kUnroll       = "unroll";
+#ifdef XMRIG_ALGO_RANDOMX
+static const char *kGCNAsm       = "gcn_asm";
+#endif
 static const char *kWorksize     = "worksize";
 static const char *kBFactor      = "bfactor";
 
@@ -69,6 +72,9 @@ xmrig::OclThread::OclThread(const rapidjson::Value &object) :
     setAffinity(Json::getInt64(object, kAffineToCpu, -1));
     setMemChunk(Json::getInt(object, kMemChunk, m_ctx->memChunk));
     setUnrollFactor(Json::getInt(object, kUnroll, m_ctx->unrollFactor));
+#ifdef XMRIG_ALGO_RANDOMX
+    setGCNAsm(Json::getInt(object, kGCNAsm, m_ctx->gcnAsm));
+#endif
     setCompMode(Json::getBool(object, kCompMode, true));
 
     const rapidjson::Value &stridedIndex = object[kStridedIndex];
@@ -189,6 +195,13 @@ void xmrig::OclThread::setUnrollFactor(int unrollFactor)
 
     m_ctx->unrollFactor = unrollFactor > 128 ? 128 : unrollFactor;
 }
+
+#ifdef XMRIG_ALGO_RANDOMX
+void xmrig::OclThread::setGCNAsm(int gcnAsm)
+{
+    m_ctx->gcnAsm = gcnAsm;
+}
+#endif
 
 
 void xmrig::OclThread::setWorksize(size_t worksize)

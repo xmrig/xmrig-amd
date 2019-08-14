@@ -81,7 +81,7 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 
 #define RANDOMX_DATASET_ITEM_SIZE 64
 
-#define RANDOMX_PROGRAM_SIZE 320
+#define RANDOMX_PROGRAM_SIZE 256
 
 #define HASH_SIZE 64
 #define ENTROPY_SIZE (128 + RANDOMX_PROGRAM_SIZE * 8)
