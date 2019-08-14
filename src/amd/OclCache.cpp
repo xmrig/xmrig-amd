@@ -66,7 +66,7 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
 }
 
 
-void OclCache::getOptions(xmrig::Algo algo, xmrig::Variant variant, const GpuContext* ctx, char* options, size_t options_size)
+void OclCache::getOptions(xmrig::Algo algo, xmrig::Variant, const GpuContext* ctx, char* options, size_t options_size)
 {
     snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
         "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -DWORKSIZE_GPU=%zu -cl-fp32-correctly-rounded-divide-sqrt",
@@ -111,23 +111,7 @@ bool OclCache::load()
         }
 
         if (OclLib::buildProgram(m_ctx->Program, 1, &m_ctx->DeviceID, options) != CL_SUCCESS) {
-            size_t len = 0;
-
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_LOG, 0, nullptr, &len) != CL_SUCCESS) {
-                return false;
-            }
-
-            char *buildLog = new char[len + 1]();
-
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_LOG, len, buildLog, nullptr) != CL_SUCCESS) {
-                delete [] buildLog;
-                return false;
-            }
-
-            Log::i()->text("Build log:");
-            std::cerr << buildLog << std::endl;
-
-            delete [] buildLog;
+            printf("Build log:\n%s\n", OclLib::getProgramBuildLog(m_ctx->Program, m_ctx->DeviceID).data());
             return false;
         }
 

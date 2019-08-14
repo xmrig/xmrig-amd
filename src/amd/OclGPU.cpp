@@ -269,12 +269,19 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_xfh", "cn1_fastv2", "cn1_upx", "cn1_rwz", "cn1_zelerius", "cn1_double",
 #       ifndef XMRIG_NO_CN_GPU
         "cn0_cn_gpu", "cn00_cn_gpu", "cn1_cn_gpu", "cn2_cn_gpu",
+#       else
+        "", "", "", "",
 #       endif
+        "cn1_v2_rwz", "cn1_v2_zls", "cn1_v2_double",
 
         nullptr
     };
 
     for (int i = 0; KernelNames[i]; ++i) {
+        if (!KernelNames[i][0]) {
+            continue;
+        }
+
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -622,26 +629,31 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
 #       endif
 
         // Get new kernel
-        cl_program program = CryptonightR_get_program(ctx, variant, height);
+        cl_program program = CryptonightR_get_program(ctx, variant, height / 10);
 
-        if (program != ctx->ProgramCryptonightR) {
+        if ((program != ctx->ProgramCryptonightR) || (height != ctx->HeightCryptonightR)) {
             cl_int ret;
-            cl_kernel kernel = OclLib::createKernel(program, "cn1_cryptonight_r", &ret);
+            char kernel_name[32];
+            sprintf(kernel_name, "cn1_cryptonight_r_%d", static_cast<int>(height % 10));
+            cl_kernel kernel = OclLib::createKernel(program, kernel_name, &ret);
 
-            cl_kernel old_kernel = nullptr;
             if (ret != CL_SUCCESS) {
                 LOG_ERR("CryptonightR: clCreateKernel returned error %s", OclError::toString(ret));
             }
             else {
-                old_kernel = ctx->Kernels[cn1_kernel_offset];
+                OclLib::releaseKernel(ctx->Kernels[cn1_kernel_offset]);
                 ctx->Kernels[cn1_kernel_offset] = kernel;
             }
+            ctx->HeightCryptonightR = height;
+        }
+
+        if (program != ctx->ProgramCryptonightR) {
             ctx->ProgramCryptonightR = program;
 
             // Precompile next program in background
-            CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
-            for (int i = 2; i <= PRECOMPILATION_DEPTH; ++i)
-                CryptonightR_get_program(ctx, variant, height + i, true, nullptr);
+            for (size_t i = 1; i <= PRECOMPILATION_DEPTH; ++i) {
+                CryptonightR_get_program(ctx, variant, height / 10 + i, true);
+            }
 
 #           ifdef APP_DEBUG
             const int64_t timeFinish = xmrig::steadyTimestamp();

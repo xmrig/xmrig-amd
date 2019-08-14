@@ -22,17 +22,59 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCRYPTONIGHTR_GEN_H
-#define XMRIG_OCLCRYPTONIGHTR_GEN_H
+#ifndef XMRIG_CONFIGLOADER_DEFAULT_H
+#define XMRIG_CONFIGLOADER_DEFAULT_H
 
-#include "amd/GpuContext.h"
 
-enum
+namespace xmrig {
+
+
+#ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
+const static char *default_config =
+R"===(
 {
-    PRECOMPILATION_DEPTH = 1,
-};
-static_assert((PRECOMPILATION_DEPTH >= 1) && (PRECOMPILATION_DEPTH <= 10), "Invalid precompilation depth");
+    "algo": "cryptonight",
+    "api": {
+        "port": 0,
+        "access-token": null,
+        "id": null,
+        "worker-id": null,
+        "ipv6": false,
+        "restricted": true
+    },
+    "autosave": true,
+    "background": false,
+    "cache": true,
+    "colors": true,
+    "donate-level": 5,
+    "log-file": null,
+    "opencl-platform": "AMD",
+    "pools": [
+        {
+            "url": "donate.v2.xmrig.com:3333",
+            "user": "YOUR_WALLET_ADDRESS",
+            "pass": "x",
+            "rig-id": null,
+            "nicehash": false,
+            "keepalive": false,
+            "variant": -1,
+            "enabled": true,
+            "tls": false,
+            "tls-fingerprint": null
+        }
+    ],
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "threads": null,
+    "user-agent": null,
+    "syslog": false,
+    "watch": true
+}
+)===";
+#endif
 
-cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background = false);
 
-#endif /* XMRIG_OCLCRYPTONIGHTR_GEN_H */
+} /* namespace xmrig */
+
+#endif /* XMRIG_CONFIGLOADER_DEFAULT_H */

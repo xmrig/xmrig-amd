@@ -45,6 +45,7 @@ constexpr const uint32_t CRYPTONIGHT_LITE_UPX_ITER  = 0x20000;
 constexpr const uint32_t CRYPTONIGHT_TRTL_ITER      = 0x10000;
 constexpr const uint32_t CRYPTONIGHT_DOUBLE_ITER    = 0x100000;
 constexpr const uint32_t CRYPTONIGHT_WALTZ_ITER     = 0x60000;
+constexpr const uint32_t CRYPTONIGHT_ZLS_ITER       = 0x60000;
 constexpr const uint32_t CRYPTONIGHT_UPX2_ITER      = 0x4000;
 
 constexpr const size_t   CRYPTONIGHT_MEMORY       = 2 * 1024 * 1024;
@@ -164,52 +165,52 @@ template<> inline constexpr uint32_t cn_select_iter<CRYPTONIGHT, VARIANT_GPU>() 
 inline uint32_t cn_select_iter(Algo algorithm, Variant variant)
 {
     switch (variant) {
-    case VARIANT_MSR:
-    case VARIANT_FAST_2:
-        return CRYPTONIGHT_HALF_ITER;
+        case VARIANT_MSR:
+        case VARIANT_FAST_2:
+            return CRYPTONIGHT_HALF_ITER;
 
-    case VARIANT_GPU:
-        return CRYPTONIGHT_GPU_ITER;
+        case VARIANT_GPU:
+            return CRYPTONIGHT_GPU_ITER;
 
-    case VARIANT_RTO:
-        return CRYPTONIGHT_XAO_ITER;
+        case VARIANT_RTO:
+            return CRYPTONIGHT_XAO_ITER;
 
-    case VARIANT_XFH:
-        return CRYPTONIGHT_XFH_ITER;
+        case VARIANT_XFH:
+            return CRYPTONIGHT_XFH_ITER;
 
-    case VARIANT_UPX:
-        return CRYPTONIGHT_LITE_UPX_ITER;
+        case VARIANT_UPX:
+            return CRYPTONIGHT_LITE_UPX_ITER;
 
-    case VARIANT_RWZ:
-    case VARIANT_ZELERIUS:
-        return CRYPTONIGHT_WALTZ_ITER;
+        case VARIANT_RWZ:
+        case VARIANT_ZELERIUS:
+            return CRYPTONIGHT_WALTZ_ITER;
 
-    case VARIANT_DOUBLE:
-        return CRYPTONIGHT_DOUBLE_ITER;
+        case VARIANT_DOUBLE:
+            return CRYPTONIGHT_DOUBLE_ITER;
 
-    default:
-        break;
-    }
+        default:
+            break;
+        }
 
     switch(algorithm)
     {
-    case CRYPTONIGHT:
-        return CRYPTONIGHT_ITER;
+        case CRYPTONIGHT:
+            return CRYPTONIGHT_ITER;
 
-    case CRYPTONIGHT_LITE:
-        return CRYPTONIGHT_HALF_ITER;
+        case CRYPTONIGHT_LITE:
+            return CRYPTONIGHT_HALF_ITER;
 
-    case CRYPTONIGHT_HEAVY:
-        return CRYPTONIGHT_HALF_ITER;
+        case CRYPTONIGHT_HEAVY:
+            return CRYPTONIGHT_HALF_ITER;
 
-    case CRYPTONIGHT_ULTRALITE:
-        return CRYPTONIGHT_TRTL_ITER;
+        case CRYPTONIGHT_ULTRALITE:
+            return CRYPTONIGHT_TRTL_ITER;
 
-    case CRYPTONIGHT_EXTREMELITE:
-        return CRYPTONIGHT_UPX2_ITER;
+        case CRYPTONIGHT_EXTREMELITE:
+            return CRYPTONIGHT_UPX2_ITER;
 
-    default:
-        break;
+        default:
+            break;
     }
 
     return 0;
@@ -239,9 +240,35 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_DOUBLE>() { return V
 template<> inline constexpr Variant cn_base_variant<VARIANT_UPX2>() { return VARIANT_2; }
 
 
+inline Variant cn_base_variant(Variant variant)
+{
+    switch (variant) {
+    case VARIANT_0:
+    case VARIANT_XHV:
+    case VARIANT_XAO:
+        return VARIANT_0;
+
+    case VARIANT_1:
+    case VARIANT_TUBE:
+    case VARIANT_XTL:
+    case VARIANT_MSR:
+    case VARIANT_RTO:
+        return VARIANT_1;
+
+    case VARIANT_GPU:
+        return VARIANT_GPU;
+
+    default:
+        break;
+    }
+
+    return VARIANT_2;
+}
+
+
 template<Variant variant> inline constexpr bool cn_is_cryptonight_r() { return false; }
-template<> inline constexpr bool cn_is_cryptonight_r<VARIANT_WOW>() { return true; }
-template<> inline constexpr bool cn_is_cryptonight_r<VARIANT_4>() { return true; }
+template<> inline constexpr bool cn_is_cryptonight_r<VARIANT_WOW>()   { return true; }
+template<> inline constexpr bool cn_is_cryptonight_r<VARIANT_4>()     { return true; }
 
 } /* namespace xmrig */
 

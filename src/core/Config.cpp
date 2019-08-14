@@ -84,9 +84,7 @@ bool xmrig::Config::isCNv2() const
     }
 
     for (const Pool &pool : m_pools.data()) {
-        const Variant variant = pool.algorithm().variant();
-
-        if (variant == VARIANT_2 || variant == VARIANT_AUTO || variant == VARIANT_FAST_2 || variant == VARIANT_WOW) {
+        if (cn_base_variant(pool.algorithm().variant()) == VARIANT_2) {
             return true;
         }
     }

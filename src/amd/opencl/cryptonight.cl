@@ -19,65 +19,6 @@ R"===(
 #   pragma OPENCL EXTENSION cl_clang_storage_class_specifiers : enable
 #endif
 
-#ifdef cl_amd_media_ops
-#pragma OPENCL EXTENSION cl_amd_media_ops : enable
-#else
-/* taken from https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops.txt
- * Build-in Function
- *     uintn  amd_bitalign (uintn src0, uintn src1, uintn src2)
- *   Description
- *     dst.s0 =  (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2.s0 & 31))
- *     similar operation applied to other components of the vectors.
- *
- * The implemented function is modified because the last is in our case always a scalar.
- * We can ignore the bitwise AND operation.
- */
-inline uint2 amd_bitalign( const uint2 src0, const uint2 src1, const uint src2)
-{
-    uint2 result;
-    result.s0 =  (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2));
-    result.s1 =  (uint) (((((long)src0.s1) << 32) | (long)src1.s1) >> (src2));
-    return result;
-}
-#endif
-
-#ifdef cl_amd_media_ops2
-#pragma OPENCL EXTENSION cl_amd_media_ops2 : enable
-#else
-/* taken from: https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops2.txt
- *     Built-in Function:
- *     uintn amd_bfe (uintn src0, uintn src1, uintn src2)
- *   Description
- *     NOTE: operator >> below represent logical right shift
- *     offset = src1.s0 & 31;
- *     width = src2.s0 & 31;
- *     if width = 0
- *         dst.s0 = 0;
- *     else if (offset + width) < 32
- *         dst.s0 = (src0.s0 << (32 - offset - width)) >> (32 - width);
- *     else
- *         dst.s0 = src0.s0 >> offset;
- *     similar operation applied to other components of the vectors
- */
-inline int amd_bfe(const uint src0, const uint offset, const uint width)
-{
-    /* casts are removed because we can implement everything as uint
-     * int offset = src1;
-     * int width = src2;
-     * remove check for edge case, this function is always called with
-     * `width==8`
-     * @code
-     *   if ( width == 0 )
-     *      return 0;
-     * @endcode
-     */
-    if ( (offset + width) < 32u )
-        return (src0 << (32u - offset - width)) >> (32u - width);
-
-    return src0 >> offset;
-}
-#endif
-
 //#include "opencl/wolf-aes.cl"
 XMRIG_INCLUDE_WOLF_AES
 //#include "opencl/wolf-skein.cl"
@@ -369,8 +310,6 @@ void CNKeccak(ulong *output, ulong *input)
 }
 
 static const __constant uchar rcon[8] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40 };
-
-#define BYTE(x, y)  (amd_bfe((x), (y) << 3U, 8U))
 
 #define SubWord(inw)        ((sbox[BYTE(inw, 3)] << 24) | (sbox[BYTE(inw, 2)] << 16) | (sbox[BYTE(inw, 1)] << 8) | sbox[BYTE(inw, 0)])
 
@@ -1922,8 +1861,40 @@ __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global
         ulong State[8] = { 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0x0001000000000000UL };
         ulong H[8], M[8];
 
-        for (uint i = 0; i < 3; ++i) {
-            ((ulong8 *)M)[0] = vload8(i, states);
+        // BUG: AMD driver 19.7.X crashs if this is written as loop
+        // Thx AMD for so bad software
+        {
+            ((ulong8 *)M)[0] = vload8(0, states);
+
+            for (uint x = 0; x < 8; ++x) {
+                H[x] = M[x] ^ State[x];
+            }
+
+            PERM_SMALL_P(H);
+            PERM_SMALL_Q(M);
+
+            for (uint x = 0; x < 8; ++x) {
+                State[x] ^= H[x] ^ M[x];
+            }
+        }
+
+        {
+            ((ulong8 *)M)[0] = vload8(1, states);
+
+            for (uint x = 0; x < 8; ++x) {
+                H[x] = M[x] ^ State[x];
+            }
+
+            PERM_SMALL_P(H);
+            PERM_SMALL_Q(M);
+
+            for (uint x = 0; x < 8; ++x) {
+                State[x] ^= H[x] ^ M[x];
+            }
+        }
+
+        {
+            ((ulong8 *)M)[0] = vload8(2, states);
 
             for (uint x = 0; x < 8; ++x) {
                 H[x] = M[x] ^ State[x];

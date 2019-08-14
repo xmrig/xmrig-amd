@@ -19,6 +19,7 @@ option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
 
 option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
+option(WITH_EMBEDDED_CONFIG      "Enable internal embedded JSON config" OFF)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" ON)
 if(NOT MINER_EXECUTABLE_NAME)
     set(MINER_EXECUTABLE_NAME "xmrigMiner-amd" CACHE STRING "Miner executable file name")
@@ -90,6 +91,7 @@ set(HEADERS
     src/common/utils/mm_malloc.h
     src/common/utils/timestamp.h
     src/common/xmrig.h
+    src/core/ConfigLoader_default.h
     src/core/ConfigLoader_platform.h
     src/core/Controller.h
     src/core/usage.h
@@ -294,6 +296,10 @@ endif()
 
 if (NOT WITH_CN_EXTREMELITE)
     add_definitions(/DXMRIG_NO_CN_EXTREMELITE)
+endif()
+
+if (WITH_EMBEDDED_CONFIG)
+    add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
 if (WITH_HTTPD)
