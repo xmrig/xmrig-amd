@@ -73,9 +73,9 @@ struct GpuContext
         Nonce(0)
 #ifdef XMRIG_ALGO_RANDOMX
         , gcnAsm(1)
+        , datasetHost(0)
         , AsmProgram(nullptr)
         , rx_variant(xmrig::VARIANT_AUTO)
-        , rx_dataset(nullptr)
         , rx_scratchpads(nullptr)
         , rx_hashes(nullptr)
         , rx_entropy(nullptr)
@@ -131,11 +131,12 @@ struct GpuContext
 
 #ifdef XMRIG_ALGO_RANDOMX
     int gcnAsm;
+    int datasetHost;
     cl_program AsmProgram;
 
     uint8_t rx_dataset_seedhash[32];
     xmrig::Variant rx_variant;
-    cl_mem rx_dataset;
+    static cl_mem rx_dataset[32];
     cl_mem rx_scratchpads;
     cl_mem rx_hashes;
     cl_mem rx_entropy;

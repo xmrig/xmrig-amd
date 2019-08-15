@@ -452,7 +452,7 @@ randomx_dataset* Workers::getDataset(const uint8_t* seed_hash, xmrig::Variant va
     uv_rwlock_wrlock(&m_rx_dataset_lock);
 
     // Check if we need to update cache and dataset
-    if (m_rx_dataset && ((memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) == 0) && (m_rx_variant == variant))) {
+    if (m_rx_dataset && seed_hash && ((memcmp(m_rx_seed_hash, seed_hash, sizeof(m_rx_seed_hash)) == 0) && (m_rx_variant == variant))) {
         uv_rwlock_wrunlock(&m_rx_dataset_lock);
         return m_rx_dataset;
     }
@@ -467,6 +467,11 @@ randomx_dataset* Workers::getDataset(const uint8_t* seed_hash, xmrig::Variant va
             m_rx_cache = randomx_alloc_cache(RANDOMX_FLAG_JIT);
         }
         m_rx_dataset = dataset;
+    }
+
+    if (!seed_hash) {
+        uv_rwlock_wrunlock(&m_rx_dataset_lock);
+        return m_rx_dataset;
     }
 
     const uint32_t num_threads = std::thread::hardware_concurrency();

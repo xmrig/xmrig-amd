@@ -358,14 +358,15 @@ main_loop:
 
 		v_add_u32       v22, vcc, v6, v36
 		v_addc_u32      v25, vcc, v20, 0, vcc
+		v_add_u32       v21, vcc, v22, v1
+		v_addc_u32      v22, vcc, v25, 0, vcc
+		flat_load_dwordx2 v[21:22], v[21:22]
 		v_or_b32        v30, v32, v13
 		v_and_b32       v31, v33, v19
 		v_or_b32        v31, v31, v14
 		v_or_b32        v28, v28, v15
 		v_and_b32       v29, v29, v19
 		v_or_b32        v29, v29, v16
-		v_add_u32       v21, vcc, v22, v1
-		v_addc_u32      v22, vcc, v25, 0, vcc
 		ds_write2_b64   v5, v[30:31], v[28:29] offset1:1
 		s_waitcnt       lgkmcnt(0)
 
@@ -402,6 +403,13 @@ main_loop:
 		# call JIT code
 		s_swappc_b64    s[12:13], s[4:5]
 
+		# Write out group F,E registers
+		# Write low 8 bytes from lane 0 and high 8 bytes from lane 1
+		ds_write2_b64   v41, v[60:61], v[62:63] offset0:8 offset1:10
+		ds_write2_b64   v41, v[64:65], v[66:67] offset0:12 offset1:14
+		ds_write2_b64   v41, v[68:69], v[70:71] offset0:16 offset1:18
+		ds_write2_b64   v41, v[72:73], v[74:75] offset0:20 offset1:22
+
 		# store VM integer registers
 		v_writelane_b32 v28, s16, 0
 		v_writelane_b32 v29, s17, 0
@@ -420,21 +428,13 @@ main_loop:
 		v_writelane_b32 v28, s30, 7
 		v_writelane_b32 v29, s31, 7
 
-		# Write out group F,E registers
-		# Write low 8 bytes from lane 0 and high 8 bytes from lane 1
-		ds_write2_b64   v41, v[60:61], v[62:63] offset0:8 offset1:10
-		ds_write2_b64   v41, v[64:65], v[66:67] offset0:12 offset1:14
-		ds_write2_b64   v41, v[68:69], v[70:71] offset0:16 offset1:18
-		ds_write2_b64   v41, v[72:73], v[74:75] offset0:20 offset1:22
-
 		# Restore execution mask
 		s_mov_b64       exec, s[36:37]
 
 		# Write out VM integer registers
 		ds_write_b64    v17, v[28:29]
 
-		flat_load_dwordx2 v[21:22], v[21:22]
-		s_waitcnt       vmcnt(0) & lgkmcnt(0)
+		s_waitcnt       lgkmcnt(0)
 		v_xor_b32       v21, v28, v21
 		v_xor_b32       v22, v29, v22
 		ds_read_b32     v28, v7

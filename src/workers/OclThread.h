@@ -71,6 +71,7 @@ public:
     void setUnrollFactor(int unrollFactor);
 #ifdef XMRIG_ALGO_RANDOMX
     void setGCNAsm(int gcnAsm);
+    void setDatasetHost(int datasetHost);
 #endif
     void setWorksize(size_t worksize);
     void setBFactor(size_t bfactor);

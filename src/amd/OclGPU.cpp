@@ -54,6 +54,8 @@
 
 constexpr const char *kSetKernelArgErr = "Error %s when calling clSetKernelArg for kernel %d, argument %d.";
 
+cl_mem GpuContext::rx_dataset[32] = {};
+
 
 inline static const char *err_to_str(cl_int ret)
 {
@@ -217,10 +219,20 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 #ifdef XMRIG_ALGO_RANDOMX
     if (config->algorithm().algo() == xmrig::RANDOM_X) {
         const size_t dataset_size = randomx_dataset_item_count() * RANDOMX_DATASET_ITEM_SIZE;
-        ctx->rx_dataset = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_ONLY, dataset_size, nullptr, &ret);
-        if (ret != CL_SUCCESS) {
-            LOG_ERR("Error %s when calling clCreateBuffer to create RandomX dataset.", err_to_str(ret));
-            return OCL_ERR_API;
+
+        if (!ctx->rx_dataset[ctx->deviceIdx]) {
+            if (!ctx->datasetHost) {
+                ctx->rx_dataset[ctx->deviceIdx] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_ONLY, dataset_size, nullptr, &ret);
+            }
+            else {
+                randomx_dataset* dataset = Workers::getDataset(nullptr, xmrig::VARIANT_AUTO);
+                ctx->rx_dataset[ctx->deviceIdx] = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, dataset_size, randomx_get_dataset_memory(dataset), &ret);
+            }
+
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clCreateBuffer to create RandomX dataset.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
         }
 
         ctx->rx_scratchpads = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, (xmrig::rx_select_memory(config->algorithm().variant()) + 64) * g_thd, nullptr, &ret);
@@ -555,7 +567,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
                 return OCL_ERR_API;
             }
 
-            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 3, sizeof(cl_mem), &ctx->rx_dataset)) != CL_SUCCESS) {
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[7], 3, sizeof(cl_mem), &ctx->rx_dataset[ctx->deviceIdx])) != CL_SUCCESS) {
                 LOG_ERR(kSetKernelArgErr, err_to_str(ret), 7, 3);
                 return OCL_ERR_API;
             }
@@ -617,7 +629,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
             // iteration is set in RXRunJob()
 
             // randomx_run
-            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 0, sizeof(cl_mem), &ctx->rx_dataset)) != CL_SUCCESS) {
+            if ((ret = OclLib::setKernelArg(ctx->rx_kernels[10], 0, sizeof(cl_mem), &ctx->rx_dataset[ctx->deviceIdx])) != CL_SUCCESS) {
                 LOG_ERR(kSetKernelArgErr, err_to_str(ret), 10, 0);
                 return OCL_ERR_API;
             }
@@ -1367,9 +1379,11 @@ size_t RXSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t targ
     if ((memcmp(ctx->rx_dataset_seedhash, seed_hash, sizeof(ctx->rx_dataset_seedhash)) != 0) || (ctx->rx_variant != variant)) {
         memcpy(ctx->rx_dataset_seedhash, seed_hash, sizeof(ctx->rx_dataset_seedhash));
         ctx->rx_variant = variant;
-        if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->rx_dataset, CL_TRUE, 0, dataset_size, randomx_get_dataset_memory(dataset), 0, nullptr, nullptr)) != CL_SUCCESS) {
-            LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill RandomX dataset.", err_to_str(ret));
-            return OCL_ERR_API;
+        if (!ctx->datasetHost) {
+            if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->rx_dataset[ctx->deviceIdx], CL_TRUE, 0, dataset_size, randomx_get_dataset_memory(dataset), 0, nullptr, nullptr)) != CL_SUCCESS) {
+                LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fill RandomX dataset.", err_to_str(ret));
+                return OCL_ERR_API;
+            }
         }
     }
 
@@ -1600,7 +1614,13 @@ void ReleaseOpenCl(GpuContext* ctx)
 
 #ifdef XMRIG_ALGO_RANDOMX
     if (ctx->AsmProgram) OclLib::releaseProgram(ctx->AsmProgram);
-    if (ctx->rx_dataset) OclLib::releaseMemObject(ctx->rx_dataset);
+
+    if (ctx->rx_dataset[ctx->deviceIdx]) {
+        cl_mem ptr = ctx->rx_dataset[ctx->deviceIdx];
+        ctx->rx_dataset[ctx->deviceIdx] = nullptr;
+        OclLib::releaseMemObject(ptr);
+    }
+
     if (ctx->rx_scratchpads) OclLib::releaseMemObject(ctx->rx_scratchpads);
     if (ctx->rx_hashes) OclLib::releaseMemObject(ctx->rx_hashes);
     if (ctx->rx_entropy) OclLib::releaseMemObject(ctx->rx_entropy);
