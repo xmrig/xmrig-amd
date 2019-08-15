@@ -46,6 +46,7 @@ static const char *kStridedIndex = "strided_index";
 static const char *kUnroll       = "unroll";
 #ifdef XMRIG_ALGO_RANDOMX
 static const char *kGCNAsm       = "gcn_asm";
+static const char* kDatasetHost  = "dataset_host";
 #endif
 static const char *kWorksize     = "worksize";
 static const char *kBFactor      = "bfactor";
@@ -74,6 +75,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &object) :
     setUnrollFactor(Json::getInt(object, kUnroll, m_ctx->unrollFactor));
 #ifdef XMRIG_ALGO_RANDOMX
     setGCNAsm(Json::getInt(object, kGCNAsm, m_ctx->gcnAsm));
+    setDatasetHost(Json::getInt(object, kDatasetHost, m_ctx->datasetHost));
 #endif
     setCompMode(Json::getBool(object, kCompMode, true));
 
@@ -200,6 +202,12 @@ void xmrig::OclThread::setUnrollFactor(int unrollFactor)
 void xmrig::OclThread::setGCNAsm(int gcnAsm)
 {
     m_ctx->gcnAsm = gcnAsm;
+}
+
+
+void xmrig::OclThread::setDatasetHost(int datasetHost)
+{
+    m_ctx->datasetHost = datasetHost;
 }
 #endif
 
