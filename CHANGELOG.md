@@ -1,3 +1,6 @@
+# v2.14.6
+- [#1138](https://github.com/xmrig/xmrig/issues/1138) Fixed multiple network bugs.
+
 # v2.14.5
 - Fixed compatibility with recent AMD drivers (19.7.2), thanks [@psychocrypt](https://github.com/psychocrypt).
 
