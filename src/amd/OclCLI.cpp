@@ -196,7 +196,8 @@ int OclCLI::getHints(const GpuContext &ctx, xmrig::Config *config) const
                                                 ctx.name == "gfx904" ||
                                                 ctx.name == "gfx900" ||
                                                 ctx.name == "gfx903" ||
-                                                ctx.name == "gfx905"))
+                                                ctx.name == "gfx905" ||
+                                                ctx.name == "gfx906"))
     {
         hints |= Vega;
         hints |= DoubleThreads;
