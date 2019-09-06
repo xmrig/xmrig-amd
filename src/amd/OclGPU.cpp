@@ -201,7 +201,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
 
     xmrig::String device_name = ctx->name;
     std::for_each(device_name.data(), device_name.data() + device_name.size(), [](char& c) { c = static_cast<char>(toupper(c)); });
-    ctx->gcn_version = (device_name == "GFX900") ? 14 : 12;
+    ctx->gcn_version = ((device_name == "GFX900") || (device_name == "GFX906")) ? 14 : 12;
 
     cl_int ret;
     ctx->CommandQueues = OclLib::createCommandQueue(opencl_ctx, ctx->DeviceID, &ret);
