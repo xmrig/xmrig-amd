@@ -56,6 +56,12 @@ void printPlatforms();
 size_t InitOpenCL(const std::vector<GpuContext *> &contexts, xmrig::Config *config, cl_context *opencl_ctx);
 size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant, uint64_t height);
 size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant);
+
+#ifdef XMRIG_ALGO_RANDOMX
+size_t RXSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, const uint8_t* seed_hash, xmrig::Variant variant);
+size_t RXRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant);
+#endif
+
 void ReleaseOpenCl(GpuContext* ctx);
 void ReleaseOpenClContext(cl_context opencl_ctx);
 #endif /* XMRIG_OCLGPU_H */

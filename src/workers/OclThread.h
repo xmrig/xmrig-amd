@@ -70,6 +70,7 @@ public:
     void setThreadsCountByGPU(size_t threads);
     void setUnrollFactor(int unrollFactor);
     void setWorksize(size_t worksize);
+    void setBFactor(size_t bfactor);
 
 protected:
 #   ifdef APP_DEBUG
