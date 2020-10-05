@@ -1,17 +1,17 @@
 # XMRig AMD
 
-[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/releases)
-[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/blob/master/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](https://github.com/xmrig/xmrig-amd/network)
+[![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig-amd/total.svg)](../../releases)
+[![GitHub release](https://img.shields.io/github/release/xmrig/xmrig-amd/all.svg)](../../releases/latest)
+[![GitHub Release Date](https://img.shields.io/github/release-date-pre/xmrig/xmrig-amd.svg)](../../releases/latest)
+[![GitHub license](https://img.shields.io/github/license/xmrig/xmrig-amd.svg)](./LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig-amd.svg)](../../stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig-amd.svg)](../../network)
 
 XMRig is high performance Monero (XMR) OpenCL miner, with the official full Windows support.
 
 GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocrypt](https://github.com/psychocrypt) code.
 
-* This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](https://github.com/xmrig/xmrig) and [NVIDIA GPU version](https://github.com/xmrig/xmrig-nvidia).
+* This is the AMD (OpenCL) GPU mining version, there is also a [CPU version](../../../xmrig) and [NVIDIA GPU version](../../../xmrig-nvidia).
 * [Roadmap](https://github.com/xmrig/xmrig/issues/106) for next releases.
 
 :warning: Suggested values for GPU auto configuration can be not optimal or not working, you may need tweak your threads options. Please fell free open an [issue](https://github.com/xmrig/xmrig-amd/issues) if auto configuration suggest wrong values.
@@ -22,9 +22,8 @@ GPU mining part based on [Wolf9466](https://github.com/OhGodAPet) and [psychocry
 * [Features](#features)
 * [Download](#download)
 * [Usage](#usage)
-* [Build](https://github.com/xmrig/xmrig-amd/wiki/Build)
+  * [Command line options](#command-line-options)
 * [Donations](#donations)
-* [Release checksums](#release-checksums)
 * [Contacts](#contacts)
 
 ## Features
