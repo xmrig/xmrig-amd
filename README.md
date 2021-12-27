@@ -1,5 +1,17 @@
 # XMRigCC-amd (OpenCL)
 
+
+
+
+# :warning::warning: **This repo is outdated PLEASE use the latest unified miner available here: [XMRigCC](https://github.com/Bendr0id/xmrigCC)**:warning::warning:
+
+
+
+
+
+
+
+
 :warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
 
 :bulb: **This is the AMD GPU (OpenCL) variant of XMRigCC, if you're looking for the CPU variant [click here](https://github.com/Bendr0id/xmrigCC/).**
